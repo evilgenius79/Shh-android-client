@@ -238,7 +238,7 @@ class ScreensTest {
     fun settingsChangesArePersisted() {
         val data = sampleData()
         val container = container(data)
-        show { SettingsScreen(container, container.store.data.value, onBack = {}) }
+        show { SettingsScreen(container, data, onBack = {}) }
         shot("settings-dark")
         assertTrue(container.store.data.value.settings.vibrateOnBell)
         compose.onNodeWithText("Vibrate on bell").performScrollTo().performClick()

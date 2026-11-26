@@ -76,7 +76,10 @@ class LiveSessionTest {
     private fun waitFor(what: String, timeoutMs: Long = 20_000, condition: () -> Boolean) {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (!condition()) {
-            check(System.currentTimeMillis() < deadline) { "Timed out waiting for: $what" }
+            check(System.currentTimeMillis() < deadline) {
+                // Include what the terminals show: it is usually the quickest way to see why.
+                "Timed out waiting for: $what\n" + sessions.joinToString("\n---\n") { it.screen().trimEnd() }
+            }
             Thread.sleep(25)
         }
     }
@@ -148,6 +151,77 @@ class LiveSessionTest {
         assertEquals(null, session.prompt.value)
         session.sendText("echo back-again\r")
         waitFor("output after reconnecting") { session.screen().contains("back-again") }
+    }
+
+    /** Everything the keyboard can do, sent through the view exactly as Android delivers it. */
+    @Test
+    fun keyboardInputReachesTheShell() {
+        val session = open(host())
+        session.acceptHostKey()
+        waitFor("the connection") { session.isConnected }
+        val context: Context = ApplicationProvider.getApplicationContext()
+        val view = TerminalView(context)
+        val (width, height) = view.sizeFor(80, 24)
+        view.attach(session)
+        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, width, height)
+
+        fun key(code: Int, meta: Int = 0) {
+            val now = android.os.SystemClock.uptimeMillis()
+            view.onKeyDown(code, android.view.KeyEvent(now, now, android.view.KeyEvent.ACTION_DOWN, code, 0, meta))
+        }
+
+        // An on-screen keyboard: committed text, a backspace expressed as "delete surrounding
+        // text", then Enter as a key event.
+        val editorInfo = android.view.inputmethod.EditorInfo()
+        val ime = view.onCreateInputConnection(editorInfo)
+        assertTrue(editorInfo.inputType and android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0)
+        ime.commitText("echo ime-\$((3*3))X", 1)
+        ime.deleteSurroundingText(1, 0)
+        ime.sendKeyEvent(android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER))
+        waitFor("text typed on the on-screen keyboard") { session.screen().contains("ime-9") }
+        assertTrue(!session.screen().contains("ime-9X"), "the backspace removed the X")
+
+        // Text a keyboard was still composing is sent once it is finished.
+        ime.setComposingText("echo composed-\$((2+2))", 1)
+        ime.finishComposingText()
+        key(android.view.KeyEvent.KEYCODE_ENTER)
+        waitFor("composed text") { session.screen().contains("composed-4") }
+
+        // The Ctrl key from the extra key row applies to the next character: Ctrl+C aborts the
+        // half typed command, and the latch is used up.
+        ime.commitText("echo never-run", 1)
+        view.ctrlLatched = true
+        var consumed = 0
+        view.onModifiersConsumed = { consumed++ }
+        ime.commitText("c", 1)
+        assertEquals(1, consumed)
+        assertTrue(!view.ctrlLatched)
+        // Wait for the shell to react before typing on: it throws away type-ahead when it is
+        // interrupted, exactly as it would for a person typing implausibly fast.
+        waitFor("the interrupt") { session.screen().contains("never-run^C") }
+        ime.commitText("echo after-\$((7+1))\n", 1)
+        waitFor("output after Ctrl+C") { session.screen().contains("after-8") }
+
+        // Cursor keys: recall the previous command with Up and run it again.
+        ime.commitText("clear\n", 1)
+        waitFor("the screen to clear") { !session.screen().contains("after-8") }
+        key(android.view.KeyEvent.KEYCODE_DPAD_UP)
+        key(android.view.KeyEvent.KEYCODE_DPAD_UP)
+        key(android.view.KeyEvent.KEYCODE_ENTER)
+        waitFor("the recalled command") { session.screen().contains("after-8") }
+
+        // Tab completes a command name.
+        ime.commitText("ec", 1)
+        key(android.view.KeyEvent.KEYCODE_TAB)
+        key(android.view.KeyEvent.KEYCODE_TAB)
+        ime.commitText("ho tab-\$((6+6))\n", 1)
+        waitFor("output of the completed command") { session.screen().contains("tab-12") }
+
+        // A hardware keyboard: Ctrl+L clears the screen.
+        key(android.view.KeyEvent.KEYCODE_L, android.view.KeyEvent.META_CTRL_ON)
+        waitFor("Ctrl+L") { !session.screen().contains("tab-12") }
+        view.attach(null)
     }
 
     @Test
