@@ -1,0 +1,25 @@
+# 80 24 2 6 0
+$ echo cleared
+cleared
+$ echo hello
+hello
+$ printf 'a\tb\tc\n'
+a       b       c
+$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

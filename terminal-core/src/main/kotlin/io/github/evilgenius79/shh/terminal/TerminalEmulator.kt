@@ -840,13 +840,21 @@ public class TerminalEmulator(
     }
 
     private fun eraseChars(count: Int) {
+        if (wrapPending) return
         eraseCells(screen[cursorRow], cursorCol, minOf(columns, cursorCol + count))
     }
 
+    /**
+     * EL. With a wrap pending the cursor is logically past the last column, so erasing "from the
+     * cursor to the end of the line" erases nothing. xterm itself would erase the last character
+     * here; like VTE, konsole and tmux we do not, because programs such as grep and gcc emit
+     * `CSI K` right after coloured text and would otherwise lose the last character of every
+     * line that exactly fills the screen width.
+     */
     private fun eraseInLine(mode: Int) {
         val line = screen[cursorRow]
         when (mode) {
-            0 -> {
+            0 -> if (!wrapPending) {
                 eraseCells(line, cursorCol, columns)
                 line.isWrapped = false
             }

@@ -1,0 +1,25 @@
+# 80 24 0 1 1
+  GNU nano 7.2                       notes.txt                        Modified
+inserted text alpha
+beta appended
+a new line
+gamma
+delta
+epsilon
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+^G Help      ^O Write Out ^W Where Is  ^K Cut       ^T Execute   ^C Location
+^X Exit      ^R Read File ^\ Replace   ^U Paste     ^J Justify   ^/ Go To Line

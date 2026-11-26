@@ -1,0 +1,25 @@
+[?1049h[22;0;0t[?1h=line 001: the quick brown fox jumps over the [m lazy dog =[m
+line 002: the quick brown fox jumps over the [m lazy dog ==[m
+line 003: the quick brown fox jumps over the [m lazy dog ===[m
+line 004: the quick brown fox jumps over the [m lazy dog ====[m
+line 005: the quick brown fox jumps over the [m lazy dog =====[m
+line 006: the quick brown fox jumps over the [m lazy dog ======[m
+line 007: the quick brown fox jumps over the [m lazy dog =======[m
+[7mlong.txt[27m[K[Kline 008: the quick brown fox jumps over the [m lazy dog ========[m
+line 009: the quick brown fox jumps over the [m lazy dog =========[m
+line 010: the quick brown fox jumps over the [m lazy dog ==========[m
+line 011: the quick brown fox jumps over the [m lazy dog ===========[m
+line 012: the quick brown fox jumps over the [m lazy dog ============[m
+line 013: the quick brown fox jumps over the [m lazy dog =============[m
+line 014: the quick brown fox jumps over the [m lazy dog ==============[m
+:[K[Kline 015: the quick brown fox jumps over the [m :[K[Klazy dog ===============[m
+:[K[K...skipping...
+line 294: the quick brown fox jumps over the [m lazy dog ===================================[m
+line 295: the quick brown fox jumps over the [m lazy dog ====================================[m
+line 296: the quick brown fox jumps over the [m lazy dog [m
+line 297: the quick brown fox jumps over the [m lazy dog =[m
+line 298: the quick brown fox jumps over the [m lazy dog ==[m
+line 299: the quick brown fox jumps over the [m lazy dog ===[m
+line 300: the quick brown fox jumps over the [m lazy dog ====[m
+[7m(END)[27m[K[K[HMlazy dog ==================================[m
+[15;1H[K:[K[K[HMline 293: the quick brown fox jumps over the [m[15;1H[K:[K

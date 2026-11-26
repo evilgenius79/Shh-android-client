@@ -1,0 +1,25 @@
+# 80 24 0 10 0
+bold faint italic underline inverse strike
+ fg0  bg0  fg1  bg1  fg2  bg2  fg3  bg3  fg4  bg4  fg5  bg5  fg6  bg6  fg7  bg7
+ fg0  bg0  fg1  bg1  fg2  bg2  fg3  bg3  fg4  bg4  fg5  bg5  fg6  bg6  fg7  bg7
+
+########################
+
+colon rgb colon indexed curly plain
+stackedstill blue bg done
+red line to the edge
+normal after reset
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,139 @@
+[?1049h[22;0;0t[>4;2m[?1h=[?2004h[?1004h[1;24r[?12h[?12l[22;2t[22;1t[27m[23m[29m[m[H[2J[?25l[24;1H"sample.py" 25L, 600B[2;1H▽[6n[2;1H  [3;1HPzz\[0%m[6n[3;1H           [1;1H[>c]10;?]11;?[1;1H[34m#!/usr/bin/env python3[m
+[31m"""A little module used as editing material."""[m[2;48H[K[3;1H[35mimport[m os[3;10H[K[4;1H[35mimport[m sys
+
+
+[38;5;130mclass[m [36mGreeter[m:
+    [38;5;130mdef[m [36m__init__[m(self, name: [36mstr[m = [31m"world"[m) -> [36mNone[m:[9;9Hself.name = name[11;5H[38;5;130mdef[m [36mgreet[m(self, times: [36mint[m = [31m1[m) -> [36mstr[m:[12;9H[38;5;130mreturn[m [31m"[m[35m\n[m[31m"[m.join(f[31m"Hello, {self.name}!"[m [38;5;130mfor[m _ [38;5;130min[m [36mrange[m(times))
+
+
+[38;5;130mdef[m [36mmain[m(argv):
+    greeter = Greeter(argv[[31m1[m] [38;5;130mif[m [36mlen[m(argv) > [31m1[m [38;5;130melse[m [31m"world"[m)
+    [36mprint[m(greeter.greet([31m3[m))
+    [38;5;130mfor[m key, value [38;5;130min[m [36msorted[m(os.environ.items()):[19;9H[38;5;130mif[m key.startswith([31m"LC_"[m):[20;13H[36mprint[m(key, [31m"="[m, value)
+    [38;5;130mreturn[m [31m0[m[24;63H1,1[11CTop[1;1H[?25h[?4m[?12$p[?25l[24;1H[K[24;1H:syntax on[?25h[?25l[62C1,1[11CTop[1;1H[?25h[?25l[24;1H[K[24;1H:set number relativenumber cursorline[?25h[?25l[1;1H[4m[38;5;130m1   [m[4m[34m#!/usr/bin/env python3[m[4m                                                      [m[2;1H[38;5;130m  1 [m[31m"""A little module used as editing material."""[m
+[38;5;130m  2 [m[35mimport[m os
+[38;5;130m  3 [m[35mimport[m sys
+[38;5;130m  4 
+  5 
+  6 class[m [36mGreeter[m:
+[38;5;130m  7 [m    [38;5;130mdef[m [36m__init__[m(self, name: [36mstr[m = [31m"world"[m) -> [36mNone[m:
+[38;5;130m  8 [m        self.name = name
+[38;5;130m  9 
+ 10 [m    [38;5;130mdef[m [36mgreet[m(self, times: [36mint[m = [31m1[m) -> [36mstr[m:
+[38;5;130m 11 [m        [1C[38;5;130meturn[m [31m"[m[35m\n[m[31m"[m.join(f[31m"Hello, {self.name}!"[m [38;5;130mfor[m _ [38;5;130min[m [36mrange[m(times))
+[38;5;130m 12 
+ 13 
+ 14 def[m [36mmain[m(argv):
+[38;5;130m 15 [m    greeter = Greeter(argv[[31m1[m] [38;5;130mif[m [36mlen[m(argv) > [31m1[m [38;5;130melse[m [31m"world"[m)
+[38;5;130m 16 [m    [36mprint[m(greeter.greet([31m3[m))
+[38;5;130m 17 [m    [38;5;130mfor[m key, value [38;5;130min[m [36msorted[m(os.environ.items()):
+[38;5;130m 18 [m        [38;5;130mif[m key.startswith([1C[31mLC_"[m):
+[38;5;130m 19 [m[8C    [36mprint[m(key, [31m"="[m, value)
+[38;5;130m 20 [m    [1C[38;5;130meturn[m [31m0[m
+[38;5;130m 21 
+ 22 [m[24;63H1,1[11CTop[1;5H[?25h[?25l[24;53H10G[1;5H[24;53H   [10;5H[1;1H[38;5;130m  9 [m[34m#!/usr/bin/env python3[m[1;27H[K[2;3H[38;5;130m8
+  7
+  6
+  5
+  4
+  3
+  2
+  1[m
+[4m[38;5;130m10  [m[4m                                                                            [m[11;2H[38;5;130m 1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13[m[24;64H0,0-1[10;5H[?25h[?25l[24;53Hw[10;5H[24;53H [11;9H[1;2H[38;5;130m10
+  9
+  8
+  7
+  6
+  5
+  4
+  3
+  2
+  1 [m[10;5H[K[11;1H[4m[38;5;130m11  [m[4m    [m[4m[38;5;130mdef[m[4m [m[4m[36mgreet[m[4m(self, times: [m[4m[36mint[m[4m = [m[4m[31m1[m[4m) -> [m[4m[36mstr[m[4m:                                 [m[12;3H[38;5;130m1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12[m[24;64H1,5  [11;9H[?25h[?25l[24;53Hv[11;9H[24;53H1[11;9H    [38;5;130mdef[m [36mgreet[m(self, times: [36mint[m = [31m1[m) -> [36mstr[m:[11;48H[K[24;1H[1m-- VISUAL --[m[24;13H[K[24;53H1[11;9H[24;63H11,5[10CTop[11;9H[?25h[?25l[24;53He[11;9H[24;53H3[11;11H[38;5;130m[47mde[m[24;66H7[11;11H[?25h[?25l[24;53H^[[11;11H[24;53H3 [11;11H[24;54H^[[11;11H[24;53H   [11;11H[11;5H[4m    [m[4m[38;5;130mdef[m[4m [m[4m[36mgreet[m[4m(self, times: [m[4m[36mint[m[4m = [m[4m[31m1[m[4m) -> [m[4m[36mstr[m[4m:                                 [m[24;1H[K[24;63H11,7[10CTop[11;11H[?25h[?25l[24;63H[K[24;1H/greet[11;13H[4m[7m[36mgreet[m[24;63H11,9[10CTop[24;63H[K[24;7H[?25h[?25l[11;13H[4m[36mgreet[m[24;63H11,9[10CTop[11;13H[?25h[?25l[24;53Hn[11;13H[24;53H[K[24;1H[16;9H[1;3H[38;5;130m5
+ 14
+ 13
+ 12
+ 11
+ 10
+  9
+  8
+  7
+  6
+  5 [m    [38;5;130mdef[m [36mgreet[m(self, times: [36mint[m = [31m1[m) -> [36mstr[m:[11;48H[K[12;3H[38;5;130m4
+  3
+  2
+  1[m
+[4m[38;5;130m16  [m[4m    greeter = Greeter(argv[[m[4m[31m1[m[4m] [m[4m[38;5;130mif[m[4m [m[4m[36mlen[m[4m(argv) > [m[4m[31m1[m[4m [m[4m[38;5;130melse[m[4m [m[4m[31m"world"[m[4m)                [m[17;3H[38;5;130m1
+  2
+  3
+  4
+  5
+  6
+  7[m[24;63H16,5[10CTop[16;9H[?25h[?25l[24;53H^E[16;9H[24;53H  [15;9H[1;23r[23;1H
+[1;24r[23;1H[38;5;130m  8 if[m __name__ == [31m"__main__"[m:[24;1H[K[24;63H16,5[10C50%[15;9H[?25h[?25l[24;53H^E[15;9H[24;53H  [14;9H[1;23r[23;1H
+[1;24r[23;1H[38;5;130m  9 [m    sys.exit(main(sys.argv))[24;63H[K[24;63H16,5[10CBot[14;9H[?25h[?25l[24;53H^E[14;9H[24;53H  [13;9H[1;23r[23;1H
+[1;24r[23;1H[94m~                                                                               [m[24;63H[K[24;63H16,5[10CBot[13;9H[?25h[?25l[24;53H^Y[13;9H[24;53H  [14;9H[1;23r[1;1H[L[1;24r[1;1H[38;5;130m 13 [m[35mimport[m os[24;63H[K[24;63H16,5[10CBot[14;9H[?25h[?25l[24;53H^D[14;9H[24;53H  [23;9H[1;2H[38;5;130m22
+ 21
+ 20
+ 19
+ 18
+ 17
+ 16
+ 15
+ 14
+ 13
+ 12
+ 11
+ 10
+  9 [m    greeter = Greeter(argv[[31m1[m] [38;5;130mif[m [36mlen[m(argv) > [31m1[m [38;5;130melse[m [31m"world"[m)[14;65H[K[15;3H[38;5;130m8
+  7
+  6
+  5
+  4
+  3
+  2
+  1[m
+[4m[38;5;130m25  [m[4m    sys.exit(main(sys.argv))                                                [m[24;63H25[23;9H[?25h[?25l[24;53H^U[23;9H[24;53H  [14;5H[1;23r[1;1H[2L[1;24r[1;1H[38;5;130m 13 [m[34m#!/usr/bin/env python3[m
+[38;5;130m 12 [m[31m"""A little module used as editing material."""[m[3;2H[38;5;130m11
+ 10
+  9
+  8
+  7
+  6
+  5
+  4
+  3
+  2
+  1[m
+[4m[38;5;130m14  [m[4m                                                                            [m[15;2H[38;5;130m 1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9[m[24;63H[K[24;63H14,0-1[8CTop[14;5H[?25h[?25l[24;53Hzz[14;5H[24;53H  [12;5H[1;23r[1;1H[2M[1;24r[22;1H[38;5;130m 10 if[m __name__ == [31m"__main__"[m:
+[38;5;130m 11 [m    sys.exit(main(sys.argv))[24;63H[K[24;63H14,0-1[8CBot[12;5H[?25h[?25l[24;63H[K[24;1H:set hlsearch[?25h[?25l[9;13H[36m[103mgreet[m[14;9H[103mgreet[15;15Hgreet[mer.[103mgreet[m[24;63H14,0-1[8CBot[12;5H[?25h[?25h

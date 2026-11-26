@@ -1,0 +1,25 @@
+# 80 24 53 23 1
+ |        UnicodeEncodeError.  Other possible values are 'ignore', 'replace'
+ |        and 'xmlcharrefreplace' as well as any other name registered with
+ |        codecs.register_error that can handle UnicodeEncodeErrors.
+ |
+ |  endswith(self, suffix[, start[, end]], /)
+ |      Return True if the string ends with the specified suffix, False otherwis
+e.
+ |
+ |      suffix
+ |        A string or a tuple of strings to try.
+ |      start
+ |        Optional start position. Default: start of the string.
+ |      end
+ |        Optional stop position. Default: end of the string.
+ |
+ |  expandtabs(self, /, tabsize=8)
+ |      Return a copy where all tab characters are expanded using spaces.
+ |
+ |      If tabsize is not given, a tab size of 8 characters is assumed.
+ |
+ |  find(self, sub[, start[, end]], /)
+ |      Return the lowest index in S where substring sub is found, such that sub
+ is contained within S[start:end].
+ Help on str line 108 (press h for help or q to quit)

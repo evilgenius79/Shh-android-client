@@ -1,0 +1,25 @@
+# 80 24 40 15 1
+┌── curses demo ───────────────────────────────────────────────────────────────┐
+│ colour 1 colour 2 colour 3 colour 4 colour 5 colour 6 colour 7               │
+│ reverse   underline   dim                                                    │
+│──────────────────────────────────────────────────────────────────────────────│
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│     alpha                                                                    │
+│     beta                                                                     │
+│     gamma                                                                    │
+│     delta                                                                    │
+│     epsilon                                                                  │
+│     zeta                                                                     │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│                                                                              │
+
+│ wide: 中文 ok                                                                │
+│                                                                              │
+│ selected=beta       counter=15                                               │
+

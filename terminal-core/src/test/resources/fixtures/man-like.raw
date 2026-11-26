@@ -1,0 +1,161 @@
+[?1049h[22;0;0t[?1h=Help on class str in module builtins:[m
+[m
+class [1mstr[0m(object)[m
+ |  str(object='') -> str[m
+ |  str(bytes_or_buffer[, encoding[, errors]]) -> str[m
+ |[m
+ |  Create a new string object from the given object. If encoding or[m
+ |  errors is specified, then the object must expose a data buffer[m
+ |  that will be decoded using the given encoding and error handler.[m
+ |  Otherwise, returns the result of object.__str__() (if defined)[m
+ |  or repr(object).[m
+ |  encoding defaults to 'utf-8'.[m
+ |  errors defaults to 'strict'.[m
+ |[m
+ |  Methods defined here:[m
+ |[m
+ |  [1m__add__[0m(self, value, /)[m
+ |      Return self+value.[m
+ |[m
+ |  [1m__contains__[0m(self, key, /)[m
+ |      Return bool(key in self).[m
+ |[m
+ |  [1m__eq__[0m(self, value, /)[m
+[7m Help on str line 1 (press h for help or q to quit)[27m[K[K |      Return self==value.[m
+ |[m
+ |  [1m__format__[0m(self, format_spec, /)[m
+ |      Return a formatted version of the string as described by format_spec.[m
+ |[m
+ |  [1m__ge__[0m(self, value, /)[m
+ |      Return self>=value.[m
+ |[m
+ |  [1m__getitem__[0m(self, key, /)[m
+ |      Return self[key].[m
+ |[m
+ |  [1m__getnewargs__[0m(self, /)[m
+ |[m
+ |  [1m__gt__[0m(self, value, /)[m
+ |      Return self>value.[m
+ |[m
+ |  [1m__hash__[0m(self, /)[m
+ |      Return hash(self).[m
+ |[m
+ |  [1m__iter__[0m(self, /)[m
+ |      Implement iter(self).[m
+ |[m
+ |  [1m__le__[0m(self, value, /)[m
+[7m Help on str line 24 (press h for help or q to quit)[27m[K[K |      Return self<=value.[m
+ |[m
+ |  [1m__len__[0m(self, /)[m
+ |      Return len(self).[m
+ |[m
+ |  [1m__lt__[0m(self, value, /)[m
+ |      Return self<value.[m
+ |[m
+ |  [1m__mod__[0m(self, value, /)[m
+ |      Return self%value.[m
+ |[m
+ |  [1m__mul__[0m(self, value, /)[m
+ |      Return self*value.[m
+ |[m
+ |  [1m__ne__[0m(self, value, /)[m
+ |      Return self!=value.[m
+ |[m
+ |  [1m__repr__[0m(self, /)[m
+ |      Return repr(self).[m
+ |[m
+ |  [1m__rmod__[0m(self, value, /)[m
+ |      Return value%self.[m
+ |[m
+[7m Help on str line 47 (press h for help or q to quit)[27m[K[K[HM |  [1m__le__[0m(self, value, /)[m
+[HM |[m
+[HM |      Implement iter(self).[m
+[HM |  [1m__iter__[0m(self, /)[m
+[HM |[m
+[HM |      Return hash(self).[m
+[HM |  [1m__hash__[0m(self, /)[m
+[HM |[m
+[HM |      Return self>value.[m
+[HM |  [1m__gt__[0m(self, value, /)[m
+[HM |[m
+[HM |  [1m__getnewargs__[0m(self, /)[m
+[HM |[m
+[HM |      Return self[key].[m
+[HM |  [1m__getitem__[0m(self, key, /)[m
+[HM |[m
+[HM |      Return self>=value.[m
+[HM |  [1m__ge__[0m(self, value, /)[m
+[HM |[m
+[HM |      Return a formatted version of the string as described by format_spec.[m
+[HM |  [1m__format__[0m(self, format_spec, /)[m
+[HM |[m
+[HM |      Return self==value.[m
+[24;1H[K[7m Help on str line 24 (press h for help or q to quit)[27m[K[K/[Krr[Kee[Kpp[Kll[Kaa[Kcc[Kee[K[1;1H |      Return self==value.[m
+[2;1H |[m
+[3;1H |  [1m__format__[0m(self, format_spec, /)[m
+[4;1H |      Return a formatted version of the string as described by format_spec.[m
+[5;1H |[m
+[6;1H |  [1m__ge__[0m(self, value, /)[m
+[7;1H |      Return self>=value.[m
+[8;1H |[m
+[9;1H |  [1m__getitem__[0m(self, key, /)[m
+[10;1H |      Return self[key].[m
+[11;1H |[m
+[12;1H |  [1m__getnewargs__[0m(self, /)[m
+[13;1H |[m
+[14;1H |  [1m__gt__[0m(self, value, /)[m
+[15;1H |      Return self>value.[m
+[16;1H |[m
+[17;1H |  [1m__hash__[0m(self, /)[m
+[18;1H |      Return hash(self).[m
+[19;1H |[m
+[20;1H |  [1m__iter__[0m(self, /)[m
+[21;1H |      Implement iter(self).[m
+[22;1H |[m
+[23;1H |  [1m__le__[0m(self, value, /)[m
+[24;1H[1;1H |      Return self==value.[m
+[2;1H |[m
+[3;1H |  [1m__format__[0m(self, format_spec, /)[m
+[4;1H |      Return a formatted version of the string as described by format_spec.[m
+[5;1H |[m
+[6;1H |  [1m__ge__[0m(self, value, /)[m
+[7;1H |      Return self>=value.[m
+[8;1H |[m
+[9;1H |  [1m__getitem__[0m(self, key, /)[m
+[10;1H |      Return self[key].[m
+[11;1H |[m
+[12;1H |  [1m__getnewargs__[0m(self, /)[m
+[13;1H |[m
+[14;1H |  [1m__gt__[0m(self, value, /)[m
+[15;1H |      Return self>value.[m
+[16;1H |[m
+[17;1H |  [1m__hash__[0m(self, /)[m
+[18;1H |      Return hash(self).[m
+[19;1H |[m
+[20;1H |  [1m__iter__[0m(self, /)[m
+[21;1H |      Implement iter(self).[m
+[22;1H |[m
+[23;1H |  [1m__le__[0m(self, value, /)[m
+[24;1H...skipping...
+ |        UnicodeEncodeError.  Other possible values are 'ignore', '[7mreplace[27m'[m
+ |        and 'xmlcharref[7mreplace[27m' as well as any other name registered with[m
+ |        codecs.register_error that can handle UnicodeEncodeErrors.[m
+ |[m
+ |  [1mendswith[0m(self, suffix[, start[, end]], /)[m
+ |      Return True if the string ends with the specified suffix, False otherwis[m e.[m
+ |[m
+ |      suffix[m
+ |        A string or a tuple of strings to try.[m
+ |      start[m
+ |        Optional start position. Default: start of the string.[m
+ |      end[m
+ |        Optional stop position. Default: end of the string.[m
+ |[m
+ |  [1mexpandtabs[0m(self, /, tabsize=8)[m
+ |      Return a copy where all tab characters are expanded using spaces.[m
+ |[m
+ |      If tabsize is not given, a tab size of 8 characters is assumed.[m
+ |[m
+ |  [1mfind[0m(self, sub[, start[, end]], /)[m
+ |      Return the lowest index in S where substring sub is found, such that sub[m  is contained within S[start:end].[m
+[7m Help on str line 108 (press h for help or q to quit)[27m[K

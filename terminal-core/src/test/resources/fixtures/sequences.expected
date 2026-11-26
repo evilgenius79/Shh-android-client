@@ -1,0 +1,25 @@
+# 80 24 5 23 0
+                                                           jump
+  *
+          efghijklmnopqrstuvwxyz0123456789
+
+row 6 abc     defghijklmnopqrstuvwxyz0123456789
+row 7 abcijklmnopqrstuvwxyz0123456789
+row 8 abc     ijklmnopqrstuvwxyz0123456789
+
+
+row 9 abcdefghijklmnopqrstuvwxyz0123456save restored
+row 10 abcdefghijklmnopqrstuvwxyz012345abcccc
+row 13 abcdefghijklmnopqrstuvwxyz012345INS6789
+row 14 abcdefghijklmnopqrstuvwxyz0123456789
+reverse index
+
+row 18 abcdefghijklmnopqrstuvwxyz0123456789
+row 19 abcdefghijklmnopqrstuvwxyz0123456789
+row 20 abcdefghijklmnopqrstuvwxyz0123456789
+
+row 21 abcdefghijklmnopqrstuvwxyz0123456789      colour
+row 22 abcdefghijklmnopqrstuvwxyz0123456789
+
+
+tdone

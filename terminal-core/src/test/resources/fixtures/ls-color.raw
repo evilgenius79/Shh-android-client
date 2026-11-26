@@ -1,0 +1,150 @@
+total 649420
+drwxr-xr-x  2 root root       24576 Nov 26 21:38 [0m[01;34m.[0m
+drwxr-xr-x 12 root root        4096 Nov 21 05:08 [01;34m..[0m
+-rwxr-xr-x  1 root root          97 Oct 26 15:28 [01;32m2to3-3.11[0m
+-rwxr-xr-x  1 root root      445024 Apr  1  2024 [01;32mX0tigervnc[0m
+lrwxrwxrwx  1 root root           1 Apr  8  2024 [01;36mX11[0m -> .
+-rwxr-xr-x  1 root root     2064864 Jul 15 00:17 [01;32mXvfb[0m
+-rwxr-xr-x  1 root root       55744 Aug 25 15:09 [01;32m[[0m
+lrwxrwxrwx  1 root root          25 Feb  1  2024 [01;36maclocal[0m -> /etc/alternatives/aclocal
+-rwxr-xr-x  1 root root       36020 Feb  1  2024 [01;32maclocal-1.16[0m
+-rwxr-xr-x  1 root root        4934 Aug  3  2024 [01;32mactivate-global-python-argcomplete[0m
+-rwxr-xr-x  1 root root         359 Nov 20 10:56 [01;32madd-apt-repository[0m
+-rwxr-xr-x  1 root root       14720 Aug 19 16:47 [01;32maddpart[0m
+lrwxrwxrwx  1 root root          26 Feb  9  2026 [01;36maddr2line[0m -> x86_64-linux-gnu-addr2line
+-rwxr-xr-x  1 root root     3836776 Jun 19  2025 [01;32mage[0m
+-rwxr-xr-x  1 root root     2105944 Jun 19  2025 [01;32mage-keygen[0m
+lrwxrwxrwx  1 root root          30 May 27  2024 [01;36mamdgpu-arch-18[0m -> ../lib/llvm-18/bin/amdgpu-arch
+lrwxrwxrwx  1 root root          32 May 27  2024 [01;36manalyze-build-18[0m -> ../lib/llvm-18/bin/analyze-build
+lrwxrwxrwx  1 root root          25 Mar 31  2024 [01;36manimate[0m -> /etc/alternatives/animate
+lrwxrwxrwx  1 root root          29 Mar 31  2024 [01;36manimate-im6[0m -> /etc/alternatives/animate-im6
+-rwxr-xr-x  1 root root       14656 Mar 31  2024 [01;32manimate-im6.q16[0m
+-rwxr-xr-x  1 root root       18824 Nov  2 12:55 [01;32mapt[0m
+lrwxrwxrwx  1 root root          18 Jan  5  2026 [01;36mapt-add-repository[0m -> add-apt-repository
+-rwxr-xr-x  1 root root       88544 Nov  2 12:55 [01;32mapt-cache[0m
+-rwxr-xr-x  1 root root       27104 Nov  2 12:55 [01;32mapt-cdrom[0m
+-rwxr-xr-x  1 root root       31120 Nov  2 12:55 [01;32mapt-config[0m
+-rwxr-xr-x  1 root root       51680 Nov  2 12:55 [01;32mapt-get[0m
+-rwxr-xr-x  1 root root       28664 Nov  2 12:55 [01;32mapt-key[0m
+-rwxr-xr-x  1 root root       55776 Nov  2 12:55 [01;32mapt-mark[0m
+lrwxrwxrwx  1 root root          19 Feb  9  2026 [01;36mar[0m -> x86_64-linux-gnu-ar
+-rwxr-xr-x  1 root root       35336 Aug 25 15:09 [01;32march[0m
+lrwxrwxrwx  1 root root          19 Feb  9  2026 [01;36mas[0m -> x86_64-linux-gnu-as
+lrwxrwxrwx  1 root root          17 Mar 30  2024 [01;36masan_symbolize[0m -> asan_symbolize-18
+-rwxr-xr-x  1 root root       42995 May 27  2024 [01;32masan_symbolize-18[0m
+-rwxr-xr-x  1 root root       15204 Jan 14  2023 [01;32mautoconf[0m
+-rwxr-xr-x  1 root root        9034 Jan 14  2023 [01;32mautoheader[0m
+-rwxr-xr-x  1 root root       33475 Jan 14  2023 [01;32mautom4te[0m
+lrwxrwxrwx  1 root root          26 Feb  1  2024 [01;36mautomake[0m -> /etc/alternatives/automake
+-rwxr-xr-x  1 root root      262055 Feb  1  2024 [01;32mautomake-1.16[0m
+-rwxr-xr-x  1 root root       26934 Jan 14  2023 [01;32mautoreconf[0m
+-rwxr-xr-x  1 root root       17177 Jan 14  2023 [01;32mautoscan[0m
+-rwxr-xr-x  1 root root       34017 Jan 14  2023 [01;32mautoupdate[0m
+lrwxrwxrwx  1 root root          21 Apr  8  2024 [01;36mawk[0m -> /etc/alternatives/awk
+-rwxr-xr-x  1 root root       55816 Aug 25 15:09 [01;32mb2sum[0m
+-rwxr-xr-x  1 root root       39432 Aug 25 15:09 [01;32mbase32[0m
+-rwxr-xr-x  1 root root       39432 Aug 25 15:09 [01;32mbase64[0m
+-rwxr-xr-x  1 root root       35336 Aug 25 15:09 [01;32mbasename[0m
+-rwxr-xr-x  1 root root       47624 Aug 25 15:09 [01;32mbasenc[0m
+-rwxr-xr-x  1 root root     1446024 Mar 31  2024 [01;32mbash[0m
+-rwxr-xr-x  1 root root        6988 Mar 31  2024 [01;32mbashbug[0m
+-rwxr-xr-x  1 root root       93000 Apr  8  2024 [01;32mbc[0m
+-rwxr-xr-x  1 root root       43272 Apr  8  2024 [01;32mbdftopcf[0m
+-rwxr-xr-x  1 root root       14488 Apr  8  2024 [01;32mbdftruncate[0m
+-rwxr-xr-x  1 root root      504656 Sep 16 13:14 [01;32mbison[0m
+-rwxr-xr-x  1 root root        4214 Sep 16 13:14 [01;32mbison.yacc[0m
+lrwxrwxrwx  1 root root          27 Mar 30  2024 [01;36mbugpoint[0m -> ../lib/llvm-18/bin/bugpoint
+lrwxrwxrwx  1 root root          27 May 27  2024 [01;36mbugpoint-18[0m -> ../lib/llvm-18/bin/bugpoint
+-rwxr-xr-x  3 root root       39296 Aug 27 04:05 [01;32mbunzip2[0m
+-rwxr-xr-x  1 root root       96864 Oct 12 07:36 [01;32mbusctl[0m
+-rwxr-xr-x  3 root root       39296 Aug 27 04:05 [01;32mbzcat[0m
+lrwxrwxrwx  1 root root           6 Aug 27 04:05 [01;36mbzcmp[0m -> bzdiff
+-rwxr-xr-x  1 root root        2225 Aug 27 04:05 [01;32mbzdiff[0m
+lrwxrwxrwx  1 root root           6 Aug 27 04:05 [01;36mbzegrep[0m -> bzgrep
+-rwxr-xr-x  1 root root        4893 Nov 27  2021 [01;32mbzexe[0m
+lrwxrwxrwx  1 root root           6 Aug 27 04:05 [01;36mbzfgrep[0m -> bzgrep
+-rwxr-xr-x  1 root root        3775 Aug 27 04:05 [01;32mbzgrep[0m
+-rwxr-xr-x  3 root root       39296 Aug 27 04:05 [01;32mbzip2[0m
+-rwxr-xr-x  1 root root       18736 Aug 27 04:05 [01;32mbzip2recover[0m
+lrwxrwxrwx  1 root root           6 Aug 27 04:05 [01;36mbzless[0m -> bzmore
+-rwxr-xr-x  1 root root        1297 Aug 27 04:05 [01;32mbzmore[0m
+lrwxrwxrwx  1 root root          21 Mar 30  2024 [01;36mc++[0m -> /etc/alternatives/c++
+lrwxrwxrwx  1 root root          24 Feb  9  2026 [01;36mc++filt[0m -> x86_64-linux-gnu-c++filt
+lrwxrwxrwx  1 root root          31 May 27  2024 [01;36mc-index-test-18[0m -> ../lib/llvm-18/bin/c-index-test
+lrwxrwxrwx  1 root root          21 Nov 17  2020 [01;36mc89[0m -> /etc/alternatives/c89
+-rwxr-xr-x  1 root root         428 Nov 17  2020 [01;32mc89-gcc[0m
+lrwxrwxrwx  1 root root          21 Nov 17  2020 [01;36mc99[0m -> /etc/alternatives/c99
+-rwxr-xr-x  1 root root         454 Nov 17  2020 [01;32mc99-gcc[0m
+-rwxr-xr-x  1 root root        6841 Sep 16 18:47 [01;32mc_rehash[0m
+-rwxr-xr-x  1 root root       44669 Apr  8  2024 [01;32mcallgrind_annotate[0m
+-rwxr-xr-x  1 root root       13033 Apr  8  2024 [01;32mcallgrind_control[0m
+lrwxrwxrwx  1 root root           3 Aug 31 11:36 [01;36mcaptoinfo[0m -> tic
+-rwxr-xr-x  1 root root       39384 Aug 25 15:09 [01;32mcat[0m
+lrwxrwxrwx  1 root root          20 Jan 31  2024 [01;36mcc[0m -> /etc/alternatives/cc
+-rwxr-xr-x  1 root root      179048 Oct 20 23:09 [01;32mcertutil[0m
+-rwxr-xr-x  1 root root       43583 Apr  8  2024 [01;32mcg_annotate[0m
+-rwxr-xr-x  1 root root       11630 Apr  8  2024 [01;32mcg_diff[0m
+-rwxr-xr-x  1 root root       10510 Apr  8  2024 [01;32mcg_merge[0m
+-rwxr-sr-x  1 root shadow     72184 May 30  2024 [30;43mchage[0m
+-rwxr-xr-x  1 root root       14656 Apr 28  2024 [01;32mchattr[0m
+-rwxr-xr-x  1 root root       59912 Aug 25 15:09 [01;32mchcon[0m
+-rwsr-xr-x  1 root root       72792 May 30  2024 [37;41mchfn[0m
+-rwxr-xr-x  1 root root       59912 Aug 25 15:09 [01;32mchgrp[0m
+-rwxr-xr-x  1 root root       14648 Oct 20 23:09 [01;32mchktest[0m
+-rwxr-xr-x  1 root root       55816 Aug 25 15:09 [01;32mchmod[0m
+-rwxr-xr-x  1 root root       22912 Aug 19 16:47 [01;32mchoom[0m
+-rwxr-xr-x  1 root root       59912 Aug 25 15:09 [01;32mchown[0m
+-rwxr-xr-x  1 root root       31104 Aug 19 16:47 [01;32mchrt[0m
+-rwsr-xr-x  1 root root       44760 May 30  2024 [37;41mchsh[0m
+-rwxr-xr-x  1 root root      104984 Aug 25 15:09 [01;32mcksum[0m
+lrwxrwxrwx  1 root root          24 Mar 30  2024 [01;36mclang[0m -> ../lib/llvm-18/bin/clang
+lrwxrwxrwx  1 root root          26 Mar 30  2024 [01;36mclang++[0m -> ../lib/llvm-18/bin/clang++
+lrwxrwxrwx  1 root root          26 May 27  2024 [01;36mclang++-18[0m -> ../lib/llvm-18/bin/clang++
+lrwxrwxrwx  1 root root          24 May 27  2024 [01;36mclang-18[0m -> ../lib/llvm-18/bin/clang
+lrwxrwxrwx  1 root root          43 May 27  2024 [01;36mclang-apply-replacements-18[0m -> ../lib/llvm-18/bin/clang-apply-replacements
+lrwxrwxrwx  1 root root          41 May 27  2024 [01;36mclang-change-namespace-18[0m -> ../lib/llvm-18/bin/clang-change-namespace
+lrwxrwxrwx  1 root root          30 May 27  2024 [01;36mclang-check-18[0m -> ../lib/llvm-18/bin/clang-check
+lrwxrwxrwx  1 root root          27 May 27  2024 [01;36mclang-cl-18[0m -> ../lib/llvm-18/bin/clang-cl
+lrwxrwxrwx  1 root root          28 May 27  2024 [01;36mclang-cpp-18[0m -> ../lib/llvm-18/bin/clang-cpp
+lrwxrwxrwx  1 root root          28 May 27  2024 [01;36mclang-doc-18[0m -> ../lib/llvm-18/bin/clang-doc
+lrwxrwxrwx  1 root root          39 May 27  2024 [01;36mclang-extdef-mapping-18[0m -> ../lib/llvm-18/bin/clang-extdef-mapping
+lrwxrwxrwx  1 root root          15 Mar 30  2024 [01;36mclang-format[0m -> clang-format-18
+lrwxrwxrwx  1 root root          31 May 27  2024 [01;36mclang-format-18[0m -> ../lib/llvm-18/bin/clang-format
+lrwxrwxrwx  1 root root          20 Mar 30  2024 [01;36mclang-format-diff[0m -> clang-format-diff-18
+-rwxr-xr-x  1 root root        6273 May 27  2024 [01;32mclang-format-diff-18[0m
+lrwxrwxrwx  1 root root          40 May 27  2024 [01;36mclang-include-cleaner-18[0m -> ../lib/llvm-18/bin/clang-include-cleaner
+lrwxrwxrwx  1 root root          38 May 27  2024 [01;36mclang-include-fixer-18[0m -> ../lib/llvm-18/bin/clang-include-fixer
+lrwxrwxrwx  1 root root          39 May 27  2024 [01;36mclang-linker-wrapper-18[0m -> ../lib/llvm-18/bin/clang-linker-wrapper
+lrwxrwxrwx  1 root root          29 May 27  2024 [01;36mclang-move-18[0m -> ../lib/llvm-18/bin/clang-move
+lrwxrwxrwx  1 root root          40 May 27  2024 [01;36mclang-offload-bundler-18[0m -> ../lib/llvm-18/bin/clang-offload-bundler
+lrwxrwxrwx  1 root root          41 May 27  2024 [01;36mclang-offload-packager-18[0m -> ../lib/llvm-18/bin/clang-offload-packager
+lrwxrwxrwx  1 root root          31 May 27  2024 [01;36mclang-pseudo-18[0m -> ../lib/llvm-18/bin/clang-pseudo
+lrwxrwxrwx  1 root root          30 May 27  2024 [01;36mclang-query-18[0m -> ../lib/llvm-18/bin/clang-query
+lrwxrwxrwx  1 root root          33 May 27  2024 [01;36mclang-refactor-18[0m -> ../lib/llvm-18/bin/clang-refactor
+lrwxrwxrwx  1 root root          31 May 27  2024 [01;36mclang-rename-18[0m -> ../lib/llvm-18/bin/clang-rename
+lrwxrwxrwx  1 root root          39 May 27  2024 [01;36mclang-reorder-fields-18[0m -> ../lib/llvm-18/bin/clang-reorder-fields
+lrwxrwxrwx  1 root root          29 May 27  2024 [01;36mclang-repl-18[0m -> ../lib/llvm-18/bin/clang-repl
+lrwxrwxrwx  1 root root          34 May 27  2024 [01;36mclang-scan-deps-18[0m -> ../lib/llvm-18/bin/clang-scan-deps
+lrwxrwxrwx  1 root root          31 May 27  2024 [01;36mclang-tblgen-18[0m -> ../lib/llvm-18/bin/clang-tblgen
+lrwxrwxrwx  1 root root          29 Mar 30  2024 [01;36mclang-tidy[0m -> ../lib/llvm-18/bin/clang-tidy
+lrwxrwxrwx  1 root root          29 May 27  2024 [01;36mclang-tidy-18[0m -> ../lib/llvm-18/bin/clang-tidy
+lrwxrwxrwx  1 root root          21 Mar 30  2024 [01;36mclang-tidy-diff[0m -> clang-tidy-diff-18.py
+lrwxrwxrwx  1 root root          45 May 27  2024 [01;36mclang-tidy-diff-18.py[0m -> ../lib/llvm-18/share/clang/clang-tidy-diff.py
+-rwxr-xr-x  1 root root       14656 Aug 31 11:36 [01;32mclear[0m
+-rwxr-xr-x  1 root root       14568 Mar 31  2024 [01;32mclear_console[0m
+lrwxrwxrwx  1 root root          37 Aug  9  2024 [01;36mclusterdb[0m -> ../share/postgresql-common/pg_wrapper
+-rwxr-xr-x  1 root root    11796472 Apr 15  2024 [01;32mcmake[0m
+-rwxr-xr-x  1 root root       43408 Aug 26 18:15 [01;32mcmp[0m
+-rwxr-xr-x  1 root root       47424 Oct 20 23:09 [01;32mcmsutil[0m
+-rwxr-xr-x  1 root root       39440 Aug 25 15:09 [01;32mcomm[0m
+lrwxrwxrwx  1 root root          25 Mar 31  2024 [01;36mcompare[0m -> /etc/alternatives/compare
+lrwxrwxrwx  1 root root          29 Mar 31  2024 [01;36mcompare-im6[0m -> /etc/alternatives/compare-im6
+-rwxr-xr-x  1 root root       14656 Mar 31  2024 [01;32mcompare-im6.q16[0m
+lrwxrwxrwx  1 root root          27 Mar 31  2024 [01;36mcomposite[0m -> /etc/alternatives/composite
+lrwxrwxrwx  1 root root          31 Mar 31  2024 [01;36mcomposite-im6[0m -> /etc/alternatives/composite-im6
+-rwxr-xr-x  1 root root       14656 Mar 31  2024 [01;32mcomposite-im6.q16[0m
+lrwxrwxrwx  1 root root          25 Mar 31  2024 [01;36mconjure[0m -> /etc/alternatives/conjure
+lrwxrwxrwx  1 root root          29 Mar 31  2024 [01;36mconjure-im6[0m -> /etc/alternatives/conjure-im6
+-rwxr-xr-x  1 root root       14656 Mar 31  2024 [01;32mconjure-im6.q16[0m
+-rwxr-xr-x  1 root root    44299016 Nov 12 10:14 [01;32mcontainerd[0m
+-rwxr-xr-x  1 root root     8483416 Nov 12 10:14 [01;32mcontainerd-shim-runc-v2[0m

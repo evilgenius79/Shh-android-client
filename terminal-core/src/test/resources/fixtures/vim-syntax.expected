@@ -1,0 +1,25 @@
+# 80 24 4 11 1
+ 11 import os
+ 10 import sys
+  9
+  8
+  7 class Greeter:
+  6     def __init__(self, name: str = "world") -> None:
+  5         self.name = name
+  4
+  3     def greet(self, times: int = 1) -> str:
+  2         return "\n".join(f"Hello, {self.name}!" for _ in range(times))
+  1
+14
+  1 def main(argv):
+  2     greeter = Greeter(argv[1] if len(argv) > 1 else "world")
+  3     print(greeter.greet(3))
+  4     for key, value in sorted(os.environ.items()):
+  5         if key.startswith("LC_"):
+  6             print(key, "=", value)
+  7     return 0
+  8
+  9
+ 10 if __name__ == "__main__":
+ 11     sys.exit(main(sys.argv))
+:set hlsearch                                                 14,0-1        Bot

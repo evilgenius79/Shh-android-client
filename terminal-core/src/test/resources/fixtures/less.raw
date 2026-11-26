@@ -1,0 +1,197 @@
+[?1049h[22;0;0t[?1h=line 001: the quick brown fox jumps over the lazy dog =[m
+line 002: the quick brown fox jumps over the lazy dog ==[m
+line 003: the quick brown fox jumps over the lazy dog ===[m
+line 004: the quick brown fox jumps over the lazy dog ====[m
+line 005: the quick brown fox jumps over the lazy dog =====[m
+line 006: the quick brown fox jumps over the lazy dog ======[m
+line 007: the quick brown fox jumps over the lazy dog =======[m
+line 008: the quick brown fox jumps over the lazy dog ========[m
+line 009: the quick brown fox jumps over the lazy dog =========[m
+line 010: the quick brown fox jumps over the lazy dog ==========[m
+line 011: the quick brown fox jumps over the lazy dog ===========[m
+line 012: the quick brown fox jumps over the lazy dog ============[m
+line 013: the quick brown fox jumps over the lazy dog =============[m
+line 014: the quick brown fox jumps over the lazy dog ==============[m
+line 015: the quick brown fox jumps over the lazy dog ===============[m
+line 016: the quick brown fox jumps over the lazy dog ================[m
+line 017: the quick brown fox jumps over the lazy dog =================[m
+line 018: the quick brown fox jumps over the lazy dog ==================[m
+line 019: the quick brown fox jumps over the lazy dog ===================[m
+line 020: the quick brown fox jumps over the lazy dog ====================[m
+line 021: the quick brown fox jumps over the lazy dog =====================[m
+line 022: the quick brown fox jumps over the lazy dog ======================[m
+line 023: the quick brown fox jumps over the lazy dog =======================[m
+[7mlong.txt[27m[K[Kline 024: the quick brown fox jumps over the lazy dog ========================[m
+line 025: the quick brown fox jumps over the lazy dog =========================[m
+line 026: the quick brown fox jumps over the lazy dog ==========================[m
+line 027: the quick brown fox jumps over the lazy dog ==========================[m =[m
+line 028: the quick brown fox jumps over the lazy dog ==========================[m ==[m
+line 029: the quick brown fox jumps over the lazy dog ==========================[m ===[m
+line 030: the quick brown fox jumps over the lazy dog ==========================[m ====[m
+line 031: the quick brown fox jumps over the lazy dog ==========================[m =====[m
+line 032: the quick brown fox jumps over the lazy dog ==========================[m ======[m
+line 033: the quick brown fox jumps over the lazy dog ==========================[m =======[m
+line 034: the quick brown fox jumps over the lazy dog ==========================[m ========[m
+line 035: the quick brown fox jumps over the lazy dog ==========================[m =========[m
+line 036: the quick brown fox jumps over the lazy dog ==========================[m ==========[m
+:[K[Kline 037: the quick brown fox jumps over the lazy dog [m
+line 038: the quick brown fox jumps over the lazy dog =[m
+line 039: the quick brown fox jumps over the lazy dog ==[m
+line 040: the quick brown fox jumps over the lazy dog ===[m
+line 041: the quick brown fox jumps over the lazy dog ====[m
+line 042: the quick brown fox jumps over the lazy dog =====[m
+line 043: the quick brown fox jumps over the lazy dog ======[m
+line 044: the quick brown fox jumps over the lazy dog =======[m
+line 045: the quick brown fox jumps over the lazy dog ========[m
+line 046: the quick brown fox jumps over the lazy dog =========[m
+line 047: the quick brown fox jumps over the lazy dog ==========[m
+line 048: the quick brown fox jumps over the lazy dog ===========[m
+line 049: the quick brown fox jumps over the lazy dog ============[m
+line 050: the quick brown fox jumps over the lazy dog =============[m
+line 051: the quick brown fox jumps over the lazy dog ==============[m
+line 052: the quick brown fox jumps over the lazy dog ===============[m
+line 053: the quick brown fox jumps over the lazy dog ================[m
+line 054: the quick brown fox jumps over the lazy dog =================[m
+line 055: the quick brown fox jumps over the lazy dog ==================[m
+line 056: the quick brown fox jumps over the lazy dog ===================[m
+line 057: the quick brown fox jumps over the lazy dog ====================[m
+line 058: the quick brown fox jumps over the lazy dog =====================[m
+line 059: the quick brown fox jumps over the lazy dog ======================[m
+:[K[K[HM==========[m
+[HMline 036: the quick brown fox jumps over the lazy dog ==========================[m[HM=========[m
+[HMline 035: the quick brown fox jumps over the lazy dog ==========================[m[HM========[m
+[HMline 034: the quick brown fox jumps over the lazy dog ==========================[m[HM=======[m
+[HMline 033: the quick brown fox jumps over the lazy dog ==========================[m[HM======[m
+[HMline 032: the quick brown fox jumps over the lazy dog ==========================[m[HM=====[m
+[HMline 031: the quick brown fox jumps over the lazy dog ==========================[m[HM====[m
+[HMline 030: the quick brown fox jumps over the lazy dog ==========================[m[HM===[m
+[HMline 029: the quick brown fox jumps over the lazy dog ==========================[m[HM==[m
+[HMline 028: the quick brown fox jumps over the lazy dog ==========================[m[HM=[m
+[HMline 027: the quick brown fox jumps over the lazy dog ==========================[m[HMline 026: the quick brown fox jumps over the lazy dog ==========================[m
+[HMline 025: the quick brown fox jumps over the lazy dog =========================[m
+[HMline 024: the quick brown fox jumps over the lazy dog ========================[m
+[24;1H[K:[K[K/[Kff[Koo[Kxx[K[1;1Hline 024: the quick brown fox jumps over the lazy dog ========================[m
+[2;1Hline 025: the quick brown fox jumps over the lazy dog =========================[m
+[3;1Hline 026: the quick brown fox jumps over the lazy dog ==========================[m
+[4;1Hline 027: the quick brown fox jumps over the lazy dog ==========================[m [5;1H=[m
+[6;1Hline 028: the quick brown fox jumps over the lazy dog ==========================[m [7;1H==[m
+[8;1Hline 029: the quick brown fox jumps over the lazy dog ==========================[m [9;1H===[m
+[10;1Hline 030: the quick brown fox jumps over the lazy dog ==========================[m [11;1H====[m
+[12;1Hline 031: the quick brown fox jumps over the lazy dog ==========================[m [13;1H=====[m
+[14;1Hline 032: the quick brown fox jumps over the lazy dog ==========================[m [15;1H======[m
+[16;1Hline 033: the quick brown fox jumps over the lazy dog ==========================[m [17;1H=======[m
+[18;1Hline 034: the quick brown fox jumps over the lazy dog ==========================[m [19;1H========[m
+[20;1Hline 035: the quick brown fox jumps over the lazy dog ==========================[m [21;1H=========[m
+[22;1Hline 036: the quick brown fox jumps over the lazy dog ==========================[m [23;1H==========[m
+[24;1H[1;1Hline 024: the quick brown [7mfox[27m jumps over the lazy dog ========================[m
+[2;1Hline 025: the quick brown [7mfox[27m jumps over the lazy dog =========================[m
+[3;1Hline 026: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m
+[4;1Hline 027: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [5;1H=[m
+[6;1Hline 028: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [7;1H==[m
+[8;1Hline 029: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [9;1H===[m
+[10;1Hline 030: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [11;1H====[m
+[12;1Hline 031: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [13;1H=====[m
+[14;1Hline 032: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [15;1H======[m
+[16;1Hline 033: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [17;1H=======[m
+[18;1Hline 034: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [19;1H========[m
+[20;1Hline 035: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [21;1H=========[m
+[22;1Hline 036: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m [23;1H==========[m
+[24;1H[K:[K[K/[Kline 037: the quick brown [7mfox[27m jumps over the lazy dog [m
+:[K[K:[K55[K00[K...skipping...
+line 050: the quick brown [7mfox[27m jumps over the lazy dog =============[m
+line 051: the quick brown [7mfox[27m jumps over the lazy dog ==============[m
+line 052: the quick brown [7mfox[27m jumps over the lazy dog ===============[m
+line 053: the quick brown [7mfox[27m jumps over the lazy dog ================[m
+line 054: the quick brown [7mfox[27m jumps over the lazy dog =================[m
+line 055: the quick brown [7mfox[27m jumps over the lazy dog ==================[m
+line 056: the quick brown [7mfox[27m jumps over the lazy dog ===================[m
+line 057: the quick brown [7mfox[27m jumps over the lazy dog ====================[m
+line 058: the quick brown [7mfox[27m jumps over the lazy dog =====================[m
+line 059: the quick brown [7mfox[27m jumps over the lazy dog ======================[m
+line 060: the quick brown [7mfox[27m jumps over the lazy dog =======================[m
+line 061: the quick brown [7mfox[27m jumps over the lazy dog ========================[m
+line 062: the quick brown [7mfox[27m jumps over the lazy dog =========================[m
+line 063: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m
+line 064: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m =[m
+line 065: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ==[m
+line 066: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ===[m
+line 067: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ====[m
+line 068: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m :[K[K=====[m
+:[K[Kline 069: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m :[K[K[HMline 051: the quick brown [7mfox[27m jumps over the lazy dog ==============[m
+[24;1H[K:[K[K...skipping...
+line 287: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ==[m
+line 288: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ===[m
+line 289: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ====[m
+line 290: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m =====[m
+line 291: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ======[m
+line 292: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m =======[m
+line 293: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ========[m
+line 294: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m =========[m
+line 295: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ==========[m
+line 296: the quick brown [7mfox[27m jumps over the lazy dog [m
+line 297: the quick brown [7mfox[27m jumps over the lazy dog =[m
+line 298: the quick brown [7mfox[27m jumps over the lazy dog ==[m
+line 299: the quick brown [7mfox[27m jumps over the lazy dog ===[m
+line 300: the quick brown [7mfox[27m jumps over the lazy dog ====[m
+[7m(END)[27m[K[K[H[2J[HMline 023: the quick brown [7mfox[27m jumps over the lazy dog =======================[m
+[HMline 022: the quick brown [7mfox[27m jumps over the lazy dog ======================[m
+[HMline 021: the quick brown [7mfox[27m jumps over the lazy dog =====================[m
+[HMline 020: the quick brown [7mfox[27m jumps over the lazy dog ====================[m
+[HMline 019: the quick brown [7mfox[27m jumps over the lazy dog ===================[m
+[HMline 018: the quick brown [7mfox[27m jumps over the lazy dog ==================[m
+[HMline 017: the quick brown [7mfox[27m jumps over the lazy dog =================[m
+[HMline 016: the quick brown [7mfox[27m jumps over the lazy dog ================[m
+[HMline 015: the quick brown [7mfox[27m jumps over the lazy dog ===============[m
+[HMline 014: the quick brown [7mfox[27m jumps over the lazy dog ==============[m
+[HMline 013: the quick brown [7mfox[27m jumps over the lazy dog =============[m
+[HMline 012: the quick brown [7mfox[27m jumps over the lazy dog ============[m
+[HMline 011: the quick brown [7mfox[27m jumps over the lazy dog ===========[m
+[HMline 010: the quick brown [7mfox[27m jumps over the lazy dog ==========[m
+[HMline 009: the quick brown [7mfox[27m jumps over the lazy dog =========[m
+[HMline 008: the quick brown [7mfox[27m jumps over the lazy dog ========[m
+[HMline 007: the quick brown [7mfox[27m jumps over the lazy dog =======[m
+[HMline 006: the quick brown [7mfox[27m jumps over the lazy dog ======[m
+[HMline 005: the quick brown [7mfox[27m jumps over the lazy dog =====[m
+[HMline 004: the quick brown [7mfox[27m jumps over the lazy dog ====[m
+[HMline 003: the quick brown [7mfox[27m jumps over the lazy dog ===[m
+[HMline 002: the quick brown [7mfox[27m jumps over the lazy dog ==[m
+[HMline 001: the quick brown [7mfox[27m jumps over the lazy dog =[m
+[24;1H[K:[K[K...skipping...
+line 287: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ==[m
+line 288: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ===[m
+line 289: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ====[m
+line 290: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m =====[m
+line 291: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ======[m
+line 292: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m =======[m
+line 293: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ========[m
+line 294: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m =========[m
+line 295: the quick brown [7mfox[27m jumps over the lazy dog ==========================[m ==========[m
+line 296: the quick brown [7mfox[27m jumps over the lazy dog [m
+line 297: the quick brown [7mfox[27m jumps over the lazy dog =[m
+line 298: the quick brown [7mfox[27m jumps over the lazy dog ==[m
+line 299: the quick brown [7mfox[27m jumps over the lazy dog ===[m
+line 300: the quick brown [7mfox[27m jumps over the lazy dog ====[m
+[7m(END)[27m[K[K[H[2J[HMline 023: the quick brown [7mfox[27m jumps over the lazy dog =======================[m
+[HMline 022: the quick brown [7mfox[27m jumps over the lazy dog ======================[m
+[HMline 021: the quick brown [7mfox[27m jumps over the lazy dog =====================[m
+[HMline 020: the quick brown [7mfox[27m jumps over the lazy dog ====================[m
+[HMline 019: the quick brown [7mfox[27m jumps over the lazy dog ===================[m
+[HMline 018: the quick brown [7mfox[27m jumps over the lazy dog ==================[m
+[HMline 017: the quick brown [7mfox[27m jumps over the lazy dog =================[m
+[HMline 016: the quick brown [7mfox[27m jumps over the lazy dog ================[m
+[HMline 015: the quick brown [7mfox[27m jumps over the lazy dog ===============[m
+[HMline 014: the quick brown [7mfox[27m jumps over the lazy dog ==============[m
+[HMline 013: the quick brown [7mfox[27m jumps over the lazy dog =============[m
+[HMline 012: the quick brown [7mfox[27m jumps over the lazy dog ============[m
+[HMline 011: the quick brown [7mfox[27m jumps over the lazy dog ===========[m
+[HMline 010: the quick brown [7mfox[27m jumps over the lazy dog ==========[m
+[HMline 009: the quick brown [7mfox[27m jumps over the lazy dog =========[m
+[HMline 008: the quick brown [7mfox[27m jumps over the lazy dog ========[m
+[HMline 007: the quick brown [7mfox[27m jumps over the lazy dog =======[m
+[HMline 006: the quick brown [7mfox[27m jumps over the lazy dog ======[m
+[HMline 005: the quick brown [7mfox[27m jumps over the lazy dog =====[m
+[HMline 004: the quick brown [7mfox[27m jumps over the lazy dog ====[m
+[HMline 003: the quick brown [7mfox[27m jumps over the lazy dog ===[m
+[HMline 002: the quick brown [7mfox[27m jumps over the lazy dog ==[m
+[HMline 001: the quick brown [7mfox[27m jumps over the lazy dog =[m
+[24;1H[K:[K

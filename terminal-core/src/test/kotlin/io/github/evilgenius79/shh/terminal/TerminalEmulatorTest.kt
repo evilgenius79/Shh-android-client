@@ -42,6 +42,27 @@ class TerminalEmulatorTest {
     }
 
     @Test
+    fun eraseToEndOfLineKeepsTheLastCharacterWhileWrapIsPending() {
+        // grep and gcc emit "CSI K" straight after coloured text. When that text ends exactly at
+        // the right edge the last character must survive and the following text must still wrap.
+        val t = TestTerminal(5, 3).feed("abcde\\e[Kfg")
+        assertEquals(listOf("abcde", "fg", ""), t.lines())
+        assertTrue(t.emulator.row(0).isWrapped)
+        t.feed("\\e[2;1H12345\\e[X\\e[J")
+        assertEquals("12345", t.line(1))
+    }
+
+    @Test
+    fun cursorLeftFromPendingWrapMovesOffTheLastColumn() {
+        // xterm keeps the cursor on the last column while the wrap is pending, so one step left
+        // lands on the second to last column (tmux differs here; we follow xterm).
+        val t = TestTerminal(5, 3).feed("abcde\\e[DX")
+        assertEquals(listOf("abcXe", "", ""), t.lines())
+        val u = TestTerminal(5, 3).feed("abcde\bX")
+        assertEquals(listOf("abcXe", "", ""), u.lines())
+    }
+
+    @Test
     fun noAutoWrapOverwritesLastColumn() {
         val t = TestTerminal(5, 3).feed("\\e[?7labcdefg")
         assertEquals(listOf("abcdg", "", ""), t.lines())

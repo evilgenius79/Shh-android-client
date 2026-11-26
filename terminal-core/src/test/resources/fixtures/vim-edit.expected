@@ -1,0 +1,25 @@
+# 80 24 45 0 1
+  1 hello worldalpha                    |  1 hello worldalpha$
+  2 second line of text                 |  2 second line of text$
+  3 hello worldalpha                    |  3 hello worldalpha$
+  4 beta                                |  4 beta$
+  5 gamma                               |  5 gamma$
+  6 delta                               |  6 delta$
+  7 this is inserted above the last linx|  7 this is inserted above the last lin
+    e                                   |    xe$
+  8 epsilon                             |  8 epsilon$
+  9 hello worldalpha                    |  9 hello worldalpha$
+ 10 second line of text                 | 10 second line of text$
+notes.txt [+]                           | 11 hello worldalpha$
+  1 hello worldalpha                    | 12 beta$
+  2 second line of text                 | 13 gamma$
+  3 hello worldalpha                    | 14 delta$
+  4 beta                                | 15 this is inserted above the last lin
+  5 gamma                               |    xe$
+  6 delta                               | 16 epsilon$
+  7 this is inserted above the last linx|~
+    e                                   |~
+  8 epsilon                             |~
+  9 hello worldalpha                    |~
+notes.txt [+]                            notes.txt [+]
+:set list

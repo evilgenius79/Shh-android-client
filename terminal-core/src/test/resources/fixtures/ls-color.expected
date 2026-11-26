@@ -1,0 +1,25 @@
+# 80 24 0 23 0
+lrwxrwxrwx  1 root root          37 Aug  9  2024 clusterdb -> ../share/postgresq
+l-common/pg_wrapper
+-rwxr-xr-x  1 root root    11796472 Apr 15  2024 cmake
+-rwxr-xr-x  1 root root       43408 Aug 26 18:15 cmp
+-rwxr-xr-x  1 root root       47424 Oct 20 23:09 cmsutil
+-rwxr-xr-x  1 root root       39440 Aug 25 15:09 comm
+lrwxrwxrwx  1 root root          25 Mar 31  2024 compare -> /etc/alternatives/co
+mpare
+lrwxrwxrwx  1 root root          29 Mar 31  2024 compare-im6 -> /etc/alternative
+s/compare-im6
+-rwxr-xr-x  1 root root       14656 Mar 31  2024 compare-im6.q16
+lrwxrwxrwx  1 root root          27 Mar 31  2024 composite -> /etc/alternatives/
+composite
+lrwxrwxrwx  1 root root          31 Mar 31  2024 composite-im6 -> /etc/alternati
+ves/composite-im6
+-rwxr-xr-x  1 root root       14656 Mar 31  2024 composite-im6.q16
+lrwxrwxrwx  1 root root          25 Mar 31  2024 conjure -> /etc/alternatives/co
+njure
+lrwxrwxrwx  1 root root          29 Mar 31  2024 conjure-im6 -> /etc/alternative
+s/conjure-im6
+-rwxr-xr-x  1 root root       14656 Mar 31  2024 conjure-im6.q16
+-rwxr-xr-x  1 root root    44299016 Nov 12 10:14 containerd
+-rwxr-xr-x  1 root root     8483416 Nov 12 10:14 containerd-shim-runc-v2
+
