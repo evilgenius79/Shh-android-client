@@ -38,6 +38,13 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        unitTests {
+            // Robolectric needs the merged resources and manifest.
+            isIncludeAndroidResources = true
+        }
+    }
+
     packaging {
         resources {
             // The BouncyCastle jars each ship the same metadata files; none are needed at runtime.
@@ -77,4 +84,18 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // sshj logs through SLF4J; without a binding it prints a warning on first use.
+    runtimeOnly(libs.slf4j.nop)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(libs.roborazzi.compose)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.ext.junit)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
