@@ -171,22 +171,30 @@ class TerminalView(context: Context) : View(context) {
         }
         val emulator = current.emulator
         synchronized(emulator) {
-            // Lines that scrolled into the history since the last frame: keep showing the same
-            // text when scrolled back, and keep the selection on the text it was made on.
-            val counter = emulator.scrollCounter
-            val shift = (counter - lastScrollCounter).toInt()
-            lastScrollCounter = counter
-            if (shift != 0) {
-                if (topRow < 0) topRow -= shift
-                selection?.let {
-                    it.startRow -= shift
-                    it.endRow -= shift
-                }
-            }
-            topRow = topRow.coerceIn(-emulator.scrollbackSize, 0)
+            followScrolledLines(emulator)
             val shape = if (emulator.cursorShape != CursorShape.BLOCK) emulator.cursorShape else cursorShape
             renderer.draw(canvas, emulator, topRow, selection, shape, cursorOn || !cursorBlink || !emulator.isCursorBlinking, hasWindowFocus() && isFocused)
         }
+    }
+
+    /**
+     * Accounts for lines that moved into the history since this was last called: when scrolled
+     * back the view keeps showing the same text, and a selection stays on the text it was made
+     * on. Called before drawing and before every scroll step, with the emulator locked, so that
+     * output arriving between two frames is never mistaken for a scroll by the user.
+     */
+    private fun followScrolledLines(emulator: TerminalEmulator) {
+        val counter = emulator.scrollCounter
+        val shift = (counter - lastScrollCounter).toInt()
+        lastScrollCounter = counter
+        if (shift != 0) {
+            if (topRow < 0) topRow -= shift
+            selection?.let {
+                it.startRow -= shift
+                it.endRow -= shift
+            }
+        }
+        topRow = topRow.coerceIn(-emulator.scrollbackSize, 0)
     }
 
     // ---------------------------------------------------------------------------------------
@@ -460,6 +468,7 @@ class TerminalView(context: Context) : View(context) {
         scrollRemainder -= lines * renderer.cellHeight
         synchronized(current.emulator) {
             val emulator = current.emulator
+            followScrolledLines(emulator)
             when {
                 emulator.isMouseTrackingActive -> {
                     // The program wants the wheel: one report per line.
@@ -547,6 +556,7 @@ class TerminalView(context: Context) : View(context) {
 
     private fun startSelection(event: MotionEvent) {
         val current = session ?: return
+        synchronized(current.emulator) { followScrolledLines(current.emulator) }
         val row = topRow + viewRowAt(event.y)
         val col = columnAt(event.x)
         // Start with the word under the finger; dragging then extends from there.
@@ -664,6 +674,9 @@ class TerminalView(context: Context) : View(context) {
         }
         actionMode?.finish()
     }
+
+    /** How many lines the view is scrolled back into the history; 0 when showing the live screen. */
+    val scrollOffset: Int get() = -topRow
 
     /** Jumps back to the live screen after scrolling through the history. */
     fun scrollToBottom() {

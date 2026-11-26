@@ -90,6 +90,91 @@ class TerminalViewRenderTest {
         render("terminal-tmux", "tmux-nested", scheme = ColorScheme.GRUVBOX_DARK)
     }
 
+    // ----- touch -----
+
+    private fun laidOutView(session: TerminalSession, columns: Int = 40, rows: Int = 10): TerminalView {
+        val view = TerminalView(context)
+        view.cursorBlink = false
+        val (width, height) = view.sizeFor(columns, rows)
+        view.attach(session)
+        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, width, height)
+        return view
+    }
+
+    private fun touch(view: View, action: Int, x: Float, y: Float, downTime: Long, eventTime: Long) {
+        val event = android.view.MotionEvent.obtain(downTime, eventTime, action, x, y, 0)
+        view.dispatchTouchEvent(event)
+        event.recycle()
+    }
+
+    /** Drags a finger vertically from [fromY] to [toY] in small steps. */
+    private fun drag(view: View, fromY: Float, toY: Float) {
+        val start = android.os.SystemClock.uptimeMillis()
+        touch(view, android.view.MotionEvent.ACTION_DOWN, 50f, fromY, start, start)
+        val steps = 20
+        for (i in 1..steps) {
+            touch(view, android.view.MotionEvent.ACTION_MOVE, 50f, fromY + (toY - fromY) * i / steps, start, start + i * 10L)
+        }
+        touch(view, android.view.MotionEvent.ACTION_UP, 50f, toY, start, start + steps * 10L + 400)
+    }
+
+    @Test
+    fun draggingScrollsThroughTheHistoryAndTypingReturnsToTheBottom() {
+        val session = session()
+        val view = laidOutView(session)
+        synchronized(session.emulator) { for (i in 1..100) session.emulator.append("line $i\r\n") }
+        assertEquals(0, view.scrollOffset)
+        val cell = view.sizeFor(1, 1).second
+
+        // Finger moves down: older lines come into view.
+        drag(view, fromY = cell * 1f, toY = cell * 8f)
+        assertTrue(view.scrollOffset in 5..7, "scrolled back by about seven lines, was ${view.scrollOffset}")
+
+        // New output arriving while scrolled back does not move what the user is reading.
+        val before = view.scrollOffset
+        synchronized(session.emulator) { for (i in 1..5) session.emulator.append("more $i\r\n") }
+        view.draw(Canvas(Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)))
+        assertEquals(before + 5, view.scrollOffset)
+
+        // It cannot be dragged past either end.
+        repeat(30) { drag(view, fromY = cell * 1f, toY = cell * 9f) }
+        assertEquals(session.emulator.scrollbackSize, view.scrollOffset)
+        repeat(30) { drag(view, fromY = cell * 9f, toY = cell * 1f) }
+        assertEquals(0, view.scrollOffset)
+
+        drag(view, fromY = cell * 1f, toY = cell * 8f)
+        assertTrue(view.scrollOffset > 0)
+        view.typed("x")
+        assertEquals(0, view.scrollOffset, "typing jumps back to the live screen")
+    }
+
+    @Test
+    fun longPressSelectsTheWordUnderTheFinger() {
+        val session = session()
+        val view = laidOutView(session)
+        synchronized(session.emulator) { session.emulator.append("ls /usr/local/bin and more\r\n") }
+        val (cellWidth, cellHeight) = view.sizeFor(1, 1)
+        val start = android.os.SystemClock.uptimeMillis()
+        // Press on the "l" of "local" and hold.
+        touch(view, android.view.MotionEvent.ACTION_DOWN, cellWidth * 9.5f, cellHeight * 0.5f, start, start)
+        org.robolectric.shadows.ShadowLooper.idleMainLooper(
+            android.view.ViewConfiguration.getLongPressTimeout() + 200L,
+            java.util.concurrent.TimeUnit.MILLISECONDS,
+        )
+        assertEquals("/usr/local/bin", view.selectedText(), "a path is selected as one word")
+
+        // Dragging on extends the selection to where the finger is.
+        touch(view, android.view.MotionEvent.ACTION_MOVE, cellWidth * 20.5f, cellHeight * 0.5f, start, start + 900)
+        assertEquals("/usr/local/bin and", view.selectedText())
+        touch(view, android.view.MotionEvent.ACTION_UP, cellWidth * 20.5f, cellHeight * 0.5f, start, start + 1000)
+
+        view.copySelection()
+        val clipboard = context.getSystemService(android.content.ClipboardManager::class.java)
+        assertEquals("/usr/local/bin and", clipboard.primaryClip?.getItemAt(0)?.text?.toString())
+        assertEquals(null, view.selectedText(), "copying ends the selection")
+    }
+
     @Test
     fun emptyTerminalIsFilledWithTheBackgroundAndShowsTheCursor() {
         val session = session(ColorScheme.DEFAULT_LIGHT)

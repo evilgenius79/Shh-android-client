@@ -224,6 +224,45 @@ class LiveSessionTest {
         view.attach(null)
     }
 
+    /** In less, man or vim there is no history to scroll, so a swipe has to scroll the program. */
+    @Test
+    fun swipingScrollsAFullScreenProgram() {
+        val session = open(host())
+        session.acceptHostKey()
+        waitFor("the connection") { session.isConnected }
+        val context: Context = ApplicationProvider.getApplicationContext()
+        val view = TerminalView(context)
+        val (width, height) = view.sizeFor(80, 24)
+        view.attach(session)
+        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, width, height)
+
+        session.sendText("seq 1000 1999 | less\r")
+        waitFor("less to start") { synchronized(session.emulator) { session.emulator.isAlternateScreenActive } }
+        waitFor("the first page") { session.screen().lines().first() == "1000" }
+
+        fun touch(action: Int, y: Float, time: Long) {
+            val event = android.view.MotionEvent.obtain(0, time, action, 100f, y, 0)
+            view.dispatchTouchEvent(event)
+            event.recycle()
+        }
+        // Finger moves up by ten lines: the text moves up with it.
+        val cell = view.sizeFor(1, 1).second
+        touch(android.view.MotionEvent.ACTION_DOWN, cell * 15f, 0)
+        for (i in 1..10) touch(android.view.MotionEvent.ACTION_MOVE, cell * (15f - i), i * 20L)
+        touch(android.view.MotionEvent.ACTION_UP, cell * 5f, 600)
+        waitFor("less to scroll down") { session.screen().lines().first().toIntOrNull()?.let { it in 1008..1010 } == true }
+        assertEquals(0, view.scrollOffset, "the view's own history is not involved")
+
+        // And back down again.
+        touch(android.view.MotionEvent.ACTION_DOWN, cell * 5f, 1000)
+        for (i in 1..10) touch(android.view.MotionEvent.ACTION_MOVE, cell * (5f + i), 1000 + i * 20L)
+        touch(android.view.MotionEvent.ACTION_UP, cell * 15f, 1600)
+        waitFor("less to scroll back up") { session.screen().lines().first() == "1000" }
+        session.sendText("q")
+        view.attach(null)
+    }
+
     @Test
     fun askingForThePasswordAndCancelling() {
         val session = open(host(savePassword = false))
