@@ -118,8 +118,10 @@ class LiveSessionTest {
         session.sendText("q")
         waitFor("less to quit") { !synchronized(session.emulator) { session.emulator.isAlternateScreenActive } }
 
-        // The window title set by the shell prompt is picked up.
-        waitFor("the title") { session.title.value.contains(spec!![3]) }
+        // A window title set by the remote side is picked up. It is set explicitly, and held
+        // for a moment, because whether the shell prompt sets one differs between systems.
+        session.sendText("printf '\\033]0;custom title\\007'; sleep 1\r")
+        waitFor("the title") { session.title.value == "custom title" }
 
         // Draw the live terminal through the real view, for inspection.
         session.sendText("clear; ls --color=always -la /etc | head -20\r")

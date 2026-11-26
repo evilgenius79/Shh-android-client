@@ -51,6 +51,10 @@ class SshConnection internal constructor(
     // slightly before it marks the transport as stopped.
     val isConnected: Boolean get() = !closed.get() && !disconnectNotified.get() && client.isConnected
 
+    /** For tests: runs right before [execute] closes the command's standard input. */
+    @Volatile
+    internal var beforeClosingStdin: (() -> Unit)? = null
+
     /** Software version the server announced, for example `OpenSSH_9.6p1 Ubuntu-3ubuntu13`. */
     val serverVersion: String get() = client.transport.serverVersion.orEmpty()
 
@@ -115,9 +119,15 @@ class SshConnection internal constructor(
             val running = session.exec(command)
             val err = ByteArrayOutputStream()
             val errReader = workers.submit { running.errorStream.copyTo(err) }
-            if (stdin != null) running.outputStream.write(stdin)
-            running.outputStream.flush()
-            running.outputStream.close()
+            beforeClosingStdin?.invoke()
+            try {
+                if (stdin != null) running.outputStream.write(stdin)
+                running.outputStream.flush()
+                running.outputStream.close()
+            } catch (_: IOException) {
+                // The command already finished and closed the channel, so nobody is left to read
+                // its input. Its output and exit status are still collected below.
+            }
             val out = ByteArrayOutputStream()
             running.inputStream.copyTo(out)
             running.join(timeoutSeconds, TimeUnit.SECONDS)

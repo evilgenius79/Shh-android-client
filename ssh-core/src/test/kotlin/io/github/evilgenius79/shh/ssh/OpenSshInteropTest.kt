@@ -266,6 +266,20 @@ class OpenSshInteropTest {
         assertEquals("3\n", connection.execute("wc -l | tr -d ' '", stdin = "a\nb\nc\n".toByteArray()).stdout)
     }
 
+    /**
+     * A command that exits at once may close its channel before we get to close its stdin; that
+     * must not be reported as an error. (This did fail on CI, through a jump host.)
+     */
+    @Test
+    fun manyShortCommandsDirectlyAndThroughAJumpHost() {
+        val s = servers()
+        val direct = connect()
+        repeat(150) { i -> assertEquals("d$i\n", direct.execute("echo d$i").stdout) }
+        val jump = SshTarget(s.host, s.port, s.user, password = s.password.toCharArray())
+        val jumped = connect(jumps = listOf(jump))
+        repeat(150) { i -> assertEquals("j$i\n", jumped.execute("echo j$i").stdout) }
+    }
+
     @Test
     fun compressionWorksAgainstOpenSsh() {
         val connection = connect(compression = true)

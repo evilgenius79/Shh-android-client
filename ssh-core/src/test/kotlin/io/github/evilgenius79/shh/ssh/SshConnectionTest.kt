@@ -317,6 +317,20 @@ class SshConnectionTest {
         assertEquals("piped in", connection.execute("cat", stdin = "piped in".toByteArray()).stdout)
     }
 
+    @Test
+    fun aCommandThatFinishesBeforeItsInputIsClosedStillSucceeds() {
+        // A command that exits at once closes its channel; if that happens before we get to
+        // close its stdin, closing must not be reported as an error. The hook forces that order
+        // (it happened by chance on a CI machine, through a jump host).
+        val connection = connect()
+        connection.beforeClosingStdin = { Thread.sleep(400) }
+        val result = connection.execute("echo quick")
+        assertEquals("quick\n", result.stdout)
+        assertEquals(0, result.exitStatus)
+        // With input the command never asked for, too.
+        assertEquals("quick\n", connection.execute("echo quick", stdin = "ignored".toByteArray()).stdout)
+    }
+
     // ----- lifecycle -----
 
     @Test
