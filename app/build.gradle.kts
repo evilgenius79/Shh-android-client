@@ -42,6 +42,13 @@ android {
         unitTests {
             // Robolectric needs the merged resources and manifest.
             isIncludeAndroidResources = true
+            all {
+                // Have the UI tests write their screenshots to build/outputs/screenshots.
+                it.systemProperty("roborazzi.test.record", "true")
+                // Draw through the real hardware pipeline so shadows and elevation show up.
+                it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
+                it.maxHeapSize = "2g"
+            }
         }
     }
 
@@ -89,7 +96,7 @@ dependencies {
     runtimeOnly(libs.slf4j.nop)
 
     testImplementation(libs.junit)
-    testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.roborazzi)

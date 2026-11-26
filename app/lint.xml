@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Reported inside the BouncyCastle jar (its EST client), which this app never uses: it
+         makes no TLS connections at all. Nothing in our own code is exempted. -->
+    <issue id="TrustAllX509TrustManager">
+        <ignore regexp="bcpkix-jdk18on" />
+    </issue>
+</lint>

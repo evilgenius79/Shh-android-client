@@ -40,6 +40,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -95,7 +96,7 @@ fun TerminalScreen(
     var alt by remember { mutableStateOf(false) }
     var terminalView by remember { mutableStateOf<TerminalView?>(null) }
     // Bumped when the colour scheme changes so the view redraws.
-    var colorVersion by remember { mutableStateOf(0) }
+    var colorVersion by remember { mutableIntStateOf(0) }
 
     if (settings.keepScreenOn) {
         val window = LocalActivity.current?.window
@@ -214,16 +215,12 @@ fun TerminalScreen(
                     onRelease = { view -> view.attach(null) },
                     modifier = Modifier.fillMaxSize(),
                 )
-                when (val s = state) {
-                    is SessionState.Connecting -> ConnectingOverlay(s, onCancel = { onClose(active) })
-                    is SessionState.Disconnected -> DisconnectedBar(
-                        s,
-                        onReconnect = { active.reconnect() },
-                        onClose = { onClose(active) },
-                        modifier = Modifier.align(Alignment.BottomCenter),
-                    )
-                    SessionState.Connected -> Unit
-                }
+                (state as? SessionState.Connecting)?.let { ConnectingOverlay(it, onCancel = { onClose(active) }) }
+            }
+            // Below the terminal rather than on top of it, so the last lines of output and the
+            // reason for the disconnect stay readable.
+            (state as? SessionState.Disconnected)?.let {
+                DisconnectedBar(it, onReconnect = { active.reconnect() }, onClose = { onClose(active) })
             }
             if (settings.showExtraKeys) {
                 ExtraKeys(

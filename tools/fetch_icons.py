@@ -16,12 +16,11 @@ OUT = os.path.join(ROOT, "app", "src", "main", "res", "drawable")
 BASE = "https://raw.githubusercontent.com/google/material-design-icons/master/symbols/android"
 
 ICONS = """
-add arrow_back arrow_upward bolt cable check close code content_copy content_paste
-create_new_folder delete description dns download edit error expand_more fingerprint folder
-history home info key keyboard keyboard_arrow_down keyboard_arrow_left keyboard_arrow_right
-keyboard_arrow_up keyboard_hide link lock more_vert open_in_new palette power_settings_new
-refresh save search settings share swap_horiz terminal text_fields tune upload visibility
-visibility_off warning drive_file_rename_outline restart_alt select_all travel_explore
+add arrow_back arrow_upward bolt close code content_copy content_paste create_new_folder
+delete description dns download drive_file_rename_outline edit expand_more fingerprint
+folder history info key keyboard link lock more_vert palette power_settings_new refresh
+restart_alt save search settings swap_horiz terminal text_fields upload visibility
+visibility_off warning
 """.split()
 
 

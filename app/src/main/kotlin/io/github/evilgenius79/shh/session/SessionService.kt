@@ -21,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -32,6 +34,7 @@ class SessionService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var watcher: Job? = null
     private var wakeLock: PowerManager.WakeLock? = null
+    private var wakeLockRenewal: Job? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -69,19 +72,30 @@ class SessionService : Service() {
         ServiceCompat.startForeground(this, NOTIFICATION_ID, buildNotification(count), type)
     }
 
+    /**
+     * Holds the wake lock while it is wanted. It is taken with a timeout and renewed before that
+     * runs out, so that it cannot outlive the service if the process dies in an unusual way.
+     */
     private fun updateWakeLock(wanted: Boolean) {
-        if (wanted && wakeLock == null) {
-            val power = ContextCompat.getSystemService(this, PowerManager::class.java) ?: return
-            wakeLock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "shh:sessions").apply {
-                setReferenceCounted(false)
-                acquire()
-            }
-        } else if (!wanted) {
+        if (!wanted) {
             releaseWakeLock()
+            return
+        }
+        if (wakeLockRenewal?.isActive == true) return
+        val power = ContextCompat.getSystemService(this, PowerManager::class.java) ?: return
+        val lock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "shh:sessions").apply { setReferenceCounted(false) }
+        wakeLock = lock
+        wakeLockRenewal = scope.launch {
+            while (isActive) {
+                lock.acquire(WAKE_LOCK_TIMEOUT_MS)
+                delay(WAKE_LOCK_RENEW_MS)
+            }
         }
     }
 
     private fun releaseWakeLock() {
+        wakeLockRenewal?.cancel()
+        wakeLockRenewal = null
         wakeLock?.let { if (it.isHeld) it.release() }
         wakeLock = null
     }
@@ -131,5 +145,7 @@ class SessionService : Service() {
         const val ACTION_DISCONNECT_ALL = "io.github.evilgenius79.shh.DISCONNECT_ALL"
         private const val CHANNEL_ID = "sessions"
         private const val NOTIFICATION_ID = 1
+        private const val WAKE_LOCK_TIMEOUT_MS = 35 * 60_000L
+        private const val WAKE_LOCK_RENEW_MS = 30 * 60_000L
     }
 }

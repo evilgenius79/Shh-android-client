@@ -133,7 +133,8 @@ fun HostsScreen(
             val needle = query.trim()
             data.hosts
                 .filter { needle.isEmpty() || it.title.contains(needle, true) || it.address.contains(needle, true) || it.group.contains(needle, true) }
-                .sortedWith(compareBy<Host>({ it.group.lowercase() }, { it.title.lowercase() }))
+                // Named groups first, in alphabetical order; hosts without a group come last.
+                .sortedWith(compareBy<Host>({ it.group.isBlank() }, { it.group.lowercase() }, { it.title.lowercase() }))
         }
         LazyColumn(
             Modifier

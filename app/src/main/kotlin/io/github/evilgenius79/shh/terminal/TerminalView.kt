@@ -1,5 +1,6 @@
 package io.github.evilgenius79.shh.terminal
 
+import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -108,6 +109,10 @@ class TerminalView(context: Context) : View(context) {
         updateTerminalSize()
         invalidate()
     }
+
+    /** The size in pixels this view needs to show a terminal of the given dimensions. */
+    fun sizeFor(columns: Int, rows: Int): Pair<Int, Int> =
+        kotlin.math.ceil(columns * renderer.cellWidth).toInt() to rows * renderer.cellHeight
 
     /** Shows [newSession], or nothing when null. */
     fun attach(newSession: TerminalSession?) {
@@ -407,8 +412,7 @@ class TerminalView(context: Context) : View(context) {
                         false
                     }
                 }
-                if (!reported) onTap?.invoke()
-                showKeyboard()
+                if (!reported) performClick()
                 return true
             }
 
@@ -504,6 +508,17 @@ class TerminalView(context: Context) : View(context) {
         },
     )
 
+    /** A tap, whether from a finger or from an accessibility service: focus and open the keyboard. */
+    override fun performClick(): Boolean {
+        super.performClick()
+        onTap?.invoke()
+        showKeyboard()
+        return true
+    }
+
+    // Taps are recognised by the gesture detector, which calls performClick() itself; lint only
+    // looks for the call in this method.
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         scaleGestures.onTouchEvent(event)
         if (scaleGestures.isInProgress) return true

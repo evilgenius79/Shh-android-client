@@ -39,8 +39,8 @@ fun LockScreen(onUnlocked: () -> Unit) {
     val activity = LocalActivity.current
     var failed by remember { mutableStateOf<String?>(null) }
 
-    // Before Android 9 there is no system prompt that also offers the screen lock; the keyguard's
-    // own confirmation screen does the job there.
+    // Before Android 10 the system prompt cannot fall back to the screen lock; the keyguard's own
+    // confirmation screen does the job there.
     val legacyLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) onUnlocked() else failed = "Not unlocked"
     }
@@ -54,7 +54,7 @@ fun LockScreen(onUnlocked: () -> Unit) {
             return
         }
         failed = null
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             @Suppress("DEPRECATION")
             val intent = keyguard.createConfirmDeviceCredentialIntent("Unlock Shh", null)
             if (intent != null) legacyLauncher.launch(intent) else onUnlocked()
