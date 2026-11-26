@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -209,8 +210,10 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
 private fun ExportBackupDialog(container: AppContainer, data: AppData, onDone: (String?) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var passphrase by remember { mutableStateOf("") }
-    var repeat by remember { mutableStateOf("") }
+    val passphraseState = rememberTextFieldState()
+    val repeatState = rememberTextFieldState()
+    val passphrase = passphraseState.text.toString()
+    val repeat = repeatState.text.toString()
     val saver = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         scope.launch {
@@ -233,8 +236,8 @@ private fun ExportBackupDialog(container: AppContainer, data: AppData, onDone: (
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("The backup contains your private keys and saved passwords. It is encrypted with this passphrase; without it the backup cannot be restored.")
-                SecretField(passphrase, { passphrase = it }, "Passphrase", Modifier.fillMaxWidth())
-                SecretField(repeat, { repeat = it }, "Repeat passphrase", Modifier.fillMaxWidth())
+                SecretField(passphraseState, "Passphrase", Modifier.fillMaxWidth())
+                SecretField(repeatState, "Repeat passphrase", Modifier.fillMaxWidth())
                 if (repeat.isNotEmpty() && repeat != passphrase) {
                     Text("The passphrases do not match.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
@@ -252,7 +255,8 @@ private fun ExportBackupDialog(container: AppContainer, data: AppData, onDone: (
 @Composable
 private fun RestoreBackupDialog(container: AppContainer, text: String, onDone: (String?) -> Unit) {
     val scope = rememberCoroutineScope()
-    var passphrase by remember { mutableStateOf("") }
+    val passphraseState = rememberTextFieldState()
+    val passphrase = passphraseState.text.toString()
     var error by remember { mutableStateOf<String?>(null) }
     var working by remember { mutableStateOf(false) }
     AlertDialog(
@@ -261,7 +265,7 @@ private fun RestoreBackupDialog(container: AppContainer, text: String, onDone: (
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Everything currently in the app (hosts, keys, known hosts, snippets, settings) is replaced by the backup.")
-                SecretField(passphrase, { passphrase = it }, "Passphrase of the backup", Modifier.fillMaxWidth())
+                SecretField(passphraseState, "Passphrase of the backup", Modifier.fillMaxWidth())
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },

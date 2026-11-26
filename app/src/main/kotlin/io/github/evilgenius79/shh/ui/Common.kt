@@ -23,8 +23,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.text.input.TextObfuscationMode
-import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.OutlinedSecureTextField
 import androidx.compose.material3.OutlinedTextField
@@ -33,8 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -186,28 +183,26 @@ fun EmptyState(@DrawableRes icon: Int, title: String, text: String, modifier: Mo
     }
 }
 
-/** A password field with a button to reveal what was typed. */
+/**
+ * A password field with a button to reveal what was typed.
+ *
+ * The caller owns [state] and reads `state.text` when it needs the value. Mirroring the text
+ * through a value/onValueChange pair instead is not safe here: an echo of an older value can
+ * arrive after newer keystrokes and wipe them out.
+ */
 @Composable
 fun SecretField(
-    value: String,
-    onValueChange: (String) -> Unit,
+    state: TextFieldState,
     label: String,
     modifier: Modifier = Modifier,
     supportingText: String? = null,
 ) {
     var visible by remember { mutableStateOf(false) }
-    val state = rememberTextFieldState(value)
-    // The secure field keeps its own state; mirror it to and from the caller's value.
-    LaunchedEffect(value) {
-        if (state.text.toString() != value) state.setTextAndPlaceCursorAtEnd(value)
-    }
-    LaunchedEffect(state) {
-        snapshotFlow { state.text.toString() }.collect { onValueChange(it) }
-    }
     OutlinedSecureTextField(
         state = state,
         label = { Text(label) },
-        textObfuscationMode = if (visible) TextObfuscationMode.Visible else TextObfuscationMode.RevealLastTyped,
+        // "System" follows the device's "show passwords" setting for briefly showing the last character.
+        textObfuscationMode = if (visible) TextObfuscationMode.Visible else TextObfuscationMode.System,
         trailingIcon = {
             IconButton(onClick = { visible = !visible }) {
                 AppIcon(if (visible) R.drawable.ic_visibility_off else R.drawable.ic_visibility, if (visible) "Hide" else "Show")

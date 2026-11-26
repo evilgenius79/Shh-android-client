@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -499,7 +501,7 @@ private fun HostKeyDialog(prompt: SessionPrompt.HostKey) {
 
 @Composable
 private fun PasswordDialog(prompt: SessionPrompt.Password) {
-    var password by remember(prompt) { mutableStateOf("") }
+    val password = remember(prompt) { TextFieldState() }
     AlertDialog(
         onDismissRequest = { prompt.respond(null) },
         title = { Text("Password") },
@@ -509,10 +511,10 @@ private fun PasswordDialog(prompt: SessionPrompt.Password) {
                     if (prompt.attempt > 1) "That password was not accepted. Try again for ${prompt.target.username}@${prompt.target.host}."
                     else "Password for ${prompt.target.username}@${prompt.target.host}",
                 )
-                SecretField(password, { password = it }, "Password", Modifier.fillMaxWidth())
+                SecretField(password, "Password", Modifier.fillMaxWidth())
             }
         },
-        confirmButton = { TextButton(onClick = { prompt.respond(password.toCharArray()) }) { Text("Log in") } },
+        confirmButton = { TextButton(onClick = { prompt.respond(password.text.toString().toCharArray()) }) { Text("Log in") } },
         dismissButton = { TextButton(onClick = { prompt.respond(null) }) { Text("Cancel") } },
     )
 }
@@ -521,7 +523,7 @@ private fun PasswordDialog(prompt: SessionPrompt.Password) {
 private fun ChallengeDialog(prompt: SessionPrompt.Challenge) {
     val challenge = prompt.challenge
     val question = challenge.prompts.first()
-    var answer by remember(prompt) { mutableStateOf("") }
+    val answer = remember(prompt) { TextFieldState() }
     AlertDialog(
         onDismissRequest = { prompt.respond(null) },
         title = { Text(challenge.name.ifBlank { "Verification" }) },
@@ -529,13 +531,18 @@ private fun ChallengeDialog(prompt: SessionPrompt.Challenge) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (challenge.instruction.isNotBlank()) Text(challenge.instruction)
                 if (question.echo) {
-                    OutlinedTextField(answer, { answer = it }, label = { Text(question.text.trim()) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(
+                        state = answer,
+                        label = { Text(question.text.trim()) },
+                        lineLimits = TextFieldLineLimits.SingleLine,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 } else {
-                    SecretField(answer, { answer = it }, question.text.trim(), Modifier.fillMaxWidth())
+                    SecretField(answer, question.text.trim(), Modifier.fillMaxWidth())
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { prompt.respond(listOf(answer)) }) { Text("Continue") } },
+        confirmButton = { TextButton(onClick = { prompt.respond(listOf(answer.text.toString())) }) { Text("Continue") } },
         dismissButton = { TextButton(onClick = { prompt.respond(null) }) { Text("Cancel") } },
     )
 }

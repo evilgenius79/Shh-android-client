@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -191,7 +192,7 @@ private fun ImportKeyDialog(container: AppContainer, onDone: () -> Unit) {
     val context = LocalContext.current
     var name by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
-    var passphrase by remember { mutableStateOf("") }
+    val passphrase = rememberTextFieldState()
     var needsPassphrase by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -234,7 +235,7 @@ private fun ImportKeyDialog(container: AppContainer, onDone: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 TextButton(onClick = { picker.launch("*/*") }) { Text("Choose a file…") }
-                if (needsPassphrase) SecretField(passphrase, { passphrase = it }, "Passphrase of this key", Modifier.fillMaxWidth())
+                if (needsPassphrase) SecretField(passphrase, "Passphrase of this key", Modifier.fillMaxWidth())
                 Text(
                     "OpenSSH, PEM, PKCS#8 and PuTTY (.ppk) keys are supported. The key is stored encrypted on this device.",
                     style = MaterialTheme.typography.bodySmall,
@@ -248,7 +249,7 @@ private fun ImportKeyDialog(container: AppContainer, onDone: () -> Unit) {
                 enabled = name.isNotBlank() && text.isNotBlank(),
                 onClick = {
                     try {
-                        val key = SshKeys.load(text, passphrase.takeIf { needsPassphrase }?.toCharArray())
+                        val key = SshKeys.load(text, passphrase.text.toString().takeIf { needsPassphrase }?.toCharArray())
                         container.store.saveIdentity(identityFrom(key, name.trim(), container.secrets))
                         onDone()
                     } catch (_: PassphraseRequiredException) {
@@ -325,14 +326,14 @@ private fun KeyDetailsDialog(container: AppContainer, identity: Identity, usedBy
 @Composable
 private fun ExportKeyDialog(container: AppContainer, identity: Identity, onDone: () -> Unit) {
     val context = LocalContext.current
-    var passphrase by remember { mutableStateOf("") }
+    val passphrase = rememberTextFieldState()
     var error by remember { mutableStateOf<String?>(null) }
 
     val saver = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
         try {
             val key = SshKeys.load(container.secrets.decryptText(identity.encryptedPrivateKey))
-            val text = SshKeys.toOpenSshPrivateKey(key, identity.name, passphrase.takeIf { it.isNotEmpty() }?.toCharArray())
+            val text = SshKeys.toOpenSshPrivateKey(key, identity.name, passphrase.text.toString().takeIf { it.isNotEmpty() }?.toCharArray())
             context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray(Charsets.UTF_8)) }
                 ?: throw IOException("The destination could not be opened")
             onDone()
@@ -349,7 +350,6 @@ private fun ExportKeyDialog(container: AppContainer, identity: Identity, onDone:
                 Text("Writes the private key in OpenSSH format, as used by ssh and ssh-add. Anyone who gets this file can log in as you.")
                 SecretField(
                     passphrase,
-                    { passphrase = it },
                     "Passphrase (recommended)",
                     Modifier.fillMaxWidth(),
                     supportingText = "Leave empty to write the key unencrypted.",

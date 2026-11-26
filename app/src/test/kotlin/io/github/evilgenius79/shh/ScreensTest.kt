@@ -3,7 +3,7 @@ package io.github.evilgenius79.shh
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -243,6 +243,18 @@ class ScreensTest {
         assertTrue(container.store.data.value.settings.vibrateOnBell)
         compose.onNodeWithText("Vibrate on bell").performScrollTo().performClick()
         assertTrue(!container.store.data.value.settings.vibrateOnBell)
+    }
+
+    @Test
+    fun secretFieldKeepsEveryCharacterWhenTypedOneByOne() {
+        val state = androidx.compose.foundation.text.input.TextFieldState()
+        show { io.github.evilgenius79.shh.ui.SecretField(state, "Password") }
+        // One character at a time without letting the UI settle in between, like fast typing.
+        // (An earlier version mirrored the text through a callback and lost characters here.)
+        val field = compose.onNode(androidx.compose.ui.test.hasSetTextAction())
+        for (ch in "shh-Test-pw-1") field.performTextInput(ch.toString())
+        compose.waitForIdle()
+        assertEquals("shh-Test-pw-1", state.text.toString())
     }
 
     // ----- terminal -----

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -62,7 +63,8 @@ fun HostEditScreen(
     var port by rememberSaveable { mutableStateOf(original.port.toString()) }
     var username by rememberSaveable { mutableStateOf(original.username) }
     var group by rememberSaveable { mutableStateOf(original.group) }
-    var password by rememberSaveable { mutableStateOf("") }
+    val passwordState = rememberTextFieldState()
+    val password = passwordState.text.toString()
     var removePassword by rememberSaveable { mutableStateOf(false) }
     var identityId by rememberSaveable { mutableStateOf(original.identityId) }
     var jumpHostId by rememberSaveable { mutableStateOf(original.jumpHostId) }
@@ -173,11 +175,7 @@ fun HostEditScreen(
                 modifier = field,
             )
             SecretField(
-                value = password,
-                onValueChange = {
-                    password = it
-                    if (it.isNotEmpty()) removePassword = false
-                },
+                state = passwordState,
                 label = if (hasSavedPassword && !removePassword) "Password (saved, type to replace)" else "Password (optional)",
                 supportingText = "Stored encrypted on this device. Leave empty to be asked when connecting.",
                 modifier = field,
