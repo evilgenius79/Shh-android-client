@@ -35,4 +35,9 @@ dependencies {
 
 tasks.test {
     useJUnit()
+    testLogging {
+        // Print why a test failed, not just that it did; CI logs are often all there is.
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }

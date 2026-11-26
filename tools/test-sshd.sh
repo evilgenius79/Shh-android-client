@@ -34,7 +34,9 @@ start() {
     ssh-keygen -q -t ecdsa -b 256 -N '' -f "$DIR/host_ecdsa"
     : > "$DIR/authorized_keys"
     chown "$USER_NAME" "$DIR/authorized_keys"
-    chmod 644 "$DIR/authorized_keys"
+    # The tests add and remove keys here, and they usually do not run as root or as the test
+    # user. World-writable is fine for a throwaway server (sshd runs with StrictModes off).
+    chmod 666 "$DIR/authorized_keys"
     chmod 755 "$DIR"
 
     cat > "$DIR/sshd_config" <<CONF

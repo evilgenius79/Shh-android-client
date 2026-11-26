@@ -49,6 +49,10 @@ android {
                 // Draw through the real hardware pipeline so shadows and elevation show up.
                 it.systemProperty("robolectric.pixelCopyRenderMode", "hardware")
                 it.maxHeapSize = "2g"
+                it.testLogging {
+                    events("failed")
+                    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+                }
             }
         }
     }
