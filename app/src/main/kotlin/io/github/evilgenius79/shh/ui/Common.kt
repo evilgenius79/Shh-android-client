@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
@@ -59,7 +60,7 @@ fun BackTopBar(title: String, onBack: () -> Unit, actions: @Composable () -> Uni
     TopAppBar(
         title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         navigationIcon = {
-            IconButton(onClick = onBack) { AppIcon(R.drawable.ic_arrow_back, "Back") }
+            IconButton(onClick = onBack) { AppIcon(R.drawable.ic_arrow_back, stringResource(R.string.action_back)) }
         },
         actions = { actions() },
     )
@@ -83,7 +84,7 @@ fun ConfirmDialog(
                 Text(confirmLabel, color = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -110,7 +111,7 @@ fun <T> SelectField(
         )
         // The text field would swallow the tap, so a transparent layer on top takes it. That
         // layer is what a screen reader lands on, so it has to say what the field is and holds.
-        val description = "$label: ${optionLabel(selected)}"
+        val description = stringResource(R.string.common_select_field_description, label, optionLabel(selected))
         Box(
             Modifier
                 .matchParentSize()
@@ -118,7 +119,7 @@ fun <T> SelectField(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     role = Role.DropdownList,
-                    onClickLabel = "change",
+                    onClickLabel = stringResource(R.string.common_select_field_change),
                 ) { expanded = true }
                 .semantics { contentDescription = description },
         )
@@ -211,7 +212,10 @@ fun SecretField(
         textObfuscationMode = if (visible) TextObfuscationMode.Visible else TextObfuscationMode.System,
         trailingIcon = {
             IconButton(onClick = { visible = !visible }) {
-                AppIcon(if (visible) R.drawable.ic_visibility_off else R.drawable.ic_visibility, if (visible) "Hide" else "Show")
+                AppIcon(
+                    if (visible) R.drawable.ic_visibility_off else R.drawable.ic_visibility,
+                    stringResource(if (visible) R.string.common_secret_hide else R.string.common_secret_show),
+                )
             }
         },
         supportingText = supportingText?.let { { Text(it) } },

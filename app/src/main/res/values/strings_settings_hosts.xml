@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texts of the host list, the host editor, the settings and the small screens around them. -->
+<resources>
+
+    <!-- ===== Parts that several screens are built from ===== -->
+
+    <!-- What a screen reader says for a field that opens a list of choices. %1$s is the label of the field, %2$s the choice it holds: "Theme: Dark". -->
+    <string name="common_select_field_description">%1$s: %2$s</string>
+    <!-- What tapping such a field does. Screen readers put it into their own sentence: "Double-tap to change". -->
+    <string name="common_select_field_change">change</string>
+    <!-- Spoken by screen readers for the eye button of a password field while the password is hidden. -->
+    <string name="common_secret_show">Show</string>
+    <!-- Spoken by screen readers for the eye button of a password field while the password can be read. -->
+    <string name="common_secret_hide">Hide</string>
+    <!-- Shown when a file the user chose cannot be read. %1$s is the reason, as the system or the app words it. -->
+    <string name="common_file_not_read">The file could not be read: %1$s</string>
+
+    <!-- ===== Host list ===== -->
+
+    <!-- Spoken by screen readers for the key button in the top bar, which opens the list of keys. -->
+    <string name="hosts_open_keys">Keys</string>
+    <!-- Menu entry that reads hosts from an OpenSSH configuration file. -->
+    <string name="hosts_menu_import">Import SSH config</string>
+    <!-- Menu entry that opens the instructions for the app. -->
+    <string name="hosts_menu_help">How to use</string>
+    <!-- Button that opens the editor for a new host. -->
+    <string name="hosts_add">Add host</string>
+    <!-- Label of the field above the hosts. "user@host" shows how an address is typed and is best left as it is. -->
+    <string name="hosts_search_label">Search or connect to user@host</string>
+    <!-- Spoken by screen readers for the button that empties the search field. -->
+    <string name="hosts_search_clear">Clear</string>
+    <!-- Row offered while an address is typed into the search field. %1$s is that address, such as root@example.org:2200. -->
+    <string name="hosts_quick_connect">Connect to %1$s</string>
+    <!-- Under that row. "it" is the address. -->
+    <string name="hosts_quick_connect_summary">Without saving it as a host</string>
+    <!-- Heading above the sessions that are open. -->
+    <string name="hosts_section_sessions">Open sessions</string>
+    <string name="hosts_empty_title">No hosts yet</string>
+    <string name="hosts_empty_text">Add a server, or type user@host above to connect straight away.</string>
+    <!-- Heading above the hosts without a group, when other hosts have one. -->
+    <string name="hosts_group_none">Ungrouped</string>
+    <!-- Heading above the hosts when none of them has a group. -->
+    <string name="hosts_group_all">Hosts</string>
+    <!-- Under a host that is reached through another host. %1$s is the name of that other host. -->
+    <string name="hosts_via">via %1$s</string>
+    <!-- Spoken by screen readers for the three-dot button of a host. %1$s is the name of the host. -->
+    <string name="hosts_options">Options for %1$s</string>
+    <!-- Menu entry of a host: opens it in the editor. -->
+    <string name="hosts_edit">Edit</string>
+    <!-- Menu entry of a host: makes a copy of it. -->
+    <string name="hosts_duplicate">Duplicate</string>
+    <!-- Title of the question before a host is deleted. %1$s is the name of the host. -->
+    <string name="hosts_delete_title">Delete %1$s?</string>
+    <string name="hosts_delete_text">The host and its saved password are removed. Keys and known host keys are kept.</string>
+
+    <!-- ===== Importing an SSH config ===== -->
+
+    <!-- Title of the dialog that shows what a configuration file would add, and of the message that the file cannot be read. -->
+    <string name="import_title">Import from an SSH config</string>
+    <!-- Reason put into common_file_not_read when the chosen file is larger than any SSH config. "it" is the file. -->
+    <string name="import_file_too_large">it is too large to be an SSH config</string>
+    <!-- Reason put into common_file_not_read when the chosen file cannot be opened. "it" is the file. -->
+    <string name="import_file_not_opened">it could not be opened</string>
+    <string name="import_no_hosts">This file names no hosts.</string>
+    <string name="import_all_saved">Every host this file names is saved already.</string>
+    <!-- Above the list of the hosts the file would add. %1$d is how many there are. Where the form for one is also used for other numbers, write the number as %1$d there too. -->
+    <plurals name="import_hosts_to_add">
+        <item quantity="one">One host will be added:</item>
+        <item quantity="other">%1$d hosts will be added:</item>
+    </plurals>
+    <!-- %1$s is a list of the names of hosts, separated by commas. -->
+    <string name="import_already_saved">Saved already and left as they are: %1$s</string>
+    <!-- Under the field for a user name. %1$s is a list of the names of hosts, separated by commas. "ssh" is the program of that name. -->
+    <string name="import_user_needed">The file names no user for %1$s. On a computer ssh would use your login name there.</string>
+    <!-- Button that saves the hosts. %1$d is how many there are. Where the form for one is also used for other numbers, write the number as %1$d there too. -->
+    <plurals name="import_add_hosts">
+        <item quantity="one">Add the host</item>
+        <item quantity="other">Add %1$d hosts</item>
+    </plurals>
+
+    <!-- ===== Host editor ===== -->
+
+    <!-- Title of the editor while a host is being added. -->
+    <string name="hostedit_title_new">New host</string>
+    <!-- Title of the editor while a saved host is being changed. -->
+    <string name="hostedit_title_edit">Edit host</string>
+    <!-- Heading of the fields that say which server the host is. -->
+    <string name="hostedit_section_server">Server</string>
+    <!-- Label of the field for what the host is called in the app. -->
+    <string name="hostedit_name">Name (optional)</string>
+    <!-- Label of the field for the host name or IP address of the server. -->
+    <string name="hostedit_address">Address</string>
+    <!-- Under the address field when it is empty or contains spaces: says what belongs there. -->
+    <string name="hostedit_address_error">Host name or IP address</string>
+    <!-- Under a field that may not be left empty. -->
+    <string name="hostedit_required">Required</string>
+    <!-- Label of the field for the group the host is listed under. -->
+    <string name="hostedit_group">Group (optional)</string>
+    <!-- Heading of the fields about how to log in. -->
+    <string name="hostedit_section_authentication">Authentication</string>
+    <!-- Label of the choice of the key to log in with. -->
+    <string name="hostedit_key">Key</string>
+    <!-- A key to choose. %1$s is its name, %2$s its kind: "Phone key (Ed25519)". -->
+    <string name="hostedit_key_option">%1$s (%2$s)</string>
+    <!-- The choice of logging in without a key. -->
+    <string name="hostedit_key_none">None</string>
+    <!-- Label of the password field of a host that has no password saved. -->
+    <string name="hostedit_password">Password (optional)</string>
+    <!-- Label of the password field of a host whose password is saved; the field itself stays empty. -->
+    <string name="hostedit_password_saved">Password (saved, type to replace)</string>
+    <!-- Under the password field. -->
+    <string name="hostedit_password_hint">Stored encrypted on this device. Leave empty to be asked when connecting.</string>
+    <!-- Button that removes the saved password of the host. -->
+    <string name="hostedit_forget_password">Forget saved password</string>
+    <!-- Heading of the settings about how the server is reached. -->
+    <string name="hostedit_section_connection">Connection</string>
+    <!-- Label of the choice of another saved host to connect through. -->
+    <string name="hostedit_jump_host">Jump host</string>
+    <!-- The choice of not connecting through another host. -->
+    <string name="hostedit_jump_host_none">None (connect directly)</string>
+    <string name="hostedit_keep_alive">Keep-alive interval (seconds, 0 = off)</string>
+    <!-- Label of the choice between IPv4 and IPv6. -->
+    <string name="hostedit_internet_protocol">Internet protocol</string>
+    <string name="hostedit_internet_protocol_automatic">Automatic (try each address)</string>
+    <string name="hostedit_internet_protocol_ipv4">IPv4 only</string>
+    <string name="hostedit_internet_protocol_ipv6">IPv6 only</string>
+    <string name="hostedit_forward_agent">Forward the SSH agent</string>
+    <!-- "ssh" and "git" are the programs of those names. -->
+    <string name="hostedit_forward_agent_summary">Lets programs on this server, such as ssh or git, log in elsewhere with your keys. You are asked before a key is used. Only for servers you trust.</string>
+    <!-- Switch for compressing what is sent to and from the server. -->
+    <string name="hostedit_compression">Compression</string>
+    <string name="hostedit_compression_summary">Helps on slow links, costs battery on fast ones</string>
+    <string name="hostedit_legacy_algorithms">Allow legacy algorithms</string>
+    <string name="hostedit_legacy_algorithms_summary">Only for old devices that cannot do modern cryptography (SHA-1, CBC, ssh-rsa)</string>
+    <!-- Heading of the settings about the terminal of this host. -->
+    <string name="hostedit_section_terminal">Terminal</string>
+    <!-- Label of the field for a command that is sent to the server right after logging in. -->
+    <string name="hostedit_startup_command">Run after login (optional)</string>
+    <!-- Label of the choice of a colour scheme for the terminal of this host. -->
+    <string name="hostedit_colors">Colours</string>
+    <!-- The choice of the colour scheme that is set in the settings. -->
+    <string name="hostedit_colors_default">Use default</string>
+    <!-- Heading of the list of the port forwards of the host. -->
+    <string name="hostedit_section_forwards">Port forwards</string>
+    <!-- Under a port forward in that list: what the kind called "local" does. -->
+    <string name="hostedit_forward_local_summary">Local port to a destination reachable from the server</string>
+    <!-- Under a port forward in that list: what the kind called "remote" does. -->
+    <string name="hostedit_forward_remote_summary">Port on the server to a destination reachable from this device</string>
+    <!-- Under a port forward in that list: what the kind called "dynamic" does. -->
+    <string name="hostedit_forward_dynamic_summary">SOCKS proxy on this device</string>
+    <!-- Spoken by screen readers for the pencil button of a port forward. -->
+    <string name="hostedit_forward_edit">Edit forward</string>
+    <!-- Spoken by screen readers for the bin button of a port forward. -->
+    <string name="hostedit_forward_remove">Remove forward</string>
+    <!-- Button under the list of port forwards. -->
+    <string name="hostedit_forward_add">Add port forward</string>
+
+    <!-- The dialog for one port forward, opened from the host editor and from a running session. -->
+    <string name="hostedit_forward_title">Port forward</string>
+    <!-- Label of the choice of the kind of port forward. -->
+    <string name="hostedit_forward_type">Type</string>
+    <!-- The kinds of port forward. In brackets is the option of the ssh program that does the same; leave it as it is. -->
+    <string name="hostedit_forward_type_local">Local (-L)</string>
+    <string name="hostedit_forward_type_remote">Remote (-R)</string>
+    <string name="hostedit_forward_type_dynamic">Dynamic SOCKS proxy (-D)</string>
+    <!-- Label of the field for the address that takes the connections, when it is an address of the server. -->
+    <string name="hostedit_forward_listen_on_server">Listen on (server)</string>
+    <!-- Label of the field for the address that takes the connections, when it is an address of the phone. -->
+    <string name="hostedit_forward_listen_on_device">Listen on (this device)</string>
+    <!-- Label of the field for the host the connections are passed on to. -->
+    <string name="hostedit_forward_destination">Destination</string>
+    <!-- Under the fields of the dialog: what a forward of the chosen kind does. -->
+    <string name="hostedit_forward_local_explanation">Connections to the port on this device come out at the destination, as seen from the server.</string>
+    <string name="hostedit_forward_remote_explanation">Connections to the port on the server come out at the destination, as seen from this device.</string>
+    <string name="hostedit_forward_dynamic_explanation">Point apps at this SOCKS5 proxy to send their traffic through the server.</string>
+
+    <!-- ===== Port forwards of a running session ===== -->
+
+    <!-- Title of the dialog that lists the port forwards of a session. -->
+    <string name="forwards_title">Port forwards</string>
+    <string name="forwards_none">No forwards are running on this session.</string>
+    <!-- Kind of a running forward: from a port on this device to a destination behind the server. -->
+    <string name="forwards_kind_local">Local</string>
+    <!-- Kind of a running forward: from a port on the server to a destination behind this device. -->
+    <string name="forwards_kind_remote">Remote</string>
+    <!-- Kind of a running forward: a SOCKS proxy on this device. -->
+    <string name="forwards_kind_dynamic">SOCKS proxy</string>
+    <!-- Spoken by screen readers for the button that ends a running forward. -->
+    <string name="forwards_stop">Stop forward</string>
+    <!-- %1$s is the reason, as the system or the server words it. -->
+    <string name="forwards_start_failed">Could not start the forward: %1$s</string>
+
+    <!-- ===== Settings ===== -->
+
+    <!-- Title of the settings screen, and its entry in the menu of the host list. -->
+    <string name="settings_title">Settings</string>
+    <!-- Heading of the settings about the look of the app. -->
+    <string name="settings_section_appearance">Appearance</string>
+    <!-- Label of the choice between a light and a dark look. -->
+    <string name="settings_theme">Theme</string>
+    <!-- The choice of the look the device is set to. -->
+    <string name="settings_theme_system">Follow the system</string>
+    <!-- The choice of the light look. -->
+    <string name="settings_theme_light">Light</string>
+    <!-- The choice of the dark look. -->
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_dynamic_color">Use wallpaper colours</string>
+    <!-- "Material You" is Android's name for colours taken from the wallpaper. -->
+    <string name="settings_dynamic_color_summary">Material You colours for the app\'s own screens</string>
+    <!-- Heading of the settings about the terminal. -->
+    <string name="settings_section_terminal">Terminal</string>
+    <!-- Label of the choice of a colour scheme for the terminal. -->
+    <string name="settings_colors">Colours</string>
+    <string name="settings_text_size">Text size</string>
+    <!-- A text size to choose. %1$d is the size in sp, Android's unit for the size of text: "13 sp". -->
+    <string name="settings_text_size_value">%1$d sp</string>
+    <!-- Entry that shows which typeface the terminal uses and lets the user choose another. -->
+    <string name="settings_font">Font</string>
+    <!-- Under "Font" while the built-in typeface is in use. -->
+    <string name="settings_font_builtin">JetBrains Mono, built in. Tap to choose a monospaced font file (.ttf or .otf) instead.</string>
+    <!-- Under "Font" while a font file of the user is in use. %1$s is what that font is called. -->
+    <string name="settings_font_own">%1$s. Tap to choose another font file.</string>
+    <!-- Stands in for the name of the user's font when its file has no name to show. Goes into settings_font_own. -->
+    <string name="settings_font_unnamed">A font of your own</string>
+    <string name="settings_font_use_builtin">Use the built-in font</string>
+    <!-- Title of the message that says why a chosen font file was refused. -->
+    <string name="settings_font_problem_title">This font cannot be used</string>
+    <!-- Reason put into common_file_not_read when the chosen font file cannot be opened. -->
+    <string name="settings_font_not_opened">The file could not be opened</string>
+    <string name="settings_pinch_hint">You can also pinch the terminal to zoom.</string>
+    <!-- Label of the choice of the shape of the cursor. -->
+    <string name="settings_cursor">Cursor</string>
+    <!-- Shape of the cursor: a filled rectangle. -->
+    <string name="settings_cursor_block">Block</string>
+    <!-- Shape of the cursor: a line under the character. -->
+    <string name="settings_cursor_underline">Underline</string>
+    <!-- Shape of the cursor: a thin upright line. -->
+    <string name="settings_cursor_bar">Bar</string>
+    <string name="settings_cursor_blink">Blinking cursor</string>
+    <!-- Label of the choice of how many lines that have scrolled out of view the terminal keeps. -->
+    <string name="settings_scrollback">Scrollback</string>
+    <!-- An amount of scrollback to choose. %1$d is the number of lines. -->
+    <plurals name="settings_scrollback_lines">
+        <item quantity="one">%1$d line</item>
+        <item quantity="other">%1$d lines</item>
+    </plurals>
+    <string name="settings_new_sessions_hint">Colours and scrollback apply to sessions opened from now on.</string>
+    <!-- Switch for the bar of keys above the keyboard. -->
+    <string name="settings_extra_keys">Extra keys</string>
+    <string name="settings_extra_keys_summary">Esc, Tab, Ctrl, Alt, arrows and more, above the keyboard</string>
+    <!-- Entry that opens the screen where the keys of that bar are arranged. -->
+    <string name="settings_key_bar">Keys of the bar</string>
+    <!-- Under "Keys of the bar" while the bar has its standard keys. "it" is the bar. -->
+    <string name="settings_key_bar_standard">Choose which keys it shows, and where</string>
+    <!-- Under "Keys of the bar" once the user has arranged the keys. -->
+    <string name="settings_key_bar_own">Your own arrangement</string>
+    <string name="settings_hide_keys_with_keyboard">Hide the keys with a hardware keyboard</string>
+    <string name="settings_hide_keys_with_keyboard_summary">While a keyboard is connected the bar makes room for the terminal</string>
+    <string name="settings_full_keyboard">Full keyboard features</string>
+    <string name="settings_full_keyboard_summary">Voice typing, swipe typing and keyboards for other scripts. The keyboard may then correct what you type.</string>
+    <!-- The bell is the signal a program in the terminal gives to get attention, for example on a mistyped command. -->
+    <string name="settings_vibrate_on_bell">Vibrate on bell</string>
+    <string name="settings_remote_clipboard">Let servers set the clipboard</string>
+    <!-- "OSC 52" is the name of the terminal feature and stays as it is. -->
+    <string name="settings_remote_clipboard_summary">Programs on the server may copy text to this device (OSC 52). They can never read it.</string>
+    <!-- Heading of the settings about connections to servers. -->
+    <string name="settings_section_sessions">Sessions</string>
+    <string name="settings_auto_reconnect">Reconnect automatically</string>
+    <string name="settings_auto_reconnect_summary">When a connection drops, for example because the network changed</string>
+    <string name="settings_close_on_exit">Close a tab when its shell exits</string>
+    <!-- "exit" is the command and "Ctrl+D" the key combination that end a shell. -->
+    <string name="settings_close_on_exit_summary">After exit or Ctrl+D. A session that ends on its own stays, so that you can read why.</string>
+    <string name="settings_notify_on_bell">Notify on bell in the background</string>
+    <string name="settings_notify_on_bell_summary">When a session you are not looking at rings the bell, for example at the end of a long command</string>
+    <string name="settings_keep_screen_on">Keep the screen on</string>
+    <string name="settings_keep_screen_on_summary">While a terminal is showing</string>
+    <string name="settings_keep_awake">Stay awake in the background</string>
+    <string name="settings_keep_awake_summary">Keeps connections and port forwards alive when the screen is off. Uses more battery.</string>
+    <!-- Heading of the settings that protect the app. -->
+    <string name="settings_section_security">Security</string>
+    <string name="settings_lock_app">Lock the app</string>
+    <string name="settings_lock_app_summary">Ask for your fingerprint, face or screen lock when the app is opened</string>
+    <!-- Under "Lock the app" on a device without a screen lock, where the switch does nothing. -->
+    <string name="settings_lock_app_unavailable">Set up a screen lock on this device to use this</string>
+    <!-- Heading of the entries that save and restore a backup. -->
+    <string name="settings_section_backup">Backup</string>
+
+    <!-- ===== Backup ===== -->
+
+    <!-- Entry in the settings, and title of the dialog it opens. -->
+    <string name="backup_export_title">Export backup</string>
+    <string name="backup_export_summary">Hosts, keys, passwords, snippets and settings in one file, encrypted with a passphrase you choose</string>
+    <string name="backup_export_explanation">The backup contains your private keys and saved passwords. It is encrypted with this passphrase; without it the backup cannot be restored.</string>
+    <!-- Label of the field for the passphrase that encrypts the backup. -->
+    <string name="backup_passphrase">Passphrase</string>
+    <!-- Label of the field where that passphrase is typed a second time. -->
+    <string name="backup_passphrase_repeat">Repeat passphrase</string>
+    <string name="backup_passphrases_differ">The passphrases do not match.</string>
+    <!-- Button that opens the system's file chooser for where the backup file goes. -->
+    <string name="backup_choose_destination">Choose where to save</string>
+    <string name="backup_saved">Backup saved.</string>
+    <!-- %1$s is the reason, as the system or the app words it. -->
+    <string name="backup_failed">Backup failed: %1$s</string>
+    <!-- Reason put into backup_failed when the chosen place cannot be written to. -->
+    <string name="backup_destination_not_opened">The destination could not be opened</string>
+    <!-- Entry in the settings, and title of the dialog it opens. -->
+    <string name="backup_restore_title">Restore backup</string>
+    <string name="backup_restore_summary">Replaces everything in the app with the contents of a backup file</string>
+    <string name="backup_restore_explanation">Everything currently in the app (hosts, keys, known hosts, snippets, settings) is replaced by the backup.</string>
+    <!-- Label of the field for the passphrase the backup was encrypted with. -->
+    <string name="backup_restore_passphrase">Passphrase of the backup</string>
+    <!-- Button that replaces what is in the app with the backup. -->
+    <string name="backup_restore_action">Restore</string>
+    <!-- Shown once a backup is restored. %1$s is backup_restored_hosts and %2$s backup_restored_keys, each with its number: "3 hosts" and "2 keys". -->
+    <string name="backup_restored">Backup restored: %1$s, %2$s.</string>
+    <!-- Goes into backup_restored. %1$d is how many hosts the backup held. English words the form for one like the others because the app has always said "1 hosts" here. -->
+    <plurals name="backup_restored_hosts">
+        <item quantity="one">%1$d hosts</item>
+        <item quantity="other">%1$d hosts</item>
+    </plurals>
+    <!-- Goes into backup_restored. %1$d is how many keys the backup held. English words the form for one like the others because the app has always said "1 keys" here. -->
+    <plurals name="backup_restored_keys">
+        <item quantity="one">%1$d keys</item>
+        <item quantity="other">%1$d keys</item>
+    </plurals>
+
+    <!-- ===== Known hosts ===== -->
+
+    <!-- Title of the screen that lists the server keys the user has accepted, and its entry in the menu of the host list. -->
+    <string name="knownhosts_title">Known hosts</string>
+    <string name="knownhosts_empty_title">No known hosts</string>
+    <string name="knownhosts_empty_text">Server keys you accept when connecting are remembered here, so that a changed key is noticed.</string>
+    <!-- Spoken by screen readers for the bin button of a server key. -->
+    <string name="knownhosts_forget">Forget this key</string>
+    <!-- Title of the question before a server key is forgotten. -->
+    <string name="knownhosts_forget_title">Forget this key?</string>
+    <!-- %1$s is the host name or IP address of the server. -->
+    <string name="knownhosts_forget_text">The next connection to %1$s will ask you to verify its key again.</string>
+    <!-- Button that confirms forgetting the server key. -->
+    <string name="knownhosts_forget_action">Forget</string>
+
+    <!-- ===== Snippets ===== -->
+
+    <!-- Title of the screen that lists the saved commands, and its entry in the menu of the host list. -->
+    <string name="snippets_title">Snippets</string>
+    <!-- Spoken by screen readers for the plus button. -->
+    <string name="snippets_add">Add snippet</string>
+    <string name="snippets_empty_title">No snippets</string>
+    <string name="snippets_empty_text">Save commands you type often and send them to a terminal from its menu.</string>
+    <!-- Title of the dialog while a snippet is being added. -->
+    <string name="snippets_new_title">New snippet</string>
+    <!-- Title of the dialog while a saved snippet is being changed. -->
+    <string name="snippets_edit_title">Edit snippet</string>
+    <!-- Label of the field for the command the snippet sends. -->
+    <string name="snippets_command">Command</string>
+    <!-- Switch that has the command run as soon as it is sent. -->
+    <string name="snippets_run_immediately">Run immediately</string>
+    <string name="snippets_run_immediately_summary">Press Enter after inserting the command</string>
+
+    <!-- ===== About ===== -->
+
+    <!-- Title of the screen about the app, and its entry in the menu of the host list. -->
+    <string name="about_title">About</string>
+    <!-- The name of the app and its version. %1$s is the version: "Shh 0.1.0". -->
+    <string name="about_version">Shh %1$s</string>
+    <string name="about_summary">An open-source SSH client. Licensed under the Apache License 2.0.</string>
+    <!-- Heading of the list of the software the app is built with. -->
+    <string name="about_section_components">Open-source components</string>
+    <!-- Under each of these components is what it does in the app, then the name of its licence. Names of licences stay as they are. -->
+    <string name="about_sshj_summary">SSH protocol implementation. Apache License 2.0.</string>
+    <string name="about_bouncy_castle_summary">Cryptography provider. MIT License.</string>
+    <!-- Name of a component: two libraries by Google, "AndroidX" and "Jetpack Compose". -->
+    <string name="about_androidx_name">AndroidX and Jetpack Compose</string>
+    <!-- Under the components of which only the licence is named. -->
+    <string name="about_license_apache">Apache License 2.0.</string>
+    <string name="about_material_symbols_summary">Icons by Google. Apache License 2.0.</string>
+    <string name="about_slf4j_summary">Logging facade. MIT License.</string>
+    <string name="about_jetbrains_mono_summary">Terminal font. SIL Open Font License 1.1.</string>
+
+    <!-- ===== App lock ===== -->
+
+    <!-- Shown instead of the app until the user has unlocked it. -->
+    <string name="lock_title">Shh is locked</string>
+    <!-- Button that asks for the fingerprint, face or screen lock again. -->
+    <string name="lock_unlock">Unlock</string>
+    <!-- Title of the system's prompt for the fingerprint, face or screen lock. -->
+    <string name="lock_prompt_title">Unlock Shh</string>
+    <!-- Shown under "Shh is locked" when the user left the screen lock without unlocking. -->
+    <string name="lock_not_unlocked">Not unlocked</string>
+</resources>

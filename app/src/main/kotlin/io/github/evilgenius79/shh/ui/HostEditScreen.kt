@@ -30,6 +30,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -79,6 +81,8 @@ fun HostEditScreen(
     var forwards by remember { mutableStateOf(original.forwards) }
     var editingForward by remember { mutableStateOf<ForwardRule?>(null) }
     var showErrors by rememberSaveable { mutableStateOf(false) }
+    // For the choices of the fields, whose texts are made outside composition.
+    val resources = LocalResources.current
 
     val portNumber = port.toIntOrNull()?.takeIf { it in 1..65535 }
     val keepAliveNumber = keepAlive.toIntOrNull()?.takeIf { it in 0..3600 }
@@ -117,8 +121,8 @@ fun HostEditScreen(
 
     Scaffold(
         topBar = {
-            BackTopBar(if (isNew) "New host" else "Edit host", onBack) {
-                TextButton(onClick = ::save) { Text("Save") }
+            BackTopBar(stringResource(if (isNew) R.string.hostedit_title_new else R.string.hostedit_title_edit), onBack) {
+                TextButton(onClick = ::save) { Text(stringResource(R.string.action_save)) }
             }
         },
     ) { padding ->
@@ -135,23 +139,23 @@ fun HostEditScreen(
                 .padding(horizontal = 16.dp, vertical = 4.dp)
             val plainText = KeyboardOptions(autoCorrectEnabled = false, capitalization = KeyboardCapitalization.None)
 
-            SectionHeader("Server")
-            OutlinedTextField(name, { name = it }, label = { Text("Name (optional)") }, singleLine = true, modifier = field)
+            SectionHeader(stringResource(R.string.hostedit_section_server))
+            OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.hostedit_name)) }, singleLine = true, modifier = field)
             Row(field, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     address,
                     { address = it },
-                    label = { Text("Address") },
+                    label = { Text(stringResource(R.string.hostedit_address)) },
                     singleLine = true,
                     isError = showErrors && !addressValid,
-                    supportingText = if (showErrors && !addressValid) ({ Text("Host name or IP address") }) else null,
+                    supportingText = if (showErrors && !addressValid) ({ Text(stringResource(R.string.hostedit_address_error)) }) else null,
                     keyboardOptions = plainText.copy(keyboardType = KeyboardType.Uri),
                     modifier = Modifier.weight(1f),
                 )
                 OutlinedTextField(
                     port,
                     { port = it.filter(Char::isDigit).take(5) },
-                    label = { Text("Port") },
+                    label = { Text(stringResource(R.string.label_port)) },
                     singleLine = true,
                     isError = showErrors && portNumber == null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -161,120 +165,127 @@ fun HostEditScreen(
             OutlinedTextField(
                 username,
                 { username = it },
-                label = { Text("User name") },
+                label = { Text(stringResource(R.string.label_user_name)) },
                 singleLine = true,
                 isError = showErrors && username.isBlank(),
-                supportingText = if (showErrors && username.isBlank()) ({ Text("Required") }) else null,
+                supportingText = if (showErrors && username.isBlank()) ({ Text(stringResource(R.string.hostedit_required)) }) else null,
                 keyboardOptions = plainText,
                 modifier = field,
             )
-            OutlinedTextField(group, { group = it }, label = { Text("Group (optional)") }, singleLine = true, modifier = field)
+            OutlinedTextField(group, { group = it }, label = { Text(stringResource(R.string.hostedit_group)) }, singleLine = true, modifier = field)
 
-            SectionHeader("Authentication")
+            SectionHeader(stringResource(R.string.hostedit_section_authentication))
             SelectField(
-                label = "Key",
+                label = stringResource(R.string.hostedit_key),
                 selected = data.identity(identityId),
                 options = listOf<Identity?>(null) + data.identities,
-                optionLabel = { it?.let { key -> "${key.name} (${key.algorithm})" } ?: "None" },
+                optionLabel = {
+                    it?.let { key -> resources.getString(R.string.hostedit_key_option, key.name, key.algorithm) } ?: resources.getString(R.string.hostedit_key_none)
+                },
                 onSelect = { identityId = it?.id },
                 modifier = field,
             )
             SecretField(
                 state = passwordState,
-                label = if (hasSavedPassword && !removePassword) "Password (saved, type to replace)" else "Password (optional)",
-                supportingText = "Stored encrypted on this device. Leave empty to be asked when connecting.",
+                label = stringResource(if (hasSavedPassword && !removePassword) R.string.hostedit_password_saved else R.string.hostedit_password),
+                supportingText = stringResource(R.string.hostedit_password_hint),
                 modifier = field,
             )
             if (hasSavedPassword && !removePassword && password.isEmpty()) {
                 TextButton(onClick = { removePassword = true }, modifier = Modifier.padding(horizontal = 8.dp)) {
-                    Text("Forget saved password")
+                    Text(stringResource(R.string.hostedit_forget_password))
                 }
             }
 
-            SectionHeader("Connection")
+            SectionHeader(stringResource(R.string.hostedit_section_connection))
             SelectField(
-                label = "Jump host",
+                label = stringResource(R.string.hostedit_jump_host),
                 selected = data.host(jumpHostId),
                 options = listOf<Host?>(null) + data.hosts.filter { it.id != original.id },
-                optionLabel = { it?.title ?: "None (connect directly)" },
+                optionLabel = { it?.title ?: resources.getString(R.string.hostedit_jump_host_none) },
                 onSelect = { jumpHostId = it?.id },
                 modifier = field,
             )
             OutlinedTextField(
                 keepAlive,
                 { keepAlive = it.filter(Char::isDigit).take(4) },
-                label = { Text("Keep-alive interval (seconds, 0 = off)") },
+                label = { Text(stringResource(R.string.hostedit_keep_alive)) },
                 singleLine = true,
                 isError = showErrors && keepAliveNumber == null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = field,
             )
             SelectField(
-                label = "Internet protocol",
+                label = stringResource(R.string.hostedit_internet_protocol),
                 selected = internetProtocol,
                 options = InternetProtocol.entries,
                 optionLabel = {
-                    when (it) {
-                        InternetProtocol.AUTOMATIC -> "Automatic (try each address)"
-                        InternetProtocol.IPV4 -> "IPv4 only"
-                        InternetProtocol.IPV6 -> "IPv6 only"
-                    }
+                    resources.getString(
+                        when (it) {
+                            InternetProtocol.AUTOMATIC -> R.string.hostedit_internet_protocol_automatic
+                            InternetProtocol.IPV4 -> R.string.hostedit_internet_protocol_ipv4
+                            InternetProtocol.IPV6 -> R.string.hostedit_internet_protocol_ipv6
+                        },
+                    )
                 },
                 onSelect = { internetProtocol = it },
                 modifier = field,
             )
             SwitchRow(
-                "Forward the SSH agent",
-                "Lets programs on this server, such as ssh or git, log in elsewhere with your keys. " +
-                    "You are asked before a key is used. Only for servers you trust.",
+                stringResource(R.string.hostedit_forward_agent),
+                stringResource(R.string.hostedit_forward_agent_summary),
                 forwardAgent,
                 { forwardAgent = it },
             )
-            SwitchRow("Compression", "Helps on slow links, costs battery on fast ones", compression, { compression = it })
+            SwitchRow(stringResource(R.string.hostedit_compression), stringResource(R.string.hostedit_compression_summary), compression, { compression = it })
             SwitchRow(
-                "Allow legacy algorithms",
-                "Only for old devices that cannot do modern cryptography (SHA-1, CBC, ssh-rsa)",
+                stringResource(R.string.hostedit_legacy_algorithms),
+                stringResource(R.string.hostedit_legacy_algorithms_summary),
                 legacy,
                 { legacy = it },
             )
 
-            SectionHeader("Terminal")
+            SectionHeader(stringResource(R.string.hostedit_section_terminal))
             OutlinedTextField(
                 startupCommand,
                 { startupCommand = it },
-                label = { Text("Run after login (optional)") },
+                label = { Text(stringResource(R.string.hostedit_startup_command)) },
                 placeholder = { Text("tmux new -A -s main") },
                 singleLine = true,
                 keyboardOptions = plainText,
                 modifier = field,
             )
             SelectField(
-                label = "Colours",
+                label = stringResource(R.string.hostedit_colors),
                 selected = colorSchemeId,
                 options = listOf<String?>(null) + ColorScheme.ALL.map { it.id },
-                optionLabel = { id -> if (id == null) "Use default" else ColorScheme.byId(id).name },
+                optionLabel = { id -> if (id == null) resources.getString(R.string.hostedit_colors_default) else ColorScheme.byId(id).name },
                 onSelect = { colorSchemeId = it },
                 modifier = field,
             )
 
-            SectionHeader("Port forwards")
+            SectionHeader(stringResource(R.string.hostedit_section_forwards))
             for (rule in forwards) {
                 Entry(
                     headline = rule.summary,
                     supporting = {
                         Text(
-                            when (rule.kind) {
-                                ForwardKind.LOCAL -> "Local port to a destination reachable from the server"
-                                ForwardKind.REMOTE -> "Port on the server to a destination reachable from this device"
-                                ForwardKind.DYNAMIC -> "SOCKS proxy on this device"
-                            },
+                            stringResource(
+                                when (rule.kind) {
+                                    ForwardKind.LOCAL -> R.string.hostedit_forward_local_summary
+                                    ForwardKind.REMOTE -> R.string.hostedit_forward_remote_summary
+                                    ForwardKind.DYNAMIC -> R.string.hostedit_forward_dynamic_summary
+                                },
+                            ),
                         )
                     },
                     leading = { AppIcon(R.drawable.ic_swap_horiz, null) },
                     trailing = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { editingForward = rule }) { AppIcon(R.drawable.ic_edit, "Edit forward") }
-                            IconButton(onClick = { forwards = forwards - rule }) { AppIcon(R.drawable.ic_delete, "Remove forward") }
+                            IconButton(onClick = { editingForward = rule }) { AppIcon(R.drawable.ic_edit, stringResource(R.string.hostedit_forward_edit)) }
+                            IconButton(onClick = { forwards = forwards - rule }) {
+                                AppIcon(R.drawable.ic_delete, stringResource(R.string.hostedit_forward_remove))
+                            }
                         }
                     },
                 )
@@ -284,7 +295,7 @@ fun HostEditScreen(
                 modifier = Modifier.padding(horizontal = 8.dp),
             ) {
                 AppIcon(R.drawable.ic_add, null)
-                Text("Add port forward", Modifier.padding(start = 8.dp))
+                Text(stringResource(R.string.hostedit_forward_add), Modifier.padding(start = 8.dp))
             }
         }
     }
@@ -319,38 +330,42 @@ fun ForwardDialog(initial: ForwardRule, onDismiss: () -> Unit, onSave: (ForwardR
     val needsDestination = kind != ForwardKind.DYNAMIC
     val valid = bindPortNumber != null && bindAddress.isNotBlank() &&
         (!needsDestination || (destinationHost.isNotBlank() && destinationPortNumber != null))
+    val resources = LocalResources.current
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Port forward") },
+        title = { Text(stringResource(R.string.hostedit_forward_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SelectField(
-                    label = "Type",
+                    label = stringResource(R.string.hostedit_forward_type),
                     selected = kind,
                     options = ForwardKind.entries,
                     optionLabel = {
-                        when (it) {
-                            ForwardKind.LOCAL -> "Local (-L)"
-                            ForwardKind.REMOTE -> "Remote (-R)"
-                            ForwardKind.DYNAMIC -> "Dynamic SOCKS proxy (-D)"
-                        }
+                        resources.getString(
+                            when (it) {
+                                ForwardKind.LOCAL -> R.string.hostedit_forward_type_local
+                                ForwardKind.REMOTE -> R.string.hostedit_forward_type_remote
+                                ForwardKind.DYNAMIC -> R.string.hostedit_forward_type_dynamic
+                            },
+                        )
                     },
                     onSelect = { kind = it },
                 )
-                val listenSide = if (kind == ForwardKind.REMOTE) "server" else "this device"
+                // A remote forward listens on the server, the other kinds on this device.
+                val listenOn = if (kind == ForwardKind.REMOTE) R.string.hostedit_forward_listen_on_server else R.string.hostedit_forward_listen_on_device
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         bindAddress,
                         { bindAddress = it.trim() },
-                        label = { Text("Listen on ($listenSide)") },
+                        label = { Text(stringResource(listenOn)) },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                     )
                     OutlinedTextField(
                         bindPort,
                         { bindPort = it.filter(Char::isDigit).take(5) },
-                        label = { Text("Port") },
+                        label = { Text(stringResource(R.string.label_port)) },
                         singleLine = true,
                         isError = bindPortNumber == null,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -362,14 +377,14 @@ fun ForwardDialog(initial: ForwardRule, onDismiss: () -> Unit, onSave: (ForwardR
                         OutlinedTextField(
                             destinationHost,
                             { destinationHost = it.trim() },
-                            label = { Text("Destination") },
+                            label = { Text(stringResource(R.string.hostedit_forward_destination)) },
                             singleLine = true,
                             modifier = Modifier.weight(1f),
                         )
                         OutlinedTextField(
                             destinationPort,
                             { destinationPort = it.filter(Char::isDigit).take(5) },
-                            label = { Text("Port") },
+                            label = { Text(stringResource(R.string.label_port)) },
                             singleLine = true,
                             isError = destinationPortNumber == null,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -378,11 +393,13 @@ fun ForwardDialog(initial: ForwardRule, onDismiss: () -> Unit, onSave: (ForwardR
                     }
                 }
                 Text(
-                    when (kind) {
-                        ForwardKind.LOCAL -> "Connections to the port on this device come out at the destination, as seen from the server."
-                        ForwardKind.REMOTE -> "Connections to the port on the server come out at the destination, as seen from this device."
-                        ForwardKind.DYNAMIC -> "Point apps at this SOCKS5 proxy to send their traffic through the server."
-                    },
+                    stringResource(
+                        when (kind) {
+                            ForwardKind.LOCAL -> R.string.hostedit_forward_local_explanation
+                            ForwardKind.REMOTE -> R.string.hostedit_forward_remote_explanation
+                            ForwardKind.DYNAMIC -> R.string.hostedit_forward_dynamic_explanation
+                        },
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -402,8 +419,8 @@ fun ForwardDialog(initial: ForwardRule, onDismiss: () -> Unit, onSave: (ForwardR
                         ),
                     )
                 },
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

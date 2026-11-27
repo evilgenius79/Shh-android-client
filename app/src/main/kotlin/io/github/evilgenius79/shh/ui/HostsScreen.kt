@@ -40,6 +40,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -103,6 +105,8 @@ fun HostsScreen(
     onImport: (List<Host>) -> Unit = {},
 ) {
     val context = LocalContext.current
+    // For what the file picker has to say, which happens outside composition.
+    val resources = LocalResources.current
     var importPlan by remember { mutableStateOf<ConfigImport.Plan?>(null) }
     var importProblem by remember { mutableStateOf<String?>(null) }
     val hosts by rememberUpdatedState(data.hosts)
@@ -118,14 +122,14 @@ fun HostsScreen(
                         if (count < 0) break
                         size += count
                     }
-                    if (size > MAX_CONFIG_BYTES) throw IOException("it is too large to be an SSH config")
+                    if (size > MAX_CONFIG_BYTES) throw IOException(resources.getString(R.string.import_file_too_large))
                     String(bytes, 0, size, Charsets.UTF_8)
-                } ?: throw IOException("it could not be opened")
+                } ?: throw IOException(resources.getString(R.string.import_file_not_opened))
                 importPlan = ConfigImport.plan(SshConfig.parse(text), hosts)
             } catch (e: IOException) {
-                importProblem = "The file could not be read: ${e.message}"
+                importProblem = resources.getString(R.string.common_file_not_read, e.message)
             } catch (e: SecurityException) {
-                importProblem = "The file could not be read: ${e.message}"
+                importProblem = resources.getString(R.string.common_file_not_read, e.message)
             }
         }
     }
@@ -136,20 +140,20 @@ fun HostsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Shh") },
+                title = { Text(stringResource(R.string.app_name)) },
                 actions = {
-                    IconButton(onClick = { onNavigate(Screen.Keys) }) { AppIcon(R.drawable.ic_key, "Keys") }
-                    IconButton(onClick = { menuOpen = true }) { AppIcon(R.drawable.ic_more_vert, "More") }
+                    IconButton(onClick = { onNavigate(Screen.Keys) }) { AppIcon(R.drawable.ic_key, stringResource(R.string.hosts_open_keys)) }
+                    IconButton(onClick = { menuOpen = true }) { AppIcon(R.drawable.ic_more_vert, stringResource(R.string.action_more)) }
                     DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                         val entries = listOf(
-                            Triple("Snippets", R.drawable.ic_code, Screen.Snippets),
-                            Triple("Known hosts", R.drawable.ic_fingerprint, Screen.KnownHosts),
-                            Triple("Settings", R.drawable.ic_settings, Screen.Settings),
-                            Triple("How to use", R.drawable.ic_help, Screen.Help),
-                            Triple("About", R.drawable.ic_info, Screen.About),
+                            Triple(stringResource(R.string.snippets_title), R.drawable.ic_code, Screen.Snippets),
+                            Triple(stringResource(R.string.knownhosts_title), R.drawable.ic_fingerprint, Screen.KnownHosts),
+                            Triple(stringResource(R.string.settings_title), R.drawable.ic_settings, Screen.Settings),
+                            Triple(stringResource(R.string.hosts_menu_help), R.drawable.ic_help, Screen.Help),
+                            Triple(stringResource(R.string.about_title), R.drawable.ic_info, Screen.About),
                         )
                         DropdownMenuItem(
-                            text = { Text("Import SSH config") },
+                            text = { Text(stringResource(R.string.hosts_menu_import)) },
                             leadingIcon = { AppIcon(R.drawable.ic_download, null) },
                             onClick = {
                                 menuOpen = false
@@ -175,7 +179,7 @@ fun HostsScreen(
             ExtendedFloatingActionButton(
                 onClick = onAdd,
                 icon = { AppIcon(R.drawable.ic_add, null) },
-                text = { Text("Add host") },
+                text = { Text(stringResource(R.string.hosts_add)) },
             )
         },
     ) { padding ->
@@ -187,6 +191,9 @@ fun HostsScreen(
                 // Named groups first, in alphabetical order; hosts without a group come last.
                 .sortedWith(compareBy<Host>({ it.group.isBlank() }, { it.group.lowercase() }, { it.title.lowercase() }))
         }
+        // Read here because the list below is put together outside composition.
+        val ungrouped = stringResource(R.string.hosts_group_none)
+        val allHosts = stringResource(R.string.hosts_group_all)
         LazyColumn(
             Modifier
                 .fillMaxSize()
@@ -198,10 +205,10 @@ fun HostsScreen(
                     value = query,
                     onValueChange = { query = it },
                     singleLine = true,
-                    label = { Text("Search or connect to user@host") },
+                    label = { Text(stringResource(R.string.hosts_search_label)) },
                     leadingIcon = { AppIcon(R.drawable.ic_search, null) },
                     trailingIcon = {
-                        if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { AppIcon(R.drawable.ic_close, "Clear") }
+                        if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { AppIcon(R.drawable.ic_close, stringResource(R.string.hosts_search_clear)) }
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go, autoCorrectEnabled = false),
                     keyboardActions = KeyboardActions(onGo = { quick?.let(onQuickConnect) }),
@@ -213,8 +220,8 @@ fun HostsScreen(
             if (quick != null && filtered.none { it.address == quick.address }) {
                 item {
                     Entry(
-                        headline = "Connect to ${quick.address}",
-                        supporting = { Text("Without saving it as a host") },
+                        headline = stringResource(R.string.hosts_quick_connect, quick.address),
+                        supporting = { Text(stringResource(R.string.hosts_quick_connect_summary)) },
                         leading = { AppIcon(R.drawable.ic_bolt, null, tint = MaterialTheme.colorScheme.primary) },
                         onClick = { onQuickConnect(quick) },
                     )
@@ -222,7 +229,7 @@ fun HostsScreen(
             }
             if (sessions.isNotEmpty()) {
                 item {
-                    SectionHeader("Open sessions")
+                    SectionHeader(stringResource(R.string.hosts_section_sessions))
                     Row(
                         Modifier
                             .horizontalScroll(rememberScrollState())
@@ -251,8 +258,8 @@ fun HostsScreen(
                     Box(Modifier.fillParentMaxHeight(0.6f)) {
                         EmptyState(
                             R.drawable.ic_dns,
-                            "No hosts yet",
-                            "Add a server, or type user@host above to connect straight away.",
+                            stringResource(R.string.hosts_empty_title),
+                            stringResource(R.string.hosts_empty_text),
                         )
                     }
                 }
@@ -261,7 +268,7 @@ fun HostsScreen(
             for (host in filtered) {
                 if (host.group != lastGroup) {
                     lastGroup = host.group
-                    val header = host.group.ifBlank { if (filtered.any { it.group.isNotBlank() }) "Ungrouped" else "Hosts" }
+                    val header = host.group.ifBlank { if (filtered.any { it.group.isNotBlank() }) ungrouped else allHosts }
                     item(key = "group-${host.group}") { SectionHeader(header) }
                 }
                 item(key = host.id) {
@@ -291,16 +298,16 @@ fun HostsScreen(
     importProblem?.let { problem ->
         AlertDialog(
             onDismissRequest = { importProblem = null },
-            title = { Text("Import from an SSH config") },
+            title = { Text(stringResource(R.string.import_title)) },
             text = { Text(problem) },
-            confirmButton = { TextButton(onClick = { importProblem = null }) { Text("OK") } },
+            confirmButton = { TextButton(onClick = { importProblem = null }) { Text(stringResource(R.string.action_ok)) } },
         )
     }
     pendingDelete?.let { host ->
         ConfirmDialog(
-            title = "Delete ${host.title}?",
-            text = "The host and its saved password are removed. Keys and known host keys are kept.",
-            confirmLabel = "Delete",
+            title = stringResource(R.string.hosts_delete_title, host.title),
+            text = stringResource(R.string.hosts_delete_text),
+            confirmLabel = stringResource(R.string.action_delete),
             destructive = true,
             onConfirm = {
                 pendingDelete = null
@@ -319,23 +326,25 @@ private fun HostRow(host: Host, jump: Host?, onConnect: () -> Unit, onEdit: () -
         supporting = {
             Column {
                 if (host.name.isNotBlank()) Text(host.address, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                if (jump != null) Text("via ${jump.title}", maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+                if (jump != null) {
+                    Text(stringResource(R.string.hosts_via, jump.title), maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+                }
             }
         },
         leading = { AppIcon(R.drawable.ic_dns, null) },
         trailing = {
             Box {
-                IconButton(onClick = { menuOpen = true }) { AppIcon(R.drawable.ic_more_vert, "Options for ${host.title}") }
+                IconButton(onClick = { menuOpen = true }) { AppIcon(R.drawable.ic_more_vert, stringResource(R.string.hosts_options, host.title)) }
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                    DropdownMenuItem(text = { Text("Edit") }, leadingIcon = { AppIcon(R.drawable.ic_edit, null) }, onClick = {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.hosts_edit)) }, leadingIcon = { AppIcon(R.drawable.ic_edit, null) }, onClick = {
                         menuOpen = false
                         onEdit()
                     })
-                    DropdownMenuItem(text = { Text("Duplicate") }, leadingIcon = { AppIcon(R.drawable.ic_content_copy, null) }, onClick = {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.hosts_duplicate)) }, leadingIcon = { AppIcon(R.drawable.ic_content_copy, null) }, onClick = {
                         menuOpen = false
                         onDuplicate()
                     })
-                    DropdownMenuItem(text = { Text("Delete") }, leadingIcon = { AppIcon(R.drawable.ic_delete, null) }, onClick = {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.action_delete)) }, leadingIcon = { AppIcon(R.drawable.ic_delete, null) }, onClick = {
                         menuOpen = false
                         onDelete()
                     })

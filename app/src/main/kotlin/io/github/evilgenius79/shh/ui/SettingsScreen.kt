@@ -4,6 +4,7 @@ package io.github.evilgenius79.shh.ui
 
 import android.app.KeyguardManager
 import android.content.Context
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
@@ -31,6 +32,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import io.github.evilgenius79.shh.AppContainer
@@ -52,6 +55,8 @@ import java.io.IOException
 @Composable
 fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, onEditKeys: () -> Unit = {}) {
     val context = LocalContext.current
+    // For the texts that are made outside composition: by the file pickers and for the choices of a field.
+    val resources = LocalResources.current
     val settings = data.settings
     val update: ((Settings) -> Settings) -> Unit = { transform -> container.store.updateSettings(transform) }
     var exporting by remember { mutableStateOf(false) }
@@ -65,17 +70,18 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
             scope.launch {
                 try {
                     val stored = withContext(Dispatchers.IO) {
-                        val input = context.contentResolver.openInputStream(uri) ?: throw IOException("The file could not be opened")
+                        val input = context.contentResolver.openInputStream(uri)
+                            ?: throw IOException(resources.getString(R.string.settings_font_not_opened))
                         input.use { TerminalFonts.install(context, it) }
                     }
-                    val name = fontNameOf(displayName(context, uri))
+                    val name = fontNameOf(resources, displayName(context, uri))
                     update { it.copy(terminalFont = stored, terminalFontName = name) }
                 } catch (e: FontException) {
                     fontProblem = e.message
                 } catch (e: IOException) {
-                    fontProblem = "The file could not be read: ${e.message}"
+                    fontProblem = resources.getString(R.string.common_file_not_read, e.message)
                 } catch (e: SecurityException) {
-                    fontProblem = "The file could not be read: ${e.message}"
+                    fontProblem = resources.getString(R.string.common_file_not_read, e.message)
                 }
             }
         }
@@ -86,12 +92,12 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
             try {
                 importText = context.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
             } catch (e: IOException) {
-                message = "The file could not be read: ${e.message}"
+                message = resources.getString(R.string.common_file_not_read, e.message)
             }
         }
     }
 
-    Scaffold(topBar = { BackTopBar("Settings", onBack) }) { padding ->
+    Scaffold(topBar = { BackTopBar(stringResource(R.string.settings_title), onBack) }) { padding ->
         Column(
             Modifier
                 .fillMaxSize()
@@ -101,28 +107,35 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
         ) {
             val field = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
 
-            SectionHeader("Appearance")
+            SectionHeader(stringResource(R.string.settings_section_appearance))
             SelectField(
-                "Theme",
+                stringResource(R.string.settings_theme),
                 settings.themeMode,
                 ThemeMode.entries,
                 {
-                    when (it) {
-                        ThemeMode.SYSTEM -> "Follow the system"
-                        ThemeMode.LIGHT -> "Light"
-                        ThemeMode.DARK -> "Dark"
-                    }
+                    resources.getString(
+                        when (it) {
+                            ThemeMode.SYSTEM -> R.string.settings_theme_system
+                            ThemeMode.LIGHT -> R.string.settings_theme_light
+                            ThemeMode.DARK -> R.string.settings_theme_dark
+                        },
+                    )
                 },
                 { mode -> update { it.copy(themeMode = mode) } },
                 field,
             )
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                SwitchRow("Use wallpaper colours", "Material You colours for the app's own screens", settings.dynamicColor, { on -> update { it.copy(dynamicColor = on) } })
+                SwitchRow(
+                    stringResource(R.string.settings_dynamic_color),
+                    stringResource(R.string.settings_dynamic_color_summary),
+                    settings.dynamicColor,
+                    { on -> update { it.copy(dynamicColor = on) } },
+                )
             }
 
-            SectionHeader("Terminal")
+            SectionHeader(stringResource(R.string.settings_section_terminal))
             SelectField(
-                "Colours",
+                stringResource(R.string.settings_colors),
                 ColorScheme.byId(settings.colorSchemeId),
                 ColorScheme.ALL,
                 { it.name },
@@ -130,28 +143,31 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
                 field,
             )
             SelectField(
-                "Text size",
+                stringResource(R.string.settings_text_size),
                 settings.fontSizeSp,
                 (listOf(8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 24, 28, 32) + settings.fontSizeSp).distinct().sorted(),
-                { "$it sp" },
+                { resources.getString(R.string.settings_text_size_value, it) },
                 { size -> update { it.copy(fontSizeSp = size) } },
                 field,
             )
             // A backup restored on another device names a font whose file is not here.
             val ownFont = settings.terminalFont?.takeIf { TerminalFonts.file(context, it).isFile }
             Entry(
-                headline = "Font",
+                headline = stringResource(R.string.settings_font),
                 supporting = {
                     Text(
-                        if (ownFont != null) "${settings.terminalFontName ?: "A font of your own"}. Tap to choose another font file."
-                        else "JetBrains Mono, built in. Tap to choose a monospaced font file (.ttf or .otf) instead.",
+                        if (ownFont != null) {
+                            stringResource(R.string.settings_font_own, settings.terminalFontName ?: stringResource(R.string.settings_font_unnamed))
+                        } else {
+                            stringResource(R.string.settings_font_builtin)
+                        },
                     )
                 },
                 onClick = { fontPicker.launch(arrayOf("*/*")) },
             )
             if (ownFont != null) {
                 Entry(
-                    headline = "Use the built-in font",
+                    headline = stringResource(R.string.settings_font_use_builtin),
                     onClick = {
                         update { it.copy(terminalFont = null, terminalFontName = null) }
                         TerminalFonts.remove(context)
@@ -159,114 +175,127 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
                 )
             }
             Text(
-                "You can also pinch the terminal to zoom.",
+                stringResource(R.string.settings_pinch_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
             SelectField(
-                "Cursor",
+                stringResource(R.string.settings_cursor),
                 settings.cursorStyle,
                 CursorStyle.entries,
                 {
-                    when (it) {
-                        CursorStyle.BLOCK -> "Block"
-                        CursorStyle.UNDERLINE -> "Underline"
-                        CursorStyle.BAR -> "Bar"
-                    }
+                    resources.getString(
+                        when (it) {
+                            CursorStyle.BLOCK -> R.string.settings_cursor_block
+                            CursorStyle.UNDERLINE -> R.string.settings_cursor_underline
+                            CursorStyle.BAR -> R.string.settings_cursor_bar
+                        },
+                    )
                 },
                 { style -> update { it.copy(cursorStyle = style) } },
                 field,
             )
-            SwitchRow("Blinking cursor", null, settings.cursorBlink, { on -> update { it.copy(cursorBlink = on) } })
+            SwitchRow(stringResource(R.string.settings_cursor_blink), null, settings.cursorBlink, { on -> update { it.copy(cursorBlink = on) } })
             SelectField(
-                "Scrollback",
+                stringResource(R.string.settings_scrollback),
                 settings.scrollbackLines,
                 listOf(1000, 5000, 10000, 50000),
-                { "$it lines" },
+                { resources.getQuantityString(R.plurals.settings_scrollback_lines, it, it) },
                 { lines -> update { it.copy(scrollbackLines = lines) } },
                 field,
             )
             Text(
-                "Colours and scrollback apply to sessions opened from now on.",
+                stringResource(R.string.settings_new_sessions_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
-            SwitchRow("Extra keys", "Esc, Tab, Ctrl, Alt, arrows and more, above the keyboard", settings.showExtraKeys, { on -> update { it.copy(showExtraKeys = on) } })
+            SwitchRow(
+                stringResource(R.string.settings_extra_keys),
+                stringResource(R.string.settings_extra_keys_summary),
+                settings.showExtraKeys,
+                { on -> update { it.copy(showExtraKeys = on) } },
+            )
             Entry(
-                headline = "Keys of the bar",
-                supporting = { Text(if (settings.keyBar.isEmpty()) "Choose which keys it shows, and where" else "Your own arrangement") },
+                headline = stringResource(R.string.settings_key_bar),
+                supporting = {
+                    Text(stringResource(if (settings.keyBar.isEmpty()) R.string.settings_key_bar_standard else R.string.settings_key_bar_own))
+                },
                 onClick = onEditKeys,
             )
             SwitchRow(
-                "Hide the keys with a hardware keyboard",
-                "While a keyboard is connected the bar makes room for the terminal",
+                stringResource(R.string.settings_hide_keys_with_keyboard),
+                stringResource(R.string.settings_hide_keys_with_keyboard_summary),
                 settings.hideKeysWithKeyboard,
                 { on -> update { it.copy(hideKeysWithKeyboard = on) } },
             )
             SwitchRow(
-                "Full keyboard features",
-                "Voice typing, swipe typing and keyboards for other scripts. The keyboard may then correct what you type.",
+                stringResource(R.string.settings_full_keyboard),
+                stringResource(R.string.settings_full_keyboard_summary),
                 settings.fullKeyboard,
                 { on -> update { it.copy(fullKeyboard = on) } },
             )
-            SwitchRow("Vibrate on bell", null, settings.vibrateOnBell, { on -> update { it.copy(vibrateOnBell = on) } })
+            SwitchRow(stringResource(R.string.settings_vibrate_on_bell), null, settings.vibrateOnBell, { on -> update { it.copy(vibrateOnBell = on) } })
             SwitchRow(
-                "Let servers set the clipboard",
-                "Programs on the server may copy text to this device (OSC 52). They can never read it.",
+                stringResource(R.string.settings_remote_clipboard),
+                stringResource(R.string.settings_remote_clipboard_summary),
                 settings.allowRemoteClipboard,
                 { on -> update { it.copy(allowRemoteClipboard = on) } },
             )
 
-            SectionHeader("Sessions")
+            SectionHeader(stringResource(R.string.settings_section_sessions))
             SwitchRow(
-                "Reconnect automatically",
-                "When a connection drops, for example because the network changed",
+                stringResource(R.string.settings_auto_reconnect),
+                stringResource(R.string.settings_auto_reconnect_summary),
                 settings.autoReconnect,
                 { on -> update { it.copy(autoReconnect = on) } },
             )
             SwitchRow(
-                "Close a tab when its shell exits",
-                "After exit or Ctrl+D. A session that ends on its own stays, so that you can read why.",
+                stringResource(R.string.settings_close_on_exit),
+                stringResource(R.string.settings_close_on_exit_summary),
                 settings.closeOnExit,
                 { on -> update { it.copy(closeOnExit = on) } },
             )
             SwitchRow(
-                "Notify on bell in the background",
-                "When a session you are not looking at rings the bell, for example at the end of a long command",
+                stringResource(R.string.settings_notify_on_bell),
+                stringResource(R.string.settings_notify_on_bell_summary),
                 settings.notifyOnBell,
                 { on -> update { it.copy(notifyOnBell = on) } },
             )
-            SwitchRow("Keep the screen on", "While a terminal is showing", settings.keepScreenOn, { on -> update { it.copy(keepScreenOn = on) } })
             SwitchRow(
-                "Stay awake in the background",
-                "Keeps connections and port forwards alive when the screen is off. Uses more battery.",
+                stringResource(R.string.settings_keep_screen_on),
+                stringResource(R.string.settings_keep_screen_on_summary),
+                settings.keepScreenOn,
+                { on -> update { it.copy(keepScreenOn = on) } },
+            )
+            SwitchRow(
+                stringResource(R.string.settings_keep_awake),
+                stringResource(R.string.settings_keep_awake_summary),
                 settings.keepAwake,
                 { on -> update { it.copy(keepAwake = on) } },
             )
 
-            SectionHeader("Security")
+            SectionHeader(stringResource(R.string.settings_section_security))
             val keyguard = ContextCompat.getSystemService(context, KeyguardManager::class.java)
             val secure = keyguard?.isDeviceSecure == true
             SwitchRow(
-                "Lock the app",
-                if (secure) "Ask for your fingerprint, face or screen lock when the app is opened"
-                else "Set up a screen lock on this device to use this",
+                stringResource(R.string.settings_lock_app),
+                stringResource(if (secure) R.string.settings_lock_app_summary else R.string.settings_lock_app_unavailable),
                 settings.requireUnlock && secure,
                 { on -> if (secure) update { it.copy(requireUnlock = on) } },
             )
 
-            SectionHeader("Backup")
+            SectionHeader(stringResource(R.string.settings_section_backup))
             Entry(
-                headline = "Export backup",
-                supporting = { Text("Hosts, keys, passwords, snippets and settings in one file, encrypted with a passphrase you choose") },
+                headline = stringResource(R.string.backup_export_title),
+                supporting = { Text(stringResource(R.string.backup_export_summary)) },
                 leading = { AppIcon(R.drawable.ic_save, null) },
                 onClick = { exporting = true },
             )
             Entry(
-                headline = "Restore backup",
-                supporting = { Text("Replaces everything in the app with the contents of a backup file") },
+                headline = stringResource(R.string.backup_restore_title),
+                supporting = { Text(stringResource(R.string.backup_restore_summary)) },
                 leading = { AppIcon(R.drawable.ic_history, null) },
                 onClick = { importPicker.launch(arrayOf("*/*")) },
             )
@@ -279,9 +308,9 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
     fontProblem?.let {
         AlertDialog(
             onDismissRequest = { fontProblem = null },
-            title = { Text("This font cannot be used") },
+            title = { Text(stringResource(R.string.settings_font_problem_title)) },
             text = { Text(it) },
-            confirmButton = { TextButton(onClick = { fontProblem = null }) { Text("OK") } },
+            confirmButton = { TextButton(onClick = { fontProblem = null }) { Text(stringResource(R.string.action_ok)) } },
         )
     }
     if (exporting) {
@@ -309,15 +338,16 @@ private fun displayName(context: Context, uri: Uri): String? = try {
 }
 
 /** A font's name for the settings, from the name of its file: "FiraCode-Regular.ttf" is "FiraCode-Regular". */
-internal fun fontNameOf(fileName: String?): String {
+internal fun fontNameOf(resources: Resources, fileName: String?): String {
     val name = fileName.orEmpty().substringAfterLast('/').trim()
     val bare = if (name.substringAfterLast('.', "").lowercase() in setOf("ttf", "otf", "ttc", "otc")) name.substringBeforeLast('.') else name
-    return bare.take(60).ifBlank { "A font of your own" }
+    return bare.take(60).ifBlank { resources.getString(R.string.settings_font_unnamed) }
 }
 
 @Composable
 private fun ExportBackupDialog(container: AppContainer, data: AppData, onDone: (String?) -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val passphraseState = rememberTextFieldState()
     val repeatState = rememberTextFieldState()
@@ -330,39 +360,40 @@ private fun ExportBackupDialog(container: AppContainer, data: AppData, onDone: (
                 withContext(Dispatchers.IO) {
                     val text = Backup.export(data, container.secrets, passphrase.toCharArray())
                     context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray(Charsets.UTF_8)) }
-                        ?: throw IOException("The destination could not be opened")
+                        ?: throw IOException(resources.getString(R.string.backup_destination_not_opened))
                 }
-                "Backup saved."
+                resources.getString(R.string.backup_saved)
             } catch (e: Exception) {
-                "Backup failed: ${e.message}"
+                resources.getString(R.string.backup_failed, e.message)
             }
             onDone(result)
         }
     }
     AlertDialog(
         onDismissRequest = { onDone(null) },
-        title = { Text("Export backup") },
+        title = { Text(stringResource(R.string.backup_export_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("The backup contains your private keys and saved passwords. It is encrypted with this passphrase; without it the backup cannot be restored.")
-                SecretField(passphraseState, "Passphrase", Modifier.fillMaxWidth())
-                SecretField(repeatState, "Repeat passphrase", Modifier.fillMaxWidth())
+                Text(stringResource(R.string.backup_export_explanation))
+                SecretField(passphraseState, stringResource(R.string.backup_passphrase), Modifier.fillMaxWidth())
+                SecretField(repeatState, stringResource(R.string.backup_passphrase_repeat), Modifier.fillMaxWidth())
                 if (repeat.isNotEmpty() && repeat != passphrase) {
-                    Text("The passphrases do not match.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.backup_passphrases_differ), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                 }
             }
         },
         confirmButton = {
             TextButton(enabled = passphrase.length >= 8 && passphrase == repeat, onClick = { saver.launch("shh-backup.shhbackup") }) {
-                Text("Choose where to save")
+                Text(stringResource(R.string.backup_choose_destination))
             }
         },
-        dismissButton = { TextButton(onClick = { onDone(null) }) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = { onDone(null) }) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
 @Composable
 private fun RestoreBackupDialog(container: AppContainer, text: String, onDone: (String?) -> Unit) {
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     val passphraseState = rememberTextFieldState()
     val passphrase = passphraseState.text.toString()
@@ -370,11 +401,11 @@ private fun RestoreBackupDialog(container: AppContainer, text: String, onDone: (
     var working by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = { if (!working) onDone(null) },
-        title = { Text("Restore backup") },
+        title = { Text(stringResource(R.string.backup_restore_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Everything currently in the app (hosts, keys, known hosts, snippets, settings) is replaced by the backup.")
-                SecretField(passphraseState, "Passphrase of the backup", Modifier.fillMaxWidth())
+                Text(stringResource(R.string.backup_restore_explanation))
+                SecretField(passphraseState, stringResource(R.string.backup_restore_passphrase), Modifier.fillMaxWidth())
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
@@ -387,15 +418,23 @@ private fun RestoreBackupDialog(container: AppContainer, text: String, onDone: (
                         try {
                             val restored = withContext(Dispatchers.Default) { Backup.import(text, container.secrets, passphrase.toCharArray()) }
                             container.store.replaceAll(restored)
-                            onDone("Backup restored: ${restored.hosts.size} hosts, ${restored.identities.size} keys.")
+                            val hosts = restored.hosts.size
+                            val keys = restored.identities.size
+                            onDone(
+                                resources.getString(
+                                    R.string.backup_restored,
+                                    resources.getQuantityString(R.plurals.backup_restored_hosts, hosts, hosts),
+                                    resources.getQuantityString(R.plurals.backup_restored_keys, keys, keys),
+                                ),
+                            )
                         } catch (e: BackupException) {
                             error = e.message
                             working = false
                         }
                     }
                 },
-            ) { Text("Restore") }
+            ) { Text(stringResource(R.string.backup_restore_action)) }
         },
-        dismissButton = { TextButton(enabled = !working, onClick = { onDone(null) }) { Text("Cancel") } },
+        dismissButton = { TextButton(enabled = !working, onClick = { onDone(null) }) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

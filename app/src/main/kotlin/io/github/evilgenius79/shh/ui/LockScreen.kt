@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import io.github.evilgenius79.shh.R
@@ -38,11 +39,14 @@ import io.github.evilgenius79.shh.R
 fun LockScreen(onUnlocked: () -> Unit) {
     val activity = LocalActivity.current
     var failed by remember { mutableStateOf<String?>(null) }
+    // Read here because the prompt and its answer are dealt with outside composition.
+    val promptTitle = stringResource(R.string.lock_prompt_title)
+    val notUnlocked = stringResource(R.string.lock_not_unlocked)
 
     // Before Android 10 the system prompt cannot fall back to the screen lock; the keyguard's own
     // confirmation screen does the job there.
     val legacyLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) onUnlocked() else failed = "Not unlocked"
+        if (result.resultCode == Activity.RESULT_OK) onUnlocked() else failed = notUnlocked
     }
 
     fun authenticate() {
@@ -56,11 +60,11 @@ fun LockScreen(onUnlocked: () -> Unit) {
         failed = null
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             @Suppress("DEPRECATION")
-            val intent = keyguard.createConfirmDeviceCredentialIntent("Unlock Shh", null)
+            val intent = keyguard.createConfirmDeviceCredentialIntent(promptTitle, null)
             if (intent != null) legacyLauncher.launch(intent) else onUnlocked()
             return
         }
-        val builder = BiometricPrompt.Builder(host).setTitle("Unlock Shh")
+        val builder = BiometricPrompt.Builder(host).setTitle(promptTitle)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             builder.setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
         } else {
@@ -89,9 +93,9 @@ fun LockScreen(onUnlocked: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         ) {
             AppIcon(R.drawable.ic_lock, null, Modifier.size(56.dp), MaterialTheme.colorScheme.primary)
-            Text("Shh is locked", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.lock_title), style = MaterialTheme.typography.titleMedium)
             failed?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            Button(onClick = ::authenticate) { Text("Unlock") }
+            Button(onClick = ::authenticate) { Text(stringResource(R.string.lock_unlock)) }
         }
     }
 }

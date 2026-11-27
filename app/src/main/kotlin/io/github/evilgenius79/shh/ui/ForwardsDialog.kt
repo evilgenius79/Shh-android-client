@@ -17,6 +17,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.github.evilgenius79.shh.R
@@ -33,25 +35,28 @@ import java.io.IOException
 @Composable
 fun SessionForwardsDialog(session: TerminalSession, onDismiss: () -> Unit) {
     val forwards by session.forwards.collectAsStateCompat()
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     var adding by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Port forwards") },
+        title = { Text(stringResource(R.string.forwards_title)) },
         text = {
             Column {
-                if (forwards.isEmpty()) Text("No forwards are running on this session.")
+                if (forwards.isEmpty()) Text(stringResource(R.string.forwards_none))
                 for (forward in forwards) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f).padding(vertical = 6.dp)) {
                             Text(
-                                when (forward.kind) {
-                                    PortForward.Kind.LOCAL -> "Local"
-                                    PortForward.Kind.REMOTE -> "Remote"
-                                    PortForward.Kind.DYNAMIC -> "SOCKS proxy"
-                                },
+                                stringResource(
+                                    when (forward.kind) {
+                                        PortForward.Kind.LOCAL -> R.string.forwards_kind_local
+                                        PortForward.Kind.REMOTE -> R.string.forwards_kind_remote
+                                        PortForward.Kind.DYNAMIC -> R.string.forwards_kind_dynamic
+                                    },
+                                ),
                                 style = MaterialTheme.typography.labelLarge,
                             )
                             Text(
@@ -61,15 +66,15 @@ fun SessionForwardsDialog(session: TerminalSession, onDismiss: () -> Unit) {
                             )
                         }
                         IconButton(onClick = { scope.launch(Dispatchers.IO) { session.removeForward(forward) } }) {
-                            AppIcon(R.drawable.ic_close, "Stop forward")
+                            AppIcon(R.drawable.ic_close, stringResource(R.string.forwards_stop))
                         }
                     }
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
-        dismissButton = { TextButton(onClick = { adding = true }) { Text("Add") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) } },
+        dismissButton = { TextButton(onClick = { adding = true }) { Text(stringResource(R.string.action_add)) } },
     )
 
     if (adding) {
@@ -85,7 +90,7 @@ fun SessionForwardsDialog(session: TerminalSession, onDismiss: () -> Unit) {
                             session.addForward(rule.kind, rule.bindAddress, rule.bindPort, rule.destinationHost, rule.destinationPort)
                         }
                     } catch (e: IOException) {
-                        error = "Could not start the forward: ${e.message}"
+                        error = resources.getString(R.string.forwards_start_failed, e.message)
                     }
                 }
             },
