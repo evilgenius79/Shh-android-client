@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The bar of extra keys under the terminal and the screen that arranges it (keybar_), and the how-to (help_).
+
+    What stands on the keys themselves (ESC, TAB, CTRL, ALT, PGUP, DEL, F1 …) is the same in every language and is
+    not in here. Where a text names such a key in capitals, leave the name as it is.
+-->
+<resources>
+    <!-- ===== The key bar ===== -->
+
+    <!-- Spoken by screen readers for the key of the bar that shows an arrow pointing up. -->
+    <string name="keybar_key_up">Up</string>
+    <!-- Spoken by screen readers for the key of the bar that shows an arrow pointing down. -->
+    <string name="keybar_key_down">Down</string>
+    <!-- Spoken by screen readers for the key of the bar that shows an arrow pointing left. -->
+    <string name="keybar_key_left">Left</string>
+    <!-- Spoken by screen readers for the key of the bar that shows an arrow pointing right. -->
+    <string name="keybar_key_right">Right</string>
+    <!-- Spoken by screen readers for the key of the bar that shows three dots. It shows and hides a panel with the function keys and more characters. -->
+    <string name="keybar_key_more">More keys</string>
+
+    <!-- Spoken by screen readers as the state of the key CTRL or ALT: it is not active. -->
+    <string name="keybar_modifier_off">Off</string>
+    <!-- Spoken by screen readers as the state of the key CTRL or ALT after one tap: it applies to the next key that is pressed and then switches itself off. -->
+    <string name="keybar_modifier_once">On for the next key</string>
+    <!-- Spoken by screen readers as the state of the key CTRL or ALT after two taps: it stays on until it is tapped again. -->
+    <string name="keybar_modifier_locked">Locked on</string>
+
+    <!-- Spoken by screen readers as the state of the "More keys" key: the panel it opens is on the screen. -->
+    <string name="keybar_panel_shown">Shown</string>
+    <!-- Spoken by screen readers as the state of the "More keys" key: the panel it opens is not on the screen. -->
+    <string name="keybar_panel_hidden">Hidden</string>
+
+    <!-- ===== The screen that arranges the key bar ===== -->
+
+    <!-- Title of the screen where the keys of the bar are arranged. The same words as the entry in the settings that opens it. -->
+    <string name="keybar_title">Keys of the bar</string>
+    <!-- Button on that screen: brings the standard keys back. -->
+    <string name="keybar_reset">Reset</string>
+    <string name="keybar_intro">Tap a place on the bar, then the key that belongs there. The next place is picked for you, so a row is filled by tapping its keys one after the other.</string>
+    <!-- Spoken by screen readers as the state of a place on the bar. %1$d is the number of the place, counted from 1, and %2$d is how many places the bar has. -->
+    <string name="keybar_place">Place %1$d of %2$d</string>
+    <!-- The same for the place that the next key goes to: %1$d is the number of the place, counted from 1, and %2$d is how many places the bar has. -->
+    <string name="keybar_place_selected">Place %1$d of %2$d, selected</string>
+    <string name="keybar_note_wide">On a wide screen, such as a phone held sideways, the two rows are shown as one.</string>
+    <!-- Shown instead of the note about a wide screen once the key with the three dots, which opens the panel, is no longer on the bar. -->
+    <string name="keybar_note_no_panel_key">The bar has no key for the panel now, so F1 to F12 and the characters on it cannot be reached. Put the key with the three dots back to get them.</string>
+    <!-- Heading above the keys to choose from that do something other than type a character: ESC, TAB, the arrows, F1 … -->
+    <string name="keybar_section_keys">Keys</string>
+    <!-- Heading above the keys to choose from that type a single character. -->
+    <string name="keybar_section_characters">Characters</string>
+    <!-- Heading above the field for a key that types a text the user makes up. -->
+    <string name="keybar_section_own">Your own</string>
+    <!-- Label of the field for the text of such a key. -->
+    <string name="keybar_own_label">Text the key types</string>
+    <!-- Button next to that field: puts a key that types the text on the bar. -->
+    <string name="keybar_own_use">Use</string>
+    <!-- Under that field. %1$d is the largest number of characters such a key can type. :wq is a command of the editor vi and stays as it is; Snippets is the app's list of saved commands. -->
+    <plurals name="keybar_own_note">
+        <item quantity="one">Up to %1$d character, for example :wq or a letter you need often. Longer commands belong in Snippets.</item>
+        <item quantity="other">Up to %1$d characters, for example :wq or a letter you need often. Longer commands belong in Snippets.</item>
+    </plurals>
+    <!-- What a tap does with a key that is offered for the bar. Screen readers say it after "Double tap to", hence no capital. -->
+    <string name="keybar_put_on_bar">put on the bar</string>
+
+    <!--
+        ===== The how-to =====
+
+        Where a text names a button, a setting or a menu entry of the app (Copy, Open link, New session, Keys of the
+        bar, Full keyboard features …), use the words that button, setting or entry has in the translation. Names of
+        programs and what is typed into a shell (vi, htop, fg, exit, tmux new -A -s main …) stay as they are.
+
+        Most explanations have key caps in front of them. A few caps hold a word instead of a key: those are the
+        entries called help_cap_…, and they have about as much room as "Port forwards" takes.
+    -->
+
+    <!-- Title of the how-to. Shh is the name of the app. -->
+    <string name="help_title">How to use Shh</string>
+
+    <!-- Heading of the section about the key bar. -->
+    <string name="help_bar_title">The key bar</string>
+    <string name="help_bar_intro">The two rows above the keyboard have the keys a phone keyboard lacks.</string>
+    <!-- Next to the keys CTRL and ALT. -->
+    <string name="help_bar_modifier_once">Tap once. The key lights up, applies to the next key you press and then switches itself off. For Ctrl+C, tap CTRL and then C on the keyboard.</string>
+    <!-- Next to the key CTRL, drawn twice. -->
+    <string name="help_bar_modifier_lock">Tap twice in a row to lock it. A locked key shows a dot and stays on for every key until you tap it again. ALT works the same way.</string>
+    <!-- Next to the keys with the arrows pointing left and right. -->
+    <string name="help_bar_repeat">Hold an arrow, PGUP, PGDN or DEL and it repeats, as on a keyboard.</string>
+    <!-- Next to the key with the three dots. The characters after "such as" are some of those the panel has and stay as they are. -->
+    <string name="help_bar_more">Opens a panel with F1 to F12, DEL and the characters that are hard to reach on a phone keyboard, such as ~ \\ ` { } [ ]. Tap it again to close the panel.</string>
+    <!-- Next to the key ESC. vi is a program. -->
+    <string name="help_bar_esc">Leaves insert mode in vi and closes menus in many programs.</string>
+    <!-- Next to the key TAB. -->
+    <string name="help_bar_tab">Completes the command or file name you have started typing.</string>
+    <string name="help_bar_arrange">Which keys the bar shows, and where, is yours to choose: Settings, Keys of the bar. A key can also type a few characters of your own.</string>
+    <!-- Extra keys is a switch in the settings. -->
+    <string name="help_bar_hide">The bar can be switched off in Settings, under Extra keys, or set to hide while a hardware keyboard is connected.</string>
+
+    <!-- Heading of the section about what CTRL and a letter do in a shell. -->
+    <string name="help_combos_title">Combinations worth knowing</string>
+    <!-- Next to the keys CTRL and C. -->
+    <string name="help_combos_ctrl_c">Stop the program that is running.</string>
+    <!-- Next to the keys CTRL and D. -->
+    <string name="help_combos_ctrl_d">End of input. At an empty prompt it logs you out.</string>
+    <!-- Next to the keys CTRL and Z. fg is a command of the shell. -->
+    <string name="help_combos_ctrl_z">Pause the running program. Type fg to bring it back.</string>
+    <!-- Next to the keys CTRL and L. -->
+    <string name="help_combos_ctrl_l">Clear the screen.</string>
+    <!-- Next to the keys CTRL and R. -->
+    <string name="help_combos_ctrl_r">Search through the commands you typed before.</string>
+    <!-- Next to the keys CTRL and A. -->
+    <string name="help_combos_ctrl_a">Jump to the start of the line. CTRL and then E jumps to the end.</string>
+    <!-- Next to the keys CTRL and W. -->
+    <string name="help_combos_ctrl_w">Delete the word before the cursor.</string>
+    <!-- Next to the key with the arrow pointing up. -->
+    <string name="help_combos_up">Bring back the previous command.</string>
+
+    <!-- Heading of the section about gestures on the terminal. -->
+    <string name="help_touch_title">Touch</string>
+    <!-- In a key cap: the gesture of touching the terminal briefly. -->
+    <string name="help_cap_tap">Tap</string>
+    <!-- Next to "Tap". htop and mc are programs. -->
+    <string name="help_touch_tap">Opens the keyboard. In programs that understand the mouse, such as htop or mc, a tap clicks instead.</string>
+    <!-- In a key cap: the gesture of moving a finger up or down over the terminal. -->
+    <string name="help_cap_swipe">Swipe</string>
+    <!-- Next to "Swipe". less, man and vim are programs. -->
+    <string name="help_touch_swipe">Scrolls back through earlier output. In full-screen programs such as less, man or vim it scrolls the program.</string>
+    <!-- In a key cap: the gesture of moving two fingers apart or together. -->
+    <string name="help_cap_pinch">Pinch</string>
+    <!-- Next to "Pinch". -->
+    <string name="help_touch_pinch">Makes the text smaller or larger.</string>
+    <!-- In a key cap: the gesture of keeping a finger down on the terminal. -->
+    <string name="help_cap_hold">Hold</string>
+    <!-- Next to "Hold". Copy and Open link are entries of the menu that appears over selected text. -->
+    <string name="help_touch_hold">Selects the word under your finger. Keep the finger down and drag to select more, then choose Copy. When what you selected is a web address, Open link is offered too.</string>
+    <string name="help_touch_paste">The clipboard button at the top of the terminal pastes.</string>
+    <!-- Full keyboard features is a switch in the settings. -->
+    <string name="help_touch_full_keyboard">If voice typing, swipe typing or a keyboard for another script does not work in the terminal, switch on Full keyboard features in Settings.</string>
+
+    <!-- Heading of the section about a keyboard that is plugged in or connected over Bluetooth. -->
+    <string name="help_keyboard_title">With a hardware keyboard</string>
+    <!-- In a key cap: the Ctrl key, as keyboards for this language label it. -->
+    <string name="help_cap_ctrl">Ctrl</string>
+    <!-- In a key cap: the Shift key, as keyboards for this language label it. -->
+    <string name="help_cap_shift">Shift</string>
+    <!-- Next to the keys Ctrl, Shift and C. -->
+    <string name="help_keyboard_copy">Copy the selected text.</string>
+    <!-- Next to the keys Ctrl, Shift and V. -->
+    <string name="help_keyboard_paste">Paste.</string>
+    <string name="help_keyboard_other_keys">Every other key goes to the server exactly as typed.</string>
+
+    <!-- Heading of the section about sessions: the connections to servers that are open. -->
+    <string name="help_sessions_title">Sessions</string>
+    <string name="help_sessions_background">Sessions stay connected when you leave the app. A notification shows that they are open and can disconnect them all.</string>
+    <!-- New session is an entry of the terminal's ⋮ menu. -->
+    <string name="help_sessions_new">Open another one with New session in the ⋮ menu. With more than one open, tabs appear to switch between them.</string>
+    <!-- The startup command is what the settings of a host call "Run after login". tmux new -A -s main is an example of one and stays as it is. -->
+    <string name="help_sessions_reconnect">When a connection drops, for example because the phone changed networks, the app reconnects by itself and runs the host\'s startup command again. With a command such as tmux new -A -s main you are back where you were.</string>
+    <string name="help_sessions_ended">When a session ends for another reason, the bar under the terminal says why and offers to reconnect.</string>
+    <!-- exit is a command of the shell. -->
+    <string name="help_sessions_exit">Leaving the shell with exit or with CTRL and then D closes its tab.</string>
+    <!-- ; printf '\a' is typed into the shell and stays exactly as it is. -->
+    <string name="help_sessions_bell">A session you are not looking at that rings the bell sends a notification. End a long command with ; printf \'\\a\' to be told when it is done.</string>
+    <string name="help_sessions_shortcuts">Hold the app\'s icon on the home screen for shortcuts to the hosts you used last.</string>
+    <!-- user@host and user@host:port stand for what is typed: a user name, an at sign, the name of a server and, if wanted, a colon and a port number. -->
+    <string name="help_sessions_quick_connect">On the host list, typing user@host or user@host:port into the search field connects without saving a host.</string>
+    <!-- Import SSH config is an entry of the host list's ⋮ menu. -->
+    <string name="help_sessions_import_config">If you have an SSH config file from a computer, Import SSH config in the host list\'s ⋮ menu adds its hosts, with their jump hosts and port forwards.</string>
+
+    <!-- Heading of the section about logging in to a server with an SSH key instead of a password. -->
+    <string name="help_login_title">Logging in with a key</string>
+    <!-- Keys is the title of the screen that lists the SSH keys. -->
+    <string name="help_login_create">Create or import a key under Keys, the key button on the host list.</string>
+    <!-- Install a public key is an entry of the terminal's ⋮ menu. -->
+    <string name="help_login_install">While you are connected with a password, Install a public key in the ⋮ menu puts the key on the server.</string>
+    <string name="help_login_choose">Then choose the key in the host\'s settings. From then on no password is asked for.</string>
+    <!-- Keys is the title of the screen that lists the SSH keys, and Add a certificate is a button in what a tap on a key there opens. -->
+    <string name="help_login_certificate">If your servers trust a certificate authority, add the certificate it issued for the key: tap the key under Keys and choose Add a certificate.</string>
+    <!-- Keys is the title of the screen that lists the SSH keys. -->
+    <string name="help_login_security_key">With a FIDO2 security key, the + button under Keys can make a key on it. Logging in then takes the security key: hold it against the back of the phone or plug it in, and touch it when it blinks. This is new and has not been tried with real hardware yet.</string>
+    <!-- Forward the SSH agent is a switch in the settings of a host. ssh and git are programs. -->
+    <string name="help_login_agent">To use your keys from a server, for ssh or git there, switch on Forward the SSH agent in that host\'s settings. The keys stay on the phone, and you are asked before one is used.</string>
+
+    <!-- Heading of the section about more entries of the terminal's ⋮ menu. -->
+    <string name="help_menu_title">Also in the ⋮ menu of a terminal</string>
+    <!-- In a key cap: the entry Files of the terminal's ⋮ menu. It must read as that entry does. -->
+    <string name="help_cap_files">Files</string>
+    <!-- Next to "Files". -->
+    <string name="help_menu_files">Browse the server\'s files; upload, download, rename and edit them.</string>
+    <!-- In a key cap: the entry Port forwards of the terminal's ⋮ menu. It must read as that entry does. -->
+    <string name="help_cap_port_forwards">Port forwards</string>
+    <!-- Next to "Port forwards". -->
+    <string name="help_menu_port_forwards">Reach a service on the server\'s network through the connection.</string>
+    <!-- In a key cap: the entry Snippets of the terminal's ⋮ menu. It must read as that entry does. -->
+    <string name="help_cap_snippets">Snippets</string>
+    <!-- Next to "Snippets". -->
+    <string name="help_menu_snippets">Send a command you saved earlier.</string>
+    <!-- In a key cap: the entry Colours of the terminal's ⋮ menu. It must read as that entry does. -->
+    <string name="help_cap_colours">Colours</string>
+    <!-- Next to "Colours". -->
+    <string name="help_menu_colours">Change the colour scheme. Settings holds the default, and a host\'s settings can give that host its own.</string>
+    <string name="help_menu_font">Settings also lets you draw the terminal with a font of your own: any monospaced .ttf or .otf file on the phone.</string>
+</resources>

@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.os.SystemClock
 import android.view.HapticFeedbackConstants
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -52,6 +53,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
@@ -81,7 +83,8 @@ private sealed interface BarKey {
     data class Send(
         val key: TerminalKey,
         val label: String,
-        val description: String,
+        /** What a screen reader says for a key that shows [icon]. The others are read by their [label]. */
+        @StringRes val description: Int? = null,
         @DrawableRes val icon: Int? = null,
         /** Holding the key down sends it again and again, as on a keyboard. */
         val repeats: Boolean = false,
@@ -98,25 +101,25 @@ private sealed interface BarKey {
     data object More : BarKey
 }
 
-private val Esc = BarKey.Send(TerminalKey.ESCAPE, "ESC", "Escape")
-private val Tab = BarKey.Send(TerminalKey.TAB, "TAB", "Tab")
-private val Home = BarKey.Send(TerminalKey.HOME, "HOME", "Home")
-private val End = BarKey.Send(TerminalKey.END, "END", "End")
-private val PageUp = BarKey.Send(TerminalKey.PAGE_UP, "PGUP", "Page up", repeats = true)
-private val PageDown = BarKey.Send(TerminalKey.PAGE_DOWN, "PGDN", "Page down", repeats = true)
-private val Delete = BarKey.Send(TerminalKey.DELETE, "DEL", "Delete", repeats = true)
-private val Up = BarKey.Send(TerminalKey.UP, "↑", "Up", R.drawable.ic_arrow_upward, repeats = true)
-private val Down = BarKey.Send(TerminalKey.DOWN, "↓", "Down", R.drawable.ic_arrow_downward, repeats = true)
-private val Left = BarKey.Send(TerminalKey.LEFT, "←", "Left", R.drawable.ic_arrow_back, repeats = true)
-private val Right = BarKey.Send(TerminalKey.RIGHT, "→", "Right", R.drawable.ic_arrow_forward, repeats = true)
+private val Esc = BarKey.Send(TerminalKey.ESCAPE, "ESC")
+private val Tab = BarKey.Send(TerminalKey.TAB, "TAB")
+private val Home = BarKey.Send(TerminalKey.HOME, "HOME")
+private val End = BarKey.Send(TerminalKey.END, "END")
+private val PageUp = BarKey.Send(TerminalKey.PAGE_UP, "PGUP", repeats = true)
+private val PageDown = BarKey.Send(TerminalKey.PAGE_DOWN, "PGDN", repeats = true)
+private val Delete = BarKey.Send(TerminalKey.DELETE, "DEL", repeats = true)
+private val Up = BarKey.Send(TerminalKey.UP, "↑", R.string.keybar_key_up, R.drawable.ic_arrow_upward, repeats = true)
+private val Down = BarKey.Send(TerminalKey.DOWN, "↓", R.string.keybar_key_down, R.drawable.ic_arrow_downward, repeats = true)
+private val Left = BarKey.Send(TerminalKey.LEFT, "←", R.string.keybar_key_left, R.drawable.ic_arrow_back, repeats = true)
+private val Right = BarKey.Send(TerminalKey.RIGHT, "→", R.string.keybar_key_right, R.drawable.ic_arrow_forward, repeats = true)
 
-private val Insert = BarKey.Send(TerminalKey.INSERT, "INS", "Insert")
-private val Enter = BarKey.Send(TerminalKey.ENTER, "ENTER", "Enter")
+private val Insert = BarKey.Send(TerminalKey.INSERT, "INS")
+private val Enter = BarKey.Send(TerminalKey.ENTER, "ENTER")
 
 private val FunctionKeys: List<BarKey> = listOf(
     TerminalKey.F1, TerminalKey.F2, TerminalKey.F3, TerminalKey.F4, TerminalKey.F5, TerminalKey.F6,
     TerminalKey.F7, TerminalKey.F8, TerminalKey.F9, TerminalKey.F10, TerminalKey.F11, TerminalKey.F12,
-).mapIndexed { index, key -> BarKey.Send(key, "F${index + 1}", "F${index + 1}") }
+).mapIndexed { index, key -> BarKey.Send(key, "F${index + 1}") }
 
 /**
  * Which keys the bar shows, as the user can arrange it: sixteen names, the upper row of eight
@@ -172,15 +175,15 @@ private val NamedKeys: Map<String, BarKey> = mapOf(
 
 private fun barKey(name: String): BarKey = NamedKeys[name] ?: BarKey.Type(name)
 
-/** What a key shows. */
-private class Face(val label: String, val description: String, @DrawableRes val icon: Int? = null, val character: Boolean = false)
+/** What a key shows, and with an [icon] what a screen reader says for it. */
+private class Face(val label: String, @StringRes val description: Int? = null, @DrawableRes val icon: Int? = null, val character: Boolean = false)
 
 private fun BarKey.face(panelOpen: Boolean = false): Face = when (this) {
     is BarKey.Send -> Face(label, description, icon)
-    is BarKey.Type -> Face(text, text, character = true)
-    BarKey.Ctrl -> Face(CTRL_LABEL, "Control")
-    BarKey.Alt -> Face(ALT_LABEL, "Alt")
-    BarKey.More -> Face("", "More keys", if (panelOpen) R.drawable.ic_expand_more else R.drawable.ic_more_horiz)
+    is BarKey.Type -> Face(text, character = true)
+    BarKey.Ctrl -> Face(CTRL_LABEL)
+    BarKey.Alt -> Face(ALT_LABEL)
+    BarKey.More -> Face("", R.string.keybar_key_more, if (panelOpen) R.drawable.ic_expand_more else R.drawable.ic_more_horiz)
 }
 
 private fun characters(vararg text: String): List<BarKey> = text.map { BarKey.Type(it) }
@@ -316,7 +319,7 @@ fun ExtraKeys(
                     key.face(panelOpen),
                     fit,
                     state = if (panelOpen) ModifierState.ONCE else ModifierState.OFF,
-                    stateDescription = if (panelOpen) "Shown" else "Hidden",
+                    stateDescription = stringResource(if (panelOpen) R.string.keybar_panel_shown else R.string.keybar_panel_hidden),
                 ) { expanded = !panelOpen }
             }
         }
@@ -340,7 +343,7 @@ internal fun KeyBarPreview(layout: List<String>, selected: Int, onSelect: (Int) 
                 key.face(),
                 fit,
                 state = if (index == selected) ModifierState.ONCE else ModifierState.OFF,
-                stateDescription = "Place ${index + 1} of ${KeyBarLayout.SLOTS}" + if (index == selected) ", selected" else "",
+                stateDescription = stringResource(if (index == selected) R.string.keybar_place_selected else R.string.keybar_place, index + 1, KeyBarLayout.SLOTS),
                 feedback = false,
             ) { onSelect(index) }
         }
@@ -414,12 +417,16 @@ private fun rememberFit(keys: List<BarKey>, keyWidth: Dp): Fit {
  * A key as it looks on the bar, for explaining what it does: not something to tap. Arrows and the
  * panel key are drawn with the icons the bar uses, and a single character in the terminal's
  * typeface, like the character keys of the bar.
+ *
+ * With [word], [label] is a word in the user's language rather than the legend of a key. It is
+ * then set as a word whatever it reads: a translation may happen to look like a character key, or
+ * like the name of a key that has an icon.
  */
 @Composable
-fun KeyLegend(label: String, modifier: Modifier = Modifier) {
+fun KeyLegend(label: String, modifier: Modifier = Modifier, word: Boolean = false) {
     val colors = MaterialTheme.colorScheme
-    val icon = LegendIcons[label]
-    val character = icon == null && label !in KeyBarLayout.NAMED && label.length <= KeyBarLayout.MAX_TEXT && label.all { it.code in 0x21..0x7e } &&
+    val icon = if (word) null else LegendIcons[label]
+    val character = !word && icon == null && label !in KeyBarLayout.NAMED && label.length <= KeyBarLayout.MAX_TEXT && label.all { it.code in 0x21..0x7e } &&
         !(label.length > 1 && label.all { it.isLetter() })
     Box(
         modifier
@@ -459,11 +466,14 @@ private val LegendIcons: Map<String, Int> = mapOf(
     KeyBarLayout.MORE to R.drawable.ic_more_horiz,
 )
 
-private fun describe(state: ModifierState): String = when (state) {
-    ModifierState.OFF -> "Off"
-    ModifierState.ONCE -> "On for the next key"
-    ModifierState.LOCKED -> "Locked on"
-}
+@Composable
+private fun describe(state: ModifierState): String = stringResource(
+    when (state) {
+        ModifierState.OFF -> R.string.keybar_modifier_off
+        ModifierState.ONCE -> R.string.keybar_modifier_once
+        ModifierState.LOCKED -> R.string.keybar_modifier_locked
+    },
+)
 
 /**
  * A single key. [state] highlights it: tinted while it applies once (or, for the panel key, while
@@ -484,6 +494,7 @@ private fun KeyCap(
     val label = face.label
     val icon = face.icon
     val character = face.character
+    val description = face.description?.let { stringResource(it) }
     val colors = MaterialTheme.colorScheme
     val background by animateColorAsState(
         when (state) {
@@ -541,7 +552,7 @@ private fun KeyCap(
             }
             .semantics(mergeDescendants = true) {
                 role = Role.Button
-                if (icon != null) contentDescription = face.description
+                if (description != null) contentDescription = description
                 if (stateDescription != null) this.stateDescription = stateDescription
                 onClick {
                     press()
