@@ -24,4 +24,5 @@ rootProject.name = "shh"
 
 include(":terminal-core")
 include(":ssh-core")
+include(":mosh-core")
 include(":app")
