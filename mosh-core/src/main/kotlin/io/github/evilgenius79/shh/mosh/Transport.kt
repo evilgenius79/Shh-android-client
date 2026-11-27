@@ -403,9 +403,10 @@ internal class Transport(
         checkStillInStep(instruction, now)
 
         val used = when {
-            // Nothing new, or older than what is on the screen.
-            shown.containsKey(instruction.newNum) -> false
+            // Older than what is on the screen: late, and of no interest.
             isOlder(instruction.newNum, newestShown) -> return
+            // The state on the screen once more: the server has not heard that it arrived.
+            instruction.newNum == newestShown -> false
             else -> {
                 val events = HostMessage.decode(instruction.diff)
                 val base = shown[instruction.oldNum]

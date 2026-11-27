@@ -86,13 +86,14 @@ public interface MoshListener {
  *   server may still refer to. This one passes output on, so it can only use an update that
  *   builds on the screen it shows, or one that begins with exactly what has been shown since
  *   the screen it builds on. Any other is skipped and the server is told again what is shown
- *   here. Nothing is ever applied to the wrong screen and nothing is lost for good. Typing does
- *   not suffer: measured against mosh-server 1.4 over a simulated path with a 100 ms round
- *   trip, keys are echoed after 110 to 160 ms, which is as fast as the server sends. Output
- *   that keeps scrolling does: about half of the server's updates are skipped then, so that
- *   eleven screens a second arrive where the server sends twenty, with pauses of up to a sixth
- *   of a second. With a round trip below 20 ms there is no difference. After a lost datagram
- *   the wait is one retransmission timeout of the server, as it is for the reference client.
+ *   here. Nothing is ever applied to the wrong screen and nothing is lost for good. Typing at a
+ *   shell prompt does not suffer: measured against mosh-server 1.4 over a simulated path with
+ *   a 100 ms round trip, keys are echoed after 110 to 160 ms, which is as fast as the server
+ *   sends. Output that keeps scrolling does, and so does a program that redraws something else
+ *   with every key: about half of the server's updates are skipped then, so that eleven
+ *   screens a second arrive where the server sends twenty, with pauses of up to a sixth of a
+ *   second. With a round trip below 20 ms there is no difference. After a lost datagram the
+ *   wait is one retransmission timeout of the server, as it is for the reference client.
  * - Pasted input is sent in instalments of at most 2 KiB, a few at a time, rather than at once.
  *
  * @param host the server's address, ideally the IP address the SSH connection was made to

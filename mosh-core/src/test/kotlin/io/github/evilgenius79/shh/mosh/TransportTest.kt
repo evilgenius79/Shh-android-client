@@ -419,6 +419,31 @@ class TransportTest {
     }
 
     @Test
+    fun `an update that arrives late, for a screen long gone, is passed over in silence`() {
+        val rig = Rig()
+        connected(rig)
+        rig.fromServer(oldNum = 1, newNum = 2, ackNum = 1, events = rig.bytes("a"))
+        rig.fromServer(oldNum = 2, newNum = 3, ackNum = 1, events = rig.bytes("b"))
+        rig.advance(200)
+        val sent = rig.instructions.size
+        val unusable = rig.transport.unusable
+
+        // Datagrams overtaken on the way: states 2 and 1 again, long after state 3.
+        rig.fromServer(oldNum = 1, newNum = 2, ackNum = 1, throwawayNum = 1, events = rig.bytes("a"))
+        rig.fromServer(oldNum = 0, newNum = 1, ackNum = 1, throwawayNum = 0, events = rig.bytes("$ "))
+        rig.advance(200)
+
+        assertEquals("$ ab", rig.output.toString())
+        // Nothing to tell the server about, unlike a repeat of the newest state.
+        assertEquals(sent, rig.instructions.size)
+        assertEquals(unusable, rig.transport.unusable)
+        rig.fromServer(oldNum = 2, newNum = 3, ackNum = 1, throwawayNum = 1, events = rig.bytes("b"))
+        rig.advance(0)
+        assertEquals(sent + 1, rig.instructions.size)
+        assertEquals(3L, rig.instructions.last().second.ackNum)
+    }
+
+    @Test
     fun `states that changed nothing visible stand for the same screen`() {
         val rig = Rig()
         connected(rig)
