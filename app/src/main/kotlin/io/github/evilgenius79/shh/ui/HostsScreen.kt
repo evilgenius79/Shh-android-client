@@ -2,6 +2,8 @@
 
 package io.github.evilgenius79.shh.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -26,23 +29,29 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.data.AppData
+import io.github.evilgenius79.shh.data.ConfigImport
 import io.github.evilgenius79.shh.data.Host
 import io.github.evilgenius79.shh.session.SessionState
 import io.github.evilgenius79.shh.session.TerminalSession
+import io.github.evilgenius79.shh.ssh.SshConfig
+import java.io.IOException
 
 /**
  * Parses what people type on an ssh command line: `user@host`, `host:2222`, `user@host:port`
@@ -90,7 +99,36 @@ fun HostsScreen(
     onNavigate: (Screen) -> Unit,
     /** An address to start the field with, from an ssh:// link. The user still has to tap Connect. */
     offeredAddress: String = "",
+    /** Hosts read from an OpenSSH configuration file, to be saved. */
+    onImport: (List<Host>) -> Unit = {},
 ) {
+    val context = LocalContext.current
+    var importPlan by remember { mutableStateOf<ConfigImport.Plan?>(null) }
+    var importProblem by remember { mutableStateOf<String?>(null) }
+    val hosts by rememberUpdatedState(data.hosts)
+    val configPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            try {
+                val text = context.contentResolver.openInputStream(uri)?.use { input ->
+                    // One byte more than is allowed tells a file of exactly that size from a larger one.
+                    val bytes = ByteArray(MAX_CONFIG_BYTES + 1)
+                    var size = 0
+                    while (size < bytes.size) {
+                        val count = input.read(bytes, size, bytes.size - size)
+                        if (count < 0) break
+                        size += count
+                    }
+                    if (size > MAX_CONFIG_BYTES) throw IOException("it is too large to be an SSH config")
+                    String(bytes, 0, size, Charsets.UTF_8)
+                } ?: throw IOException("it could not be opened")
+                importPlan = ConfigImport.plan(SshConfig.parse(text), hosts)
+            } catch (e: IOException) {
+                importProblem = "The file could not be read: ${e.message}"
+            } catch (e: SecurityException) {
+                importProblem = "The file could not be read: ${e.message}"
+            }
+        }
+    }
     var menuOpen by remember { mutableStateOf(false) }
     var query by rememberSaveable(offeredAddress) { mutableStateOf(offeredAddress) }
     var pendingDelete by remember { mutableStateOf<Host?>(null) }
@@ -109,6 +147,15 @@ fun HostsScreen(
                             Triple("Settings", R.drawable.ic_settings, Screen.Settings),
                             Triple("How to use", R.drawable.ic_help, Screen.Help),
                             Triple("About", R.drawable.ic_info, Screen.About),
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Import SSH config") },
+                            leadingIcon = { AppIcon(R.drawable.ic_download, null) },
+                            onClick = {
+                                menuOpen = false
+                                // The file has no ending and no type of its own, so every file is offered.
+                                configPicker.launch(arrayOf("*/*"))
+                            },
                         )
                         for ((label, icon, screen) in entries) {
                             DropdownMenuItem(
@@ -231,6 +278,24 @@ fun HostsScreen(
         }
     }
 
+    importPlan?.let { plan ->
+        ConfigImportDialog(
+            plan,
+            onImport = { added ->
+                importPlan = null
+                onImport(added)
+            },
+            onDismiss = { importPlan = null },
+        )
+    }
+    importProblem?.let { problem ->
+        AlertDialog(
+            onDismissRequest = { importProblem = null },
+            title = { Text("Import from an SSH config") },
+            text = { Text(problem) },
+            confirmButton = { TextButton(onClick = { importProblem = null }) { Text("OK") } },
+        )
+    }
     pendingDelete?.let { host ->
         ConfirmDialog(
             title = "Delete ${host.title}?",

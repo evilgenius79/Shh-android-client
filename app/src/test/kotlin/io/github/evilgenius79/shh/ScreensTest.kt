@@ -6,6 +6,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -355,6 +357,80 @@ class ScreensTest {
         assertEquals(1, editKeys, "the key bar is arranged on a screen of its own")
         compose.onNodeWithText("Hide the keys with a hardware keyboard").performScrollTo().performClick()
         assertTrue(container.store.data.value.settings.hideKeysWithKeyboard)
+    }
+
+    // ----- importing an SSH config -----
+
+    private fun importPlan(text: String, saved: List<Host> = emptyList()) =
+        io.github.evilgenius79.shh.data.ConfigImport.plan(io.github.evilgenius79.shh.ssh.SshConfig.parse(text.trimIndent()), saved)
+
+    @Test
+    fun importingAConfigShowsWhatWillBeAddedAndAsksForAMissingUserName() {
+        val plan = importPlan(
+            """
+            Host web
+                HostName web01.example.org
+                User deploy
+                ProxyJump bastion
+                IdentityFile ~/.ssh/id_web
+            Host bastion
+                HostName bastion.example.org
+            Host router
+                HostName 192.168.1.1
+            Host Database
+                User postgres
+            """,
+            saved = sampleData().hosts,
+        )
+        var imported: List<Host>? = null
+        var dismissed = 0
+        show { io.github.evilgenius79.shh.ui.ConfigImportDialog(plan, onImport = { imported = it }, onDismiss = { dismissed++ }) }
+        shot("config-import-dark")
+        compose.onNodeWithText("3 hosts will be added:").assertIsDisplayed()
+        compose.onNodeWithText("deploy@web01.example.org").assertIsDisplayed()
+        compose.onNodeWithText("Saved already and left as they are: Database").assertIsDisplayed()
+        compose.onNodeWithText("web logs in with a key file", substring = true).assertExists()
+
+        // Two of the hosts have no user: nothing is added before one is given.
+        compose.onNodeWithText("The file names no user for bastion, router", substring = true).assertExists()
+        compose.onNodeWithText("Add 3 hosts").assertIsNotEnabled()
+        compose.onNode(androidx.compose.ui.test.hasSetTextAction()).performTextInput("two words")
+        compose.onNodeWithText("Add 3 hosts").assertIsNotEnabled()
+        compose.onNode(androidx.compose.ui.test.hasSetTextAction()).performTextReplacement("admin")
+        compose.onNodeWithText("Add 3 hosts").assertIsEnabled().performClick()
+
+        val added = assertNotNull(imported)
+        assertEquals(listOf("admin@bastion.example.org", "deploy@web01.example.org", "admin@192.168.1.1"), added.map { it.address })
+        assertEquals(added[0].id, added[1].jumpHostId)
+        assertEquals(0, dismissed)
+
+        // Stored, they are hosts like any other.
+        val container = container(sampleData())
+        container.store.addHosts(added)
+        container.store.addHosts(added)
+        assertEquals(sampleData().hosts.size + 3, container.store.data.value.hosts.size, "adding the same hosts twice adds them once")
+    }
+
+    @Test
+    fun importingAConfigWithNothingNewSaysSo() {
+        var dismissed = 0
+        show { io.github.evilgenius79.shh.ui.ConfigImportDialog(importPlan("Host Database\n  User x", sampleData().hosts), onImport = {}, onDismiss = { dismissed++ }) }
+        compose.onNodeWithText("Every host this file names is saved already.").assertIsDisplayed()
+        compose.onNodeWithText("OK").performClick()
+        assertEquals(1, dismissed)
+    }
+
+    @Test
+    fun theHostListOffersToImportAnSshConfig() {
+        val data = sampleData()
+        show {
+            HostsScreen(
+                data = data, sessions = emptyList(), onConnect = {}, onQuickConnect = {}, onOpenSession = {}, onEdit = {},
+                onDuplicate = {}, onDelete = {}, onAdd = {}, onNavigate = {},
+            )
+        }
+        compose.onNodeWithContentDescription("More").performClick()
+        compose.onNodeWithText("Import SSH config").assertIsDisplayed()
     }
 
     @Test

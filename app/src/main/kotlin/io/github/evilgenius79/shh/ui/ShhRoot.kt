@@ -97,6 +97,7 @@ fun ShhRoot(container: AppContainer, model: AppViewModel = viewModel()) {
                 onAdd = { model.open(Screen.HostEdit(null)) },
                 onNavigate = model::open,
                 offeredAddress = model.offeredAddress,
+                onImport = { hosts -> container.store.addHosts(hosts) },
             )
             is Screen.HostEdit -> {
                 val existing = data.host(screen.hostId)

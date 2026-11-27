@@ -57,6 +57,10 @@ output of `vim`, produced by the test suite.
 - A notification when a session in the background rings the bell, for example at the end of a
   long command.
 - Quick connect: type `user@host:port` and go.
+- Import of an OpenSSH client configuration (`~/.ssh/config`): its hosts with their addresses,
+  users, jump hosts (`ProxyJump`, or `ProxyCommand ssh -W`), port forwards and the other
+  settings the app has a counterpart for. The file is read the way `ssh` reads it, which the
+  tests check against `ssh -G`.
 
 **Keys**
 
@@ -123,7 +127,8 @@ runs everything that needs no device:
   program) and require the same screen and cursor position that tmux ends up with. The
   recordings are made with `tools/record_fixtures.py`.
 - **SSH** – end-to-end tests against an SSH server running inside the test JVM (Apache MINA),
-  and key file tests against the real `ssh-keygen` when it is installed.
+  key file tests against the real `ssh-keygen` and configuration file tests against the real
+  `ssh` when they are installed.
 - **App** – storage and backup tests, Compose UI tests, and tests that draw real program output
   through the terminal view. Screenshots are written to `app/build/outputs/screenshots`.
 

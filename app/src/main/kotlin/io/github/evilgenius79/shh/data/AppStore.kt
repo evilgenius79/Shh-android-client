@@ -99,6 +99,8 @@ class AppStore(
         data.copy(hosts = if (exists) data.hosts.map { if (it.id == host.id) host else it } else data.hosts + host)
     }
 
+    fun addHosts(hosts: List<Host>) = update { data -> data.copy(hosts = data.hosts + hosts.filter { new -> data.hosts.none { it.id == new.id } }) }
+
     fun deleteHost(id: String) = update { data ->
         data.copy(
             // Hosts that jumped through the deleted one fall back to a direct connection.

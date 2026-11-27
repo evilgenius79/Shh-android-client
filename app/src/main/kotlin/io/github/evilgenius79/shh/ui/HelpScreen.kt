@@ -124,6 +124,10 @@ internal val HelpSections: List<HelpSection> = listOf(
             ),
             note("Hold the app's icon on the home screen for shortcuts to the hosts you used last."),
             note("On the host list, typing user@host or user@host:port into the search field connects without saving a host."),
+            note(
+                "If you have an SSH config file from a computer, Import SSH config in the host list's ⋮ menu adds its hosts, " +
+                    "with their jump hosts and port forwards.",
+            ),
         ),
     ),
     HelpSection(
