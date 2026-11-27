@@ -25,7 +25,7 @@ output of `vim`, produced by the test suite.
   a shell needs but a phone hides, such as `~ \ { } [ ]`.
 - Hardware keyboard support, pinch to zoom, long-press to select and copy, Ctrl+Shift+C /
   Ctrl+Shift+V.
-- Eleven colour schemes (Dracula, Solarized, Gruvbox, Nord, One Dark, Tokyo Night, Monokai, …),
+- Twelve colour schemes (green on black, Dracula, Solarized, Gruvbox, Nord, One Dark, Tokyo Night, …),
   per host if you like. JetBrains Mono is bundled.
 - Scrolling inside `less`, `man` or `vim` works with a swipe.
 
@@ -62,6 +62,7 @@ output of `vim`, produced by the test suite.
 - Encrypted backup and restore of all hosts, keys and settings, protected by a passphrase.
 - Optional app lock using the system fingerprint/face/screen-lock prompt.
 - Material 3 design with light, dark and wallpaper-based colours.
+- A built-in how-to that explains the key bar, the touch gestures and where things are.
 
 ## Requirements
 

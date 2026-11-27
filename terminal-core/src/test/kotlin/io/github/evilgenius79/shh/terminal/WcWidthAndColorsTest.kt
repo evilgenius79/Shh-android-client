@@ -92,6 +92,51 @@ class WcWidthAndColorsTest {
         assertEquals(TextStyle.withBackground(TextStyle.DEFAULT, TextStyle.rgb(255, 255, 255)), TextStyle.eraseStyle(style or TextStyle.BOLD))
     }
 
+    /** Contrast ratio between two colours as WCAG defines it: 1 is none, 21 is black on white. */
+    private fun contrast(first: Int, second: Int): Double {
+        fun channel(value: Int): Double {
+            val c = value / 255.0
+            return if (c <= 0.03928) c / 12.92 else Math.pow((c + 0.055) / 1.055, 2.4)
+        }
+        fun luminance(rgb: Int) = 0.2126 * channel((rgb shr 16) and 0xFF) + 0.7152 * channel((rgb shr 8) and 0xFF) + 0.0722 * channel(rgb and 0xFF)
+        val (lighter, darker) = listOf(luminance(first), luminance(second)).sortedDescending()
+        return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    @Test
+    fun everySchemeIsReadable() {
+        for (scheme in ColorScheme.ALL) {
+            // The schemes that are this app's own have to be clearly readable. The well-known
+            // ones keep their published colours, which are sometimes fainter on purpose.
+            val own = scheme in listOf(ColorScheme.DEFAULT_DARK, ColorScheme.DEFAULT_LIGHT, ColorScheme.BLACK, ColorScheme.GREEN)
+            val text = contrast(scheme.foreground, scheme.background)
+            assertTrue(text >= if (own) 7.0 else 4.0, "${scheme.name}: text on background has a contrast of only $text")
+            assertTrue(contrast(scheme.cursor, scheme.background) >= 3.0, "${scheme.name}: the cursor is hard to see")
+            // The colours programs use for output. The two that are meant to match the
+            // background are left out: the blacks of a dark scheme, the whites of a light one.
+            for (index in if (scheme.isDark) (1..7) + (9..15) else (0..6) + (8..14)) {
+                val ratio = contrast(scheme.ansi(index), scheme.background)
+                assertTrue(ratio >= if (own) 3.0 else 2.0, "${scheme.name}: ANSI colour $index has a contrast of only $ratio")
+            }
+        }
+    }
+
+    @Test
+    fun greenOnBlackIsGreenOnBlack() {
+        val scheme = ColorScheme.byId("green")
+        assertEquals("Green on Black", scheme.name)
+        assertEquals(0x000000, scheme.background)
+        val red = (scheme.foreground shr 16) and 0xFF
+        val green = (scheme.foreground shr 8) and 0xFF
+        val blue = scheme.foreground and 0xFF
+        assertTrue(green > 2 * red && green > blue, "the text colour is a green")
+        assertEquals(scheme.foreground, scheme.cursor)
+        // Programs that ask for green get the same green; other colours stay what they are.
+        assertEquals(scheme.foreground, scheme.ansi(2))
+        assertTrue(((scheme.ansi(1) shr 16) and 0xFF) > 200, "red is still red")
+        assertTrue(ColorScheme.ALL.indexOf(scheme) == ColorScheme.ALL.indexOf(ColorScheme.BLACK) + 1, "offered right after Pure Black")
+    }
+
     @Test
     fun schemesAreWellFormed() {
         assertTrue(ColorScheme.ALL.map { it.id }.toSet().size == ColorScheme.ALL.size)

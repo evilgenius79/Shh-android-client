@@ -27,24 +27,41 @@ public class ColorScheme(
         public val DEFAULT_DARK: ColorScheme = ColorScheme(
             "default-dark", "Default Dark", 0xD3D7CF, 0x101214, 0xD3D7CF,
             intArrayOf(
-                0x2E3436, 0xCC0000, 0x4E9A06, 0xC4A000, 0x3465A4, 0x75507B, 0x06989A, 0xD3D7CF,
-                0x555753, 0xEF2929, 0x8AE234, 0xFCE94F, 0x729FCF, 0xAD7FA8, 0x34E2E2, 0xEEEEEC,
+                0x2E3436, 0xCC0000, 0x4E9A06, 0xC4A000, 0x3465A4, 0xA06FA8, 0x06989A, 0xD3D7CF,
+                0x555753, 0xEF2929, 0x8AE234, 0xFCE94F, 0x729FCF, 0xC08FC6, 0x34E2E2, 0xEEEEEC,
             ),
         )
 
+        // Colours that are bright on a dark screen disappear on a light one, so this is not the
+        // dark palette on a white background: every colour is dark enough to read.
         public val DEFAULT_LIGHT: ColorScheme = ColorScheme(
             "default-light", "Default Light", 0x2E3436, 0xFAFAFA, 0x2E3436,
             intArrayOf(
-                0x2E3436, 0xCC0000, 0x4E9A06, 0xC4A000, 0x3465A4, 0x75507B, 0x06989A, 0xD3D7CF,
-                0x555753, 0xEF2929, 0x8AE234, 0xFCE94F, 0x729FCF, 0xAD7FA8, 0x34E2E2, 0xEEEEEC,
+                0x2E3436, 0xCC0000, 0x1A7F37, 0x8A5A00, 0x2A5CAA, 0x75507B, 0x0B7A84, 0xD3D7CF,
+                0x555753, 0xD1242F, 0x26944A, 0xA06A00, 0x0969DA, 0x8250DF, 0x1B8E97, 0xEEEEEC,
             ),
         )
 
         public val BLACK: ColorScheme = ColorScheme(
             "black", "Pure Black", 0xE5E5E5, 0x000000, 0xE5E5E5,
             intArrayOf(
-                0x000000, 0xCD0000, 0x00CD00, 0xCDCD00, 0x0000EE, 0xCD00CD, 0x00CDCD, 0xE5E5E5,
+                // The traditional blue (0000EE) is nearly invisible on black, and it is the colour
+                // "ls" gives to directories.
+                0x000000, 0xCD0000, 0x00CD00, 0xCDCD00, 0x2472C8, 0xCD00CD, 0x00CDCD, 0xE5E5E5,
                 0x7F7F7F, 0xFF0000, 0x00FF00, 0xFFFF00, 0x5C5CFF, 0xFF00FF, 0x00FFFF, 0xFFFFFF,
+            ),
+        )
+
+        /**
+         * Green text on pure black, after the phosphor screens of old terminals. Only the text
+         * that asks for no colour is green; programs that colour their output keep their colours,
+         * chosen here to stay readable on black.
+         */
+        public val GREEN: ColorScheme = ColorScheme(
+            "green", "Green on Black", 0x25C26E, 0x000000, 0x25C26E,
+            intArrayOf(
+                0x000000, 0xE5534B, 0x25C26E, 0xD5B93C, 0x4D9DE0, 0xC678DD, 0x2EC4B6, 0xC9D1C9,
+                0x5C6B5F, 0xFF6E67, 0x4BE38B, 0xF0D75A, 0x73B8FF, 0xDD98F0, 0x5EE0D2, 0xFFFFFF,
             ),
         )
 
@@ -114,7 +131,7 @@ public class ColorScheme(
 
         /** Every built in scheme, in the order they are offered to the user. */
         public val ALL: List<ColorScheme> = listOf(
-            DEFAULT_DARK, BLACK, DEFAULT_LIGHT, DRACULA, GRUVBOX_DARK, MONOKAI, NORD, ONE_DARK,
+            DEFAULT_DARK, BLACK, GREEN, DEFAULT_LIGHT, DRACULA, GRUVBOX_DARK, MONOKAI, NORD, ONE_DARK,
             SOLARIZED_DARK, SOLARIZED_LIGHT, TOKYO_NIGHT,
         )
 

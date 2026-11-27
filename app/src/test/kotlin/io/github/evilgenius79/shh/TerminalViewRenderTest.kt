@@ -90,6 +90,16 @@ class TerminalViewRenderTest {
         render("terminal-tmux", "tmux-nested", scheme = ColorScheme.GRUVBOX_DARK)
     }
 
+    @Test
+    fun greenOnBlackDrawsPlainTextInGreenOnPureBlack() {
+        val (_, bitmap) = render("terminal-green", "bash", scheme = ColorScheme.GREEN)
+        assertEquals(0xFF000000.toInt(), bitmap.getPixel(bitmap.width - 2, bitmap.height - 2), "the background is pure black")
+        val green = 0xFF000000.toInt() or ColorScheme.GREEN.foreground
+        var solidGreen = 0
+        for (y in 0 until bitmap.height) for (x in 0 until bitmap.width) if (bitmap.getPixel(x, y) == green) solidGreen++
+        assertTrue(solidGreen > 500, "text that asks for no colour is drawn in the scheme's green, found $solidGreen such pixels")
+    }
+
     // ----- touch -----
 
     private fun laidOutView(session: TerminalSession, columns: Int = 40, rows: Int = 10): TerminalView {
