@@ -22,11 +22,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       # Two throwaway OpenSSH servers so the interoperability tests run for real
-      # instead of being skipped.
+      # instead of being skipped, and a Mosh server for the same reason.
       - name: Start test SSH servers
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq openssh-server
+          sudo apt-get install -y -qq openssh-server mosh
+          mosh-server --version | head -n 1
           ssh -V
           sudo tools/test-sshd.sh start | tail -n 1 | sed 's/^export //; s/'"'"'//g' >> "$GITHUB_ENV"
 
