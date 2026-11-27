@@ -32,6 +32,7 @@ import io.github.evilgenius79.shh.session.TerminalSession
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.roundToInt
+import java.io.File
 
 /**
  * Shows a [TerminalSession] and turns touches and key presses into terminal input.
@@ -40,7 +41,7 @@ import kotlin.math.roundToInt
  * [InputConnection] and key events exactly as the system delivers them.
  */
 class TerminalView(context: Context) : View(context) {
-    private val renderer: TerminalRenderer
+    private var renderer: TerminalRenderer
     private val scroller = OverScroller(context)
     private var session: TerminalSession? = null
 
@@ -68,6 +69,15 @@ class TerminalView(context: Context) : View(context) {
             val clamped = value.coerceIn(MIN_FONT_SP, MAX_FONT_SP)
             if (clamped == field) return
             field = clamped
+            applyFontSize()
+        }
+
+    /** A font file to draw with in place of the bundled typeface, see [TerminalFonts]. Changing it re-flows the terminal. */
+    var fontFile: File? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            renderer = rendererFor(value)
             applyFontSize()
         }
 
@@ -118,10 +128,19 @@ class TerminalView(context: Context) : View(context) {
         // A terminal is not a form. Without this, password managers offer to fill it in and
         // their popup covers the prompt.
         importantForAutofill = IMPORTANT_FOR_AUTOFILL_NO
+        renderer = rendererFor(null)
+        applyFontSize()
+    }
+
+    /** A renderer that draws with the font in [file], or with the bundled typeface. */
+    private fun rendererFor(file: File?): TerminalRenderer {
+        // A file that has gone or is no monospaced font is passed over: better the usual
+        // typeface than a terminal that cannot be read.
+        val own = file?.let(TerminalFonts::load)?.takeIf { TerminalFonts.problemWith(it) == null }
+        if (own != null) return TerminalRenderer(own, Typeface.create(own, Typeface.BOLD))
         val regular = ResourcesCompat.getFont(context, R.font.jetbrains_mono_regular) ?: Typeface.MONOSPACE
         val bold = ResourcesCompat.getFont(context, R.font.jetbrains_mono_bold) ?: Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
-        renderer = TerminalRenderer(regular, bold)
-        applyFontSize()
+        return TerminalRenderer(regular, bold)
     }
 
     private fun applyFontSize() {

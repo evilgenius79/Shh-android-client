@@ -30,7 +30,8 @@ output of `vim`, produced by the test suite.
 - Keyboards are asked for plain characters by default (no autocorrect); a setting turns on
   voice typing, swipe typing and composing keyboards such as Chinese, Japanese and Korean.
 - Twelve colour schemes (green on black, Dracula, Solarized, Gruvbox, Nord, One Dark, Tokyo Night, …),
-  per host if you like. JetBrains Mono is bundled.
+  per host if you like. JetBrains Mono is bundled, and any monospaced `.ttf` or `.otf` file can
+  take its place.
 - Scrolling inside `less`, `man` or `vim` works with a swipe.
 
 **Connections**
@@ -75,7 +76,8 @@ output of `vim`, produced by the test suite.
 
 - Snippets: saved commands you can send to a terminal.
 - Passwords and private keys are encrypted with a key held in the Android Keystore.
-- Encrypted backup and restore of all hosts, keys and settings, protected by a passphrase.
+- Encrypted backup and restore of all hosts, keys and settings, protected by a passphrase. (A
+  font file of your own is not part of the backup; choose it again after restoring.)
 - Optional app lock using the system fingerprint/face/screen-lock prompt.
 - Material 3 design with light, dark and wallpaper-based colours.
 - A built-in how-to that explains the key bar, the touch gestures and where things are.

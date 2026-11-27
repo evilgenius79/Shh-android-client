@@ -149,6 +149,7 @@ internal val HelpSections: List<HelpSection> = listOf(
             item("Port forwards", text = "Reach a service on the server's network through the connection."),
             item("Snippets", text = "Send a command you saved earlier."),
             item("Colours", text = "Change the colour scheme. Settings holds the default, and a host's settings can give that host its own."),
+            note("Settings also lets you draw the terminal with a font of your own: any monospaced .ttf or .otf file on the phone."),
         ),
     ),
 )

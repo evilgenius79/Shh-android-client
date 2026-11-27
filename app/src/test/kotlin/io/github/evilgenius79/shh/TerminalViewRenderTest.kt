@@ -100,6 +100,81 @@ class TerminalViewRenderTest {
         assertTrue(solidGreen > 500, "text that asks for no colour is drawn in the scheme's green, found $solidGreen such pixels")
     }
 
+    // ----- a font of the user's own -----
+
+    /** Draws the same lines of text with [fontFile] (or the bundled typeface) and returns the picture. */
+    private fun drawnWith(fontFile: File?, name: String): Bitmap {
+        val session = session()
+        val view = TerminalView(context)
+        view.cursorBlink = false
+        view.fontSizeSp = 14f
+        view.fontFile = fontFile
+        val (width, height) = view.sizeFor(40, 6)
+        view.attach(session)
+        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, width, height)
+        assertEquals(40 to 6, session.emulator.columns to session.emulator.rows)
+        synchronized(session.emulator) {
+            session.emulator.append("The quick brown fox jumps\r\n\u001b[1mover the lazy dog 0123456789\u001b[0m\r\n{}[]<>|~ \u001b[3mitalic\u001b[0m".toByteArray())
+        }
+        // The same canvas for every font, so that pictures can be compared whatever the cell size.
+        val bitmap = Bitmap.createBitmap(900, 300, Bitmap.Config.ARGB_8888)
+        view.draw(Canvas(bitmap))
+        File(output, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+        return bitmap
+    }
+
+    private fun stored(font: String): File {
+        val name = io.github.evilgenius79.shh.terminal.TerminalFonts.install(context, TerminalFontsTest.font(font))
+        return io.github.evilgenius79.shh.terminal.TerminalFonts.file(context, name)
+    }
+
+    @Test
+    fun theTerminalDrawsWithTheFontTheUserChose() {
+        val bundled = drawnWith(null, "terminal-font-bundled")
+        val own = drawnWith(stored(TerminalFontsTest.OTHER_MONOSPACED), "terminal-font-own")
+        assertTrue(!own.sameAs(bundled), "another font gives another picture")
+        assertTrue(distinctColors(own).size > 5, "and it is text, not an empty screen")
+        // Choosing the same font again gives the same picture: it is the font that made the difference.
+        assertTrue(drawnWith(stored(TerminalFontsTest.OTHER_MONOSPACED), "terminal-font-own-again").sameAs(own))
+    }
+
+    @Test
+    fun aFontFileThatHasGoneOrIsNoGoodLeavesTheBundledTypeface() {
+        val bundled = drawnWith(null, "terminal-font-bundled")
+        assertTrue(drawnWith(File(context.filesDir, "fonts/no-such-font"), "terminal-font-missing").sameAs(bundled))
+        // A font that is not monospaced, put where the app keeps its font without being checked first.
+        val proportional = File(context.filesDir, "fonts/unchecked").apply {
+            parentFile!!.mkdirs()
+            writeBytes(TerminalFontsTest.font(TerminalFontsTest.PROPORTIONAL).readBytes())
+        }
+        assertTrue(drawnWith(proportional, "terminal-font-proportional").sameAs(bundled))
+    }
+
+    @Test
+    fun changingTheFontReflowsTheTerminal() {
+        val session = session()
+        val view = TerminalView(context)
+        view.cursorBlink = false
+        view.fontSizeSp = 14f
+        val (width, height) = view.sizeFor(80, 24)
+        view.attach(session)
+        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, width, height)
+        assertEquals(80 to 24, session.emulator.columns to session.emulator.rows)
+        view.fontFile = stored(TerminalFontsTest.OTHER_MONOSPACED)
+        val (needed, neededHeight) = view.sizeFor(80, 24)
+        assertTrue(needed != width || neededHeight != height, "the test needs a font with cells of another size")
+        // The terminal is told how many cells of the new size fit the view.
+        val columns = session.emulator.columns
+        val rows = session.emulator.rows
+        assertTrue(columns to rows != 80 to 24, "still 80x24 after the cells changed size")
+        assertTrue(view.sizeFor(columns, rows).first <= width && view.sizeFor(columns + 1, rows).first > width, "$columns columns in $width px")
+        assertTrue(view.sizeFor(columns, rows).second <= height && view.sizeFor(columns, rows + 1).second > height, "$rows rows in $height px")
+        view.fontFile = null
+        assertEquals(80 to 24, session.emulator.columns to session.emulator.rows, "and back")
+    }
+
     // ----- touch -----
 
     private fun laidOutView(session: TerminalSession, columns: Int = 40, rows: Int = 10): TerminalView {

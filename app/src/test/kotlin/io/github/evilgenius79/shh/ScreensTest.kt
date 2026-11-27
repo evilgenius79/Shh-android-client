@@ -358,6 +358,34 @@ class ScreensTest {
     }
 
     @Test
+    fun settingsShowTheFontInUseAndGoBackToTheBuiltInOne() {
+        val fonts = io.github.evilgenius79.shh.terminal.TerminalFonts
+        val stored = fonts.install(context, TerminalFontsTest.font(TerminalFontsTest.MONOSPACED))
+        val data = sampleData(dark.copy(terminalFont = stored, terminalFontName = "Droid Sans Mono"))
+        val container = container(data)
+        show {
+            val current by container.store.data.collectAsState()
+            SettingsScreen(container, current, onBack = {})
+        }
+        compose.onNodeWithText("Droid Sans Mono. Tap to choose another font file.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Use the built-in font").performScrollTo().performClick()
+        assertNull(container.store.data.value.settings.terminalFont)
+        assertNull(container.store.data.value.settings.terminalFontName)
+        assertTrue(!fonts.file(context, stored).exists(), "the app's copy of the font is removed")
+        compose.onNodeWithText("JetBrains Mono, built in", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Use the built-in font").assertDoesNotExist()
+    }
+
+    @Test
+    fun settingsDoNotClaimAFontWhoseFileIsNotThere() {
+        // What a backup restored on another device looks like: the name of a font, but no file.
+        val data = sampleData(dark.copy(terminalFont = "font-1", terminalFontName = "Fira Code"))
+        show { SettingsScreen(container(data), data, onBack = {}) }
+        compose.onNodeWithText("JetBrains Mono, built in", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Use the built-in font").assertDoesNotExist()
+    }
+
+    @Test
     @Config(qualifiers = "+keysexposed-qwerty")
     fun theTerminalLeavesTheKeyBarOutWhileAKeyboardIsConnectedIfAskedTo() {
         val data = sampleData()

@@ -76,6 +76,7 @@ import io.github.evilgenius79.shh.ssh.SshFailure
 import io.github.evilgenius79.shh.terminal.ColorScheme
 import io.github.evilgenius79.shh.terminal.CursorShape
 import io.github.evilgenius79.shh.terminal.ModifierState
+import io.github.evilgenius79.shh.terminal.TerminalFonts
 import io.github.evilgenius79.shh.terminal.TerminalView
 
 @Composable
@@ -214,6 +215,7 @@ fun TerminalScreen(
                     update = { view ->
                         view.attach(active)
                         view.fontSizeSp = settings.fontSizeSp.toFloat()
+                        view.fontFile = settings.terminalFont?.let { TerminalFonts.file(view.context, it) }
                         view.cursorBlink = settings.cursorBlink
                         view.cursorShape = when (settings.cursorStyle) {
                             CursorStyle.BLOCK -> CursorShape.BLOCK

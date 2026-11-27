@@ -3,7 +3,10 @@
 package io.github.evilgenius79.shh.ui
 
 import android.app.KeyguardManager
+import android.content.Context
+import android.net.Uri
 import android.os.Build
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +42,8 @@ import io.github.evilgenius79.shh.data.CursorStyle
 import io.github.evilgenius79.shh.data.Settings
 import io.github.evilgenius79.shh.data.ThemeMode
 import io.github.evilgenius79.shh.terminal.ColorScheme
+import io.github.evilgenius79.shh.terminal.FontException
+import io.github.evilgenius79.shh.terminal.TerminalFonts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -52,6 +57,29 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
     var exporting by remember { mutableStateOf(false) }
     var importText by remember { mutableStateOf<String?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
+    var fontProblem by remember { mutableStateOf<String?>(null) }
+    val fontPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                try {
+                    val stored = withContext(Dispatchers.IO) {
+                        val input = context.contentResolver.openInputStream(uri) ?: throw IOException("The file could not be opened")
+                        input.use { TerminalFonts.install(context, it) }
+                    }
+                    val name = fontNameOf(displayName(context, uri))
+                    update { it.copy(terminalFont = stored, terminalFontName = name) }
+                } catch (e: FontException) {
+                    fontProblem = e.message
+                } catch (e: IOException) {
+                    fontProblem = "The file could not be read: ${e.message}"
+                } catch (e: SecurityException) {
+                    fontProblem = "The file could not be read: ${e.message}"
+                }
+            }
+        }
+    }
 
     val importPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
@@ -109,6 +137,27 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
                 { size -> update { it.copy(fontSizeSp = size) } },
                 field,
             )
+            // A backup restored on another device names a font whose file is not here.
+            val ownFont = settings.terminalFont?.takeIf { TerminalFonts.file(context, it).isFile }
+            Entry(
+                headline = "Font",
+                supporting = {
+                    Text(
+                        if (ownFont != null) "${settings.terminalFontName ?: "A font of your own"}. Tap to choose another font file."
+                        else "JetBrains Mono, built in. Tap to choose a monospaced font file (.ttf or .otf) instead.",
+                    )
+                },
+                onClick = { fontPicker.launch(arrayOf("*/*")) },
+            )
+            if (ownFont != null) {
+                Entry(
+                    headline = "Use the built-in font",
+                    onClick = {
+                        update { it.copy(terminalFont = null, terminalFontName = null) }
+                        TerminalFonts.remove(context)
+                    },
+                )
+            }
             Text(
                 "You can also pinch the terminal to zoom.",
                 style = MaterialTheme.typography.bodySmall,
@@ -227,6 +276,14 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
         }
     }
 
+    fontProblem?.let {
+        AlertDialog(
+            onDismissRequest = { fontProblem = null },
+            title = { Text("This font cannot be used") },
+            text = { Text(it) },
+            confirmButton = { TextButton(onClick = { fontProblem = null }) { Text("OK") } },
+        )
+    }
     if (exporting) {
         ExportBackupDialog(container, data, onDone = { result ->
             exporting = false
@@ -239,6 +296,23 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, o
             if (result != null) message = result
         })
     }
+}
+
+/** What the document behind [uri] is called, as far as its provider says. */
+private fun displayName(context: Context, uri: Uri): String? = try {
+    context.contentResolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+        if (cursor.moveToFirst()) cursor.getString(0) else null
+    }
+} catch (e: RuntimeException) {
+    // Providers are other apps' code. The name is only for show, so none will do.
+    null
+}
+
+/** A font's name for the settings, from the name of its file: "FiraCode-Regular.ttf" is "FiraCode-Regular". */
+internal fun fontNameOf(fileName: String?): String {
+    val name = fileName.orEmpty().substringAfterLast('/').trim()
+    val bare = if (name.substringAfterLast('.', "").lowercase() in setOf("ttf", "otf", "ttc", "otc")) name.substringBeforeLast('.') else name
+    return bare.take(60).ifBlank { "A font of your own" }
 }
 
 @Composable

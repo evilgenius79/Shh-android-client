@@ -122,6 +122,10 @@ data class Settings(
     val dynamicColor: Boolean = true,
     val colorSchemeId: String = "default-dark",
     val fontSizeSp: Int = 13,
+    /** The stored font file the terminal draws with, see TerminalFonts. Null for the bundled typeface. */
+    val terminalFont: String? = null,
+    /** What that font is called, for showing it in the settings. */
+    val terminalFontName: String? = null,
     val scrollbackLines: Int = 5000,
     val keepScreenOn: Boolean = true,
     /** Hold a wake lock while sessions are connected so they survive the screen turning off. */
