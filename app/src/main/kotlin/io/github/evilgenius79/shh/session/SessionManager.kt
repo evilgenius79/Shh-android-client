@@ -164,8 +164,8 @@ class SessionManager(
      */
     private fun notifyBell(session: TerminalSession) {
         val manager = notifications() ?: return
-        val channel = NotificationChannel(BELL_CHANNEL_ID, "Bell", NotificationManager.IMPORTANCE_DEFAULT)
-        channel.description = "A session in the background rang the bell"
+        val channel = NotificationChannel(BELL_CHANNEL_ID, context.getString(R.string.notify_bell_channel), NotificationManager.IMPORTANCE_DEFAULT)
+        channel.description = context.getString(R.string.notify_bell_channel_description)
         manager.createNotificationChannel(channel)
         val open = PendingIntent.getActivity(
             context,
@@ -176,7 +176,7 @@ class SessionManager(
         val notification = NotificationCompat.Builder(context, BELL_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_terminal)
             .setContentTitle(session.title.value)
-            .setContentText("Rang the bell")
+            .setContentText(context.getString(R.string.notify_bell_text))
             .setContentIntent(open)
             .setAutoCancel(true)
             // A program that keeps ringing does not keep buzzing the phone.

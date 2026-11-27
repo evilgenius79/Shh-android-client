@@ -3,6 +3,7 @@
 package io.github.evilgenius79.shh.ui
 
 import android.content.Context
+import android.content.res.Resources
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.text.format.DateUtils
@@ -10,6 +11,7 @@ import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +46,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -63,8 +67,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 /** A transfer that is under way. [total] is -1 when the size is not known. */
 class TransferProgress(val name: String, val upload: Boolean, val done: Long, val total: Long)
 
-/** State and operations of the file browser. All SFTP calls run on the IO dispatcher. */
-class FilesState(private val session: TerminalSession, private val scope: CoroutineScope) {
+/**
+ * State and operations of the file browser. All SFTP calls run on the IO dispatcher.
+ *
+ * @param resources where the texts for what went wrong come from.
+ */
+class FilesState(private val session: TerminalSession, private val scope: CoroutineScope, private val resources: Resources) {
     var path by mutableStateOf("")
         private set
     var entries by mutableStateOf<List<SftpEntry>>(emptyList())
@@ -80,8 +88,8 @@ class FilesState(private val session: TerminalSession, private val scope: Corout
 
     val canGoUp: Boolean get() = path.isNotEmpty() && path != "/"
 
-    fun open() = run("Could not open the file browser") {
-        val connection = session.connection ?: throw IOException("The session is not connected")
+    fun open() = run(R.string.files_error_open_browser) {
+        val connection = session.connection ?: throw IOException(resources.getString(R.string.files_reason_session_not_connected))
         val opened = connection.openSftp()
         sftp = opened
         val home = opened.homeDirectory()
@@ -92,8 +100,8 @@ class FilesState(private val session: TerminalSession, private val scope: Corout
         }
     }
 
-    fun navigate(target: String) = run("Could not open $target") {
-        val client = sftp ?: throw IOException("Not connected")
+    fun navigate(target: String) = run(R.string.files_error_open, target) {
+        val client = connected()
         val resolved = client.canonicalize(target)
         val listing = client.list(resolved)
         withContext(Dispatchers.Main) {
@@ -110,27 +118,28 @@ class FilesState(private val session: TerminalSession, private val scope: Corout
 
     fun child(name: String): String = if (path.endsWith("/")) path + name else "$path/$name"
 
-    fun makeDirectory(name: String) = modify("Could not create the folder") { it.makeDirectory(child(name)) }
+    fun makeDirectory(name: String) = modify(R.string.files_error_create_folder) { it.makeDirectory(child(name)) }
 
-    fun rename(entry: SftpEntry, newName: String) = modify("Could not rename ${entry.name}") { it.rename(entry.path, child(newName)) }
+    fun rename(entry: SftpEntry, newName: String) = modify(R.string.files_error_rename, entry.name) { it.rename(entry.path, child(newName)) }
 
-    fun delete(entry: SftpEntry) = modify("Could not delete ${entry.name}") { it.delete(entry.path) }
+    fun delete(entry: SftpEntry) = modify(R.string.files_error_delete, entry.name) { it.delete(entry.path) }
 
-    fun setPermissions(entry: SftpEntry, mode: Int) = modify("Could not change permissions") { it.setPermissions(entry.path, mode) }
+    fun setPermissions(entry: SftpEntry, mode: Int) = modify(R.string.files_error_permissions) { it.setPermissions(entry.path, mode) }
 
-    /** Runs a change and reloads the listing afterwards. */
-    private fun modify(failure: String, action: (SftpSession) -> Unit) = run(failure) {
-        val client = sftp ?: throw IOException("Not connected")
+    /** Runs a change and reloads the listing afterwards. [failure] and [names] are those of [run]. */
+    private fun modify(@StringRes failure: Int, vararg names: String, action: (SftpSession) -> Unit) = run(failure, *names) {
+        val client = connected()
         action(client)
         val listing = client.list(path)
         withContext(Dispatchers.Main) { entries = listing }
     }
 
-    fun download(context: Context, entry: SftpEntry, destination: Uri) = run("Download of ${entry.name} failed") {
-        val client = sftp ?: throw IOException("Not connected")
+    fun download(context: Context, entry: SftpEntry, destination: Uri) = run(R.string.files_error_download, entry.name) {
+        val client = connected()
         cancelled.set(false)
         try {
-            val out = context.contentResolver.openOutputStream(destination) ?: throw IOException("The destination could not be opened")
+            val out = context.contentResolver.openOutputStream(destination)
+                ?: throw IOException(resources.getString(R.string.files_reason_destination_not_opened))
             out.use { stream ->
                 client.download(
                     entry.path,
@@ -146,11 +155,12 @@ class FilesState(private val session: TerminalSession, private val scope: Corout
 
     fun upload(context: Context, source: Uri) {
         val (name, size) = describe(context, source)
-        run("Upload of $name failed") {
-            val client = sftp ?: throw IOException("Not connected")
+        run(R.string.files_error_upload, name) {
+            val client = connected()
             cancelled.set(false)
             try {
-                val input = context.contentResolver.openInputStream(source) ?: throw IOException("The file could not be opened")
+                val input = context.contentResolver.openInputStream(source)
+                    ?: throw IOException(resources.getString(R.string.files_reason_file_not_opened))
                 input.use { stream ->
                     client.upload(
                         stream,
@@ -170,14 +180,14 @@ class FilesState(private val session: TerminalSession, private val scope: Corout
     fun cancelTransfer() = cancelled.set(true)
 
     /** Reads a file for the text editor; reports through [onResult] on the main thread. */
-    fun readText(entry: SftpEntry, onResult: (String) -> Unit) = run("Could not open ${entry.name}") {
-        val client = sftp ?: throw IOException("Not connected")
+    fun readText(entry: SftpEntry, onResult: (String) -> Unit) = run(R.string.files_error_open, entry.name) {
+        val client = connected()
         val text = client.readText(entry.path)
         withContext(Dispatchers.Main) { onResult(text) }
     }
 
-    fun writeText(entry: SftpEntry, text: String, onSaved: () -> Unit) = run("Could not save ${entry.name}") {
-        val client = sftp ?: throw IOException("Not connected")
+    fun writeText(entry: SftpEntry, text: String, onSaved: () -> Unit) = run(R.string.files_error_save, entry.name) {
+        val client = connected()
         client.writeText(entry.path, text)
         val listing = client.list(path)
         withContext(Dispatchers.Main) {
@@ -198,16 +208,23 @@ class FilesState(private val session: TerminalSession, private val scope: Corout
         return name.replace('/', '_') to size
     }
 
-    private fun run(failure: String, block: suspend () -> Unit) {
+    /** The SFTP channel, once [open] has set it up. */
+    private fun connected(): SftpSession = sftp ?: throw IOException(resources.getString(R.string.files_reason_not_connected))
+
+    /**
+     * Runs [block] in the background. [failure] is the text to show if it fails: [names] fill its
+     * first placeholders and the reason for the failure fills its last one.
+     */
+    private fun run(@StringRes failure: Int, vararg names: String, block: suspend () -> Unit) {
         loading = true
         scope.launch(Dispatchers.IO) {
             try {
                 block()
                 withContext(Dispatchers.Main) { error = null }
             } catch (_: TransferCancelledException) {
-                withContext(Dispatchers.Main) { error = "Transfer cancelled" }
+                withContext(Dispatchers.Main) { error = resources.getString(R.string.files_transfer_cancelled) }
             } catch (e: IOException) {
-                withContext(Dispatchers.Main) { error = "$failure: ${e.message}" }
+                withContext(Dispatchers.Main) { error = resources.getString(failure, *names, e.message) }
             } finally {
                 withContext(Dispatchers.Main) { loading = false }
             }
@@ -224,8 +241,9 @@ class FilesState(private val session: TerminalSession, private val scope: Corout
 @Composable
 fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
-    val state = remember(session) { FilesState(session, scope) }
+    val state = remember(session) { FilesState(session, scope, resources) }
     DisposableEffect(state) {
         state.open()
         onDispose { state.close() }
@@ -254,16 +272,18 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             BackTopBar(session.host.title, onBack) {
-                IconButton(onClick = { uploader.launch(arrayOf("*/*")) }) { AppIcon(R.drawable.ic_upload, "Upload a file") }
-                IconButton(onClick = { newFolder = true }) { AppIcon(R.drawable.ic_create_new_folder, "New folder") }
-                IconButton(onClick = { state.refresh() }) { AppIcon(R.drawable.ic_refresh, "Refresh") }
+                IconButton(onClick = { uploader.launch(arrayOf("*/*")) }) { AppIcon(R.drawable.ic_upload, stringResource(R.string.files_upload)) }
+                IconButton(onClick = { newFolder = true }) { AppIcon(R.drawable.ic_create_new_folder, stringResource(R.string.files_new_folder)) }
+                IconButton(onClick = { state.refresh() }) { AppIcon(R.drawable.ic_refresh, stringResource(R.string.files_refresh)) }
             }
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             Surface(tonalElevation = 2.dp) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { state.up() }, enabled = state.canGoUp) { AppIcon(R.drawable.ic_arrow_upward, "Parent folder") }
+                    IconButton(onClick = { state.up() }, enabled = state.canGoUp) {
+                        AppIcon(R.drawable.ic_arrow_upward, stringResource(R.string.files_parent_folder))
+                    }
                     Text(
                         state.path.ifEmpty { "…" },
                         maxLines = 1,
@@ -279,14 +299,17 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            (if (transfer.upload) "Uploading " else "Downloading ") + transfer.name + " · " +
+                            stringResource(
+                                if (transfer.upload) R.string.files_uploading else R.string.files_downloading,
+                                transfer.name,
                                 Formatter.formatShortFileSize(context, transfer.done),
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.weight(1f),
                         )
-                        TextButton(onClick = { state.cancelTransfer() }) { Text("Cancel") }
+                        TextButton(onClick = { state.cancelTransfer() }) { Text(stringResource(R.string.action_cancel)) }
                     }
                     if (transfer.total > 0) {
                         LinearProgressIndicator(
@@ -307,20 +330,25 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
                 )
             }
             if (state.entries.isEmpty() && !state.loading && state.error == null) {
-                EmptyState(R.drawable.ic_folder, "Empty folder", "Upload a file or create a folder with the buttons above.")
+                EmptyState(R.drawable.ic_folder, stringResource(R.string.files_empty_title), stringResource(R.string.files_empty_text))
             }
             LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
                 items(state.entries, key = { it.path }) { entry ->
                     Entry(
                         headline = entry.name,
                         supporting = {
-                            val size = if (entry.type == SftpFileType.FILE) Formatter.formatShortFileSize(context, entry.size) + " · " else ""
                             val date = DateUtils.formatDateTime(
                                 context,
                                 entry.modifiedSeconds * 1000,
                                 DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_ALL,
                             )
-                            Text("$size$date · ${entry.permissionString}", maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+                            val details = if (entry.type == SftpFileType.FILE) {
+                                val size = Formatter.formatShortFileSize(context, entry.size)
+                                stringResource(R.string.files_entry_details_with_size, size, date, entry.permissionString)
+                            } else {
+                                stringResource(R.string.files_entry_details, date, entry.permissionString)
+                            }
+                            Text(details, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
                         },
                         leading = {
                             AppIcon(
@@ -335,26 +363,30 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
                         },
                         trailing = {
                             Box {
-                                IconButton(onClick = { selected = entry }) { AppIcon(R.drawable.ic_more_vert, "Options for ${entry.name}") }
+                                IconButton(onClick = { selected = entry }) {
+                                    AppIcon(R.drawable.ic_more_vert, stringResource(R.string.files_options_for, entry.name))
+                                }
                                 DropdownMenu(expanded = selected == entry, onDismissRequest = { selected = null }) {
                                     @Composable
-                                    fun action(label: String, icon: Int, run: () -> Unit) {
-                                        DropdownMenuItem(text = { Text(label) }, leadingIcon = { AppIcon(icon, null) }, onClick = {
+                                    fun action(@StringRes label: Int, icon: Int, run: () -> Unit) {
+                                        DropdownMenuItem(text = { Text(stringResource(label)) }, leadingIcon = { AppIcon(icon, null) }, onClick = {
                                             selected = null
                                             run()
                                         })
                                     }
                                     if (!entry.isDirectory) {
-                                        action("Download", R.drawable.ic_download) {
+                                        action(R.string.files_download, R.drawable.ic_download) {
                                             downloadTarget = entry
                                             downloader.launch(entry.name)
                                         }
-                                        action("Edit as text", R.drawable.ic_edit) { state.readText(entry) { text -> editing = entry to text } }
+                                        action(R.string.files_edit_as_text, R.drawable.ic_edit) { state.readText(entry) { text -> editing = entry to text } }
                                     }
-                                    action("Rename", R.drawable.ic_drive_file_rename_outline) { renaming = entry }
-                                    action("Permissions", R.drawable.ic_lock) { permissions = entry }
-                                    action("Copy path", R.drawable.ic_content_copy) { copyToClipboard(context, "Path", entry.path) }
-                                    action("Delete", R.drawable.ic_delete) { deleting = entry }
+                                    action(R.string.files_rename, R.drawable.ic_drive_file_rename_outline) { renaming = entry }
+                                    action(R.string.files_permissions, R.drawable.ic_lock) { permissions = entry }
+                                    action(R.string.files_copy_path, R.drawable.ic_content_copy) {
+                                        copyToClipboard(context, resources.getString(R.string.files_path_clip_label), entry.path)
+                                    }
+                                    action(R.string.action_delete, R.drawable.ic_delete) { deleting = entry }
                                 }
                             }
                         },
@@ -368,23 +400,22 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
     }
 
     if (newFolder) {
-        NameDialog("New folder", "Name", "", "Create", onDismiss = { newFolder = false }) { name ->
+        NameDialog(R.string.files_new_folder_title, R.string.label_name, "", R.string.files_create, onDismiss = { newFolder = false }) { name ->
             newFolder = false
             state.makeDirectory(name)
         }
     }
     renaming?.let { entry ->
-        NameDialog("Rename", "New name", entry.name, "Rename", onDismiss = { renaming = null }) { name ->
+        NameDialog(R.string.files_rename_title, R.string.files_new_name_label, entry.name, R.string.files_rename, onDismiss = { renaming = null }) { name ->
             renaming = null
             state.rename(entry, name)
         }
     }
     deleting?.let { entry ->
         ConfirmDialog(
-            title = "Delete ${entry.name}?",
-            text = if (entry.type == SftpFileType.DIRECTORY) "The folder and everything in it is deleted on the server. This cannot be undone."
-            else "The file is deleted on the server. This cannot be undone.",
-            confirmLabel = "Delete",
+            title = stringResource(R.string.files_delete_title, entry.name),
+            text = stringResource(if (entry.type == SftpFileType.DIRECTORY) R.string.files_delete_folder_text else R.string.files_delete_file_text),
+            confirmLabel = stringResource(R.string.action_delete),
             destructive = true,
             onConfirm = {
                 deleting = null
@@ -398,12 +429,12 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
         val mode = octal.toIntOrNull(8)?.takeIf { it in 0..0xFFF && octal.length in 3..4 }
         AlertDialog(
             onDismissRequest = { permissions = null },
-            title = { Text("Permissions of ${entry.name}") },
+            title = { Text(stringResource(R.string.files_permissions_title, entry.name)) },
             text = {
                 OutlinedTextField(
                     octal,
                     { octal = it.filter { c -> c in '0'..'7' }.take(4) },
-                    label = { Text("Octal mode, for example 644") },
+                    label = { Text(stringResource(R.string.files_permissions_label)) },
                     singleLine = true,
                     isError = mode == null,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
@@ -413,9 +444,9 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
                 TextButton(enabled = mode != null, onClick = {
                     permissions = null
                     mode?.let { state.setPermissions(entry, it) }
-                }) { Text("Apply") }
+                }) { Text(stringResource(R.string.files_apply)) }
             },
-            dismissButton = { TextButton(onClick = { permissions = null }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { permissions = null }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
     editing?.let { (entry, original) ->
@@ -429,15 +460,24 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
 }
 
 @Composable
-private fun NameDialog(title: String, label: String, initial: String, confirm: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+private fun NameDialog(
+    @StringRes title: Int,
+    @StringRes label: Int,
+    initial: String,
+    @StringRes confirm: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+) {
     var name by remember { mutableStateOf(initial) }
     val valid = name.isNotBlank() && '/' !in name && name != "." && name != ".."
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = { OutlinedTextField(name, { name = it }, label = { Text(label) }, singleLine = true, isError = !valid && name.isNotEmpty()) },
-        confirmButton = { TextButton(enabled = valid, onClick = { onConfirm(name.trim()) }) { Text(confirm) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        title = { Text(stringResource(title)) },
+        text = {
+            OutlinedTextField(name, { name = it }, label = { Text(stringResource(label)) }, singleLine = true, isError = !valid && name.isNotEmpty())
+        },
+        confirmButton = { TextButton(enabled = valid, onClick = { onConfirm(name.trim()) }) { Text(stringResource(confirm)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -452,7 +492,7 @@ private fun TextEditor(title: String, original: String, onClose: () -> Unit, onS
         Scaffold(
             topBar = {
                 BackTopBar(title, onBack = { if (changed) confirmDiscard = true else onClose() }) {
-                    TextButton(enabled = changed, onClick = { onSave(text) }) { Text("Save") }
+                    TextButton(enabled = changed, onClick = { onSave(text) }) { Text(stringResource(R.string.action_save)) }
                 }
             },
         ) { padding ->
@@ -470,9 +510,9 @@ private fun TextEditor(title: String, original: String, onClose: () -> Unit, onS
     }
     if (confirmDiscard) {
         ConfirmDialog(
-            title = "Discard changes?",
-            text = "Your edits to $title have not been saved.",
-            confirmLabel = "Discard",
+            title = stringResource(R.string.files_discard_title),
+            text = stringResource(R.string.files_discard_text, title),
+            confirmLabel = stringResource(R.string.files_discard),
             destructive = true,
             onConfirm = {
                 confirmDiscard = false

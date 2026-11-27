@@ -3,6 +3,7 @@ package io.github.evilgenius79.shh.ui
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.res.Resources
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.security.SecurityKeyClient
@@ -48,8 +52,8 @@ fun SecurityKeyDialog(prompt: SessionPrompt.SecurityKey, finder: SecurityKeyFind
     SecurityKeyDialog(
         key = prompt,
         task = remember(prompt) { SecurityKeyClient.signing(prompt.request) },
-        why = "Logging in to ${prompt.target.host} takes the security key that holds \u201c${prompt.keyName}\u201d.",
-        skipLabel = "Log in another way",
+        why = stringResource(R.string.seckey_why_login, prompt.target.host, prompt.keyName),
+        skipLabel = stringResource(R.string.seckey_log_in_another_way),
         finder = finder,
         onDone = { outcome ->
             prompt.respond(
@@ -105,38 +109,38 @@ fun <T> SecurityKeyDialog(
         // Not dismissed by a tap beside it: holding a key against the phone makes for stray taps.
         onDismissRequest = {},
         icon = { AppIcon(R.drawable.ic_key, null) },
-        title = { Text("Security key") },
+        title = { Text(stringResource(R.string.seckey_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(why)
                 when (val current = step) {
                     is SecurityKeyStep.Present -> {
                         current.problem?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                        Text(howToPresent(found.nfc, found.usb, again = current.problem != null || current.pinReady))
+                        Text(howToPresent(LocalResources.current, found.nfc, found.usb, again = current.problem != null || current.pinReady))
                         if (found.nfc == SecurityKeyFinder.Nfc.SWITCHED_OFF) {
                             TextButton(onClick = { context.startActivity(Intent(Settings.ACTION_NFC_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }) {
-                                Text("Open the NFC settings")
+                                Text(stringResource(R.string.seckey_open_nfc_settings))
                             }
                         }
                     }
-                    SecurityKeyStep.Working -> Busy("Talking to the key. Keep it where it is.")
-                    SecurityKeyStep.Touch -> Busy("Touch the key now. Its light is blinking.")
+                    SecurityKeyStep.Working -> Busy(stringResource(R.string.seckey_working))
+                    SecurityKeyStep.Touch -> Busy(stringResource(R.string.seckey_touch))
                     is SecurityKeyStep.Pin -> {
                         if (current.wrong) {
                             val left = current.attemptsLeft
                             Text(
-                                "That PIN is not right." + if (left != null) " $left more ${if (left == 1) "try" else "tries"} before the key locks itself." else "",
+                                if (left != null) pluralStringResource(R.plurals.seckey_pin_wrong_tries_left, left, left) else stringResource(R.string.seckey_pin_wrong),
                                 color = MaterialTheme.colorScheme.error,
                             )
                         } else {
-                            Text("This key wants its PIN first. That is the PIN of the security key itself, not a password of the server.")
+                            Text(stringResource(R.string.seckey_pin_wanted))
                         }
-                        SecretField(pinState, "PIN of the security key", Modifier.fillMaxWidth())
+                        SecretField(pinState, stringResource(R.string.seckey_pin_label), Modifier.fillMaxWidth())
                     }
                     is SecurityKeyStep.Hopeless -> Text(current.message, color = MaterialTheme.colorScheme.error)
                 }
                 Text(
-                    "Support for security keys is new and has only been tried against a stand-in made of software, not yet with a real key.",
+                    stringResource(R.string.seckey_untested_note),
                     style = MaterialTheme.typography.bodySmall,
                     color = quiet,
                 )
@@ -150,12 +154,12 @@ fun <T> SecurityKeyDialog(
                         flow.pinEntered(pinState.text.toString().toCharArray())
                         pinState.edit { replace(0, length, "") }
                     },
-                ) { Text("Continue") }
+                ) { Text(stringResource(R.string.action_continue)) }
             } else if (skipLabel != null) {
                 TextButton(onClick = flow::skip) { Text(skipLabel) }
             }
         },
-        dismissButton = { TextButton(onClick = flow::cancel) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = flow::cancel) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -167,18 +171,20 @@ private fun Busy(text: String) {
     }
 }
 
-/** What to do with the key, given how keys can reach this phone. */
-internal fun howToPresent(nfc: SecurityKeyFinder.Nfc, usb: Boolean, again: Boolean): String {
-    val once = if (again) " again" else ""
-    return when {
-        nfc == SecurityKeyFinder.Nfc.READY && usb -> "Hold the key against the back of the phone$once and keep it there, or plug it in and touch it."
-        nfc == SecurityKeyFinder.Nfc.READY -> "Hold the key against the back of the phone$once and keep it there."
-        nfc == SecurityKeyFinder.Nfc.SWITCHED_OFF && usb -> "Plug the key in$once and touch it. NFC is switched off; with it on, the key can also be held against the phone."
-        nfc == SecurityKeyFinder.Nfc.SWITCHED_OFF -> "NFC is switched off. Switch it on to hold the key against the phone."
-        usb -> "Plug the key in$once and touch it."
-        else -> "This phone has neither NFC nor a USB port that a key could use."
-    }
-}
+/**
+ * What to do with the key, given how keys can reach this phone. Asking for the key [again] is a
+ * text of its own each time rather than a word put in, so that a translation can word it freely.
+ */
+internal fun howToPresent(resources: Resources, nfc: SecurityKeyFinder.Nfc, usb: Boolean, again: Boolean): String = resources.getString(
+    when {
+        nfc == SecurityKeyFinder.Nfc.READY && usb -> if (again) R.string.seckey_present_nfc_or_usb_again else R.string.seckey_present_nfc_or_usb
+        nfc == SecurityKeyFinder.Nfc.READY -> if (again) R.string.seckey_present_nfc_again else R.string.seckey_present_nfc
+        nfc == SecurityKeyFinder.Nfc.SWITCHED_OFF && usb -> if (again) R.string.seckey_present_usb_nfc_off_again else R.string.seckey_present_usb_nfc_off
+        nfc == SecurityKeyFinder.Nfc.SWITCHED_OFF -> R.string.seckey_present_nfc_off
+        usb -> if (again) R.string.seckey_present_usb_again else R.string.seckey_present_usb
+        else -> R.string.seckey_present_impossible
+    },
+)
 
 /** The activity this context belongs to, if it is shown by one. */
 private fun Context.activity(): ComponentActivity? {

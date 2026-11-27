@@ -9,6 +9,7 @@ import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -125,9 +127,9 @@ fun TerminalScreen(
                             Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
                             Text(
                                 when (val s = state) {
-                                    is SessionState.Connecting -> "Connecting…"
+                                    is SessionState.Connecting -> stringResource(R.string.terminal_connecting)
                                     SessionState.Connected -> active.host.address
-                                    is SessionState.Reconnecting -> "Reconnecting…"
+                                    is SessionState.Reconnecting -> stringResource(R.string.terminal_reconnecting)
                                     is SessionState.Disconnected -> s.message
                                 },
                                 maxLines = 1,
@@ -137,15 +139,17 @@ fun TerminalScreen(
                             )
                         }
                     },
-                    navigationIcon = { IconButton(onClick = onBack) { AppIcon(R.drawable.ic_arrow_back, "Hosts") } },
+                    navigationIcon = { IconButton(onClick = onBack) { AppIcon(R.drawable.ic_arrow_back, stringResource(R.string.terminal_back_to_hosts)) } },
                     actions = {
-                        IconButton(onClick = { terminalView?.pasteFromClipboard() }) { AppIcon(R.drawable.ic_content_paste, "Paste") }
-                        IconButton(onClick = { menuOpen = true }) { AppIcon(R.drawable.ic_more_vert, "More") }
+                        IconButton(onClick = { terminalView?.pasteFromClipboard() }) {
+                            AppIcon(R.drawable.ic_content_paste, stringResource(R.string.terminal_paste))
+                        }
+                        IconButton(onClick = { menuOpen = true }) { AppIcon(R.drawable.ic_more_vert, stringResource(R.string.action_more)) }
                         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                             @Composable
-                            fun entry(label: String, icon: Int, enabled: Boolean = true, action: () -> Unit) {
+                            fun entry(@StringRes label: Int, icon: Int, enabled: Boolean = true, action: () -> Unit) {
                                 DropdownMenuItem(
-                                    text = { Text(label) },
+                                    text = { Text(stringResource(label)) },
                                     leadingIcon = { AppIcon(icon, null) },
                                     enabled = enabled,
                                     onClick = {
@@ -154,24 +158,30 @@ fun TerminalScreen(
                                     },
                                 )
                             }
-                            entry("New session", R.drawable.ic_add) { onNewSession() }
-                            entry("Snippets", R.drawable.ic_code, enabled = active.isConnected) { showSnippets = true }
-                            entry("Files", R.drawable.ic_folder, enabled = active.isConnected) { onOpenFiles(active) }
-                            entry("Port forwards", R.drawable.ic_swap_horiz, enabled = active.isConnected) { showForwards = true }
-                            entry("Install a public key", R.drawable.ic_key, enabled = active.isConnected && identities.isNotEmpty()) { showInstallKey = true }
+                            entry(R.string.terminal_menu_new_session, R.drawable.ic_add) { onNewSession() }
+                            entry(R.string.terminal_menu_snippets, R.drawable.ic_code, enabled = active.isConnected) { showSnippets = true }
+                            entry(R.string.terminal_menu_files, R.drawable.ic_folder, enabled = active.isConnected) { onOpenFiles(active) }
+                            entry(R.string.terminal_menu_port_forwards, R.drawable.ic_swap_horiz, enabled = active.isConnected) { showForwards = true }
+                            entry(R.string.terminal_menu_install_key, R.drawable.ic_key, enabled = active.isConnected && identities.isNotEmpty()) {
+                                showInstallKey = true
+                            }
                             HorizontalDivider()
-                            entry("Colours", R.drawable.ic_palette) { showColors = true }
-                            entry("Larger text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp + 1).coerceAtMost(TerminalView.MAX_FONT_SP.toInt())) }
-                            entry("Smaller text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp - 1).coerceAtLeast(TerminalView.MIN_FONT_SP.toInt())) }
-                            entry("Show keyboard", R.drawable.ic_keyboard) { terminalView?.showKeyboard() }
-                            entry("How to use", R.drawable.ic_help) { onHelp() }
-                            entry("Reset terminal", R.drawable.ic_restart_alt) {
+                            entry(R.string.terminal_menu_colours, R.drawable.ic_palette) { showColors = true }
+                            entry(R.string.terminal_menu_larger_text, R.drawable.ic_text_fields) {
+                                onFontSize((settings.fontSizeSp + 1).coerceAtMost(TerminalView.MAX_FONT_SP.toInt()))
+                            }
+                            entry(R.string.terminal_menu_smaller_text, R.drawable.ic_text_fields) {
+                                onFontSize((settings.fontSizeSp - 1).coerceAtLeast(TerminalView.MIN_FONT_SP.toInt()))
+                            }
+                            entry(R.string.terminal_menu_show_keyboard, R.drawable.ic_keyboard) { terminalView?.showKeyboard() }
+                            entry(R.string.terminal_menu_how_to_use, R.drawable.ic_help) { onHelp() }
+                            entry(R.string.terminal_menu_reset, R.drawable.ic_restart_alt) {
                                 synchronized(active.emulator) { active.emulator.reset() }
                                 terminalView?.invalidate()
                             }
                             HorizontalDivider()
-                            if (state is SessionState.Disconnected) entry("Reconnect", R.drawable.ic_refresh) { active.reconnect() }
-                            entry("Close session", R.drawable.ic_power_settings_new) { onClose(active) }
+                            if (state is SessionState.Disconnected) entry(R.string.terminal_reconnect, R.drawable.ic_refresh) { active.reconnect() }
+                            entry(R.string.terminal_menu_close_session, R.drawable.ic_power_settings_new) { onClose(active) }
                         }
                     },
                 )
@@ -271,10 +281,10 @@ fun TerminalScreen(
     if (showSnippets) {
         AlertDialog(
             onDismissRequest = { showSnippets = false },
-            title = { Text("Snippets") },
+            title = { Text(stringResource(R.string.terminal_snippets_title)) },
             text = {
                 if (snippets.isEmpty()) {
-                    Text("No snippets yet. Add some from the host list menu.")
+                    Text(stringResource(R.string.terminal_snippets_empty))
                 } else {
                     Column {
                         for (snippet in snippets) {
@@ -301,7 +311,7 @@ fun TerminalScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showSnippets = false }) { Text("Close") } },
+            confirmButton = { TextButton(onClick = { showSnippets = false }) { Text(stringResource(R.string.action_close)) } },
         )
     }
     if (showForwards) SessionForwardsDialog(active, onDismiss = { showForwards = false })
@@ -309,7 +319,7 @@ fun TerminalScreen(
     if (showColors) {
         AlertDialog(
             onDismissRequest = { showColors = false },
-            title = { Text("Colours for this session") },
+            title = { Text(stringResource(R.string.terminal_colours_title)) },
             text = {
                 Column {
                     for (option in ColorScheme.ALL) {
@@ -331,7 +341,7 @@ fun TerminalScreen(
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showColors = false }) { Text("Close") } },
+            confirmButton = { TextButton(onClick = { showColors = false }) { Text(stringResource(R.string.action_close)) } },
         )
     }
 }
@@ -361,7 +371,7 @@ private fun ConnectingOverlay(state: SessionState.Connecting, onCancel: () -> Un
                 for (message in state.messages.takeLast(3)) {
                     Text(message, style = MaterialTheme.typography.bodyMedium)
                 }
-                TextButton(onClick = onCancel) { Text("Cancel") }
+                TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) }
             }
         }
     }
@@ -407,19 +417,19 @@ internal fun DisconnectedBarContent(
     Surface(modifier.fillMaxWidth(), tonalElevation = 6.dp, shadowElevation = 6.dp) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
             Text(state.message, style = MaterialTheme.typography.bodyMedium)
-            val hint = if (localNetworkBlocked) LOCAL_NETWORK_HINT else hintFor(state.failure)
+            val hint = if (localNetworkBlocked) R.string.terminal_hint_local_network_blocked else hintFor(state.failure)
             if (hint != null) {
-                Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             // Buttons that do not fit side by side on a narrow screen move to a second line; a
             // plain row would squeeze the last one until its label broke apart.
             FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, itemVerticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onClose) { Text("Close", softWrap = false) }
+                TextButton(onClick = onClose) { Text(stringResource(R.string.action_close), softWrap = false) }
                 if (localNetworkBlocked) {
-                    TextButton(onClick = onReconnect) { Text("Reconnect", softWrap = false) }
-                    Button(onClick = onAllowLocalNetwork) { Text("Allow access", softWrap = false) }
+                    TextButton(onClick = onReconnect) { Text(stringResource(R.string.terminal_reconnect), softWrap = false) }
+                    Button(onClick = onAllowLocalNetwork) { Text(stringResource(R.string.terminal_allow_local_network), softWrap = false) }
                 } else {
-                    Button(onClick = onReconnect) { Text("Reconnect", softWrap = false) }
+                    Button(onClick = onReconnect) { Text(stringResource(R.string.terminal_reconnect), softWrap = false) }
                 }
             }
         }
@@ -433,29 +443,26 @@ internal fun ReconnectingBar(state: SessionState.Reconnecting, onTryNow: () -> U
         Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
             Text(state.reason, style = MaterialTheme.typography.bodyMedium)
             Text(
-                if (state.attempt == 1) "Reconnecting…" else "Reconnecting, attempt ${state.attempt}…",
+                if (state.attempt == 1) stringResource(R.string.terminal_reconnecting) else stringResource(R.string.terminal_reconnecting_attempt, state.attempt),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, itemVerticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onStop) { Text("Stop", softWrap = false) }
-                Button(onClick = onTryNow) { Text("Try now", softWrap = false) }
+                TextButton(onClick = onStop) { Text(stringResource(R.string.terminal_reconnect_stop), softWrap = false) }
+                Button(onClick = onTryNow) { Text(stringResource(R.string.terminal_reconnect_try_now), softWrap = false) }
             }
         }
     }
 }
 
-private const val LOCAL_NETWORK_HINT =
-    "Android is not letting this app reach devices on your local network. If this server is on your Wi-Fi or " +
-        "another local network, allow access and it will connect again."
-
 /** A suggestion for what the user could try, for the failures where there is an obvious one. */
-private fun hintFor(failure: SshFailure?): String? = when (failure) {
-    SshFailure.TIMEOUT, SshFailure.UNREACHABLE -> "Nothing answered. Check the address and port, and that this device is on the right network."
-    SshFailure.REFUSED -> "The host is reachable but nothing is listening on that port."
-    SshFailure.UNKNOWN_HOST -> "The name could not be resolved. Check the spelling and your connection."
-    SshFailure.PROTOCOL -> "If this is an old device, try \"Allow legacy algorithms\" in the host settings."
-    SshFailure.AUTH_FAILED -> "Check the user name, password or key for this host."
+@StringRes
+private fun hintFor(failure: SshFailure?): Int? = when (failure) {
+    SshFailure.TIMEOUT, SshFailure.UNREACHABLE -> R.string.terminal_hint_no_answer
+    SshFailure.REFUSED -> R.string.terminal_hint_refused
+    SshFailure.UNKNOWN_HOST -> R.string.terminal_hint_unknown_host
+    SshFailure.PROTOCOL -> R.string.terminal_hint_protocol
+    SshFailure.AUTH_FAILED -> R.string.terminal_hint_auth_failed
     else -> null
 }
 
@@ -474,30 +481,30 @@ private fun HostKeyDialog(prompt: SessionPrompt.HostKey) {
         },
         title = {
             Text(
-                when (request.status) {
-                    HostKeyStatus.CHANGED -> "Host key has changed"
-                    HostKeyStatus.NEW_KEY_TYPE -> "New key for a known host"
-                    else -> "Unknown host"
-                },
+                stringResource(
+                    when (request.status) {
+                        HostKeyStatus.CHANGED -> R.string.terminal_hostkey_changed_title
+                        HostKeyStatus.NEW_KEY_TYPE -> R.string.terminal_hostkey_new_type_title
+                        else -> R.string.terminal_hostkey_unknown_title
+                    },
+                ),
             )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     when (request.status) {
-                        HostKeyStatus.CHANGED ->
-                            "${request.host} presented a different key than the one you trusted before. " +
-                                "Unless you know the server was reinstalled, someone may be intercepting the connection."
-                        HostKeyStatus.NEW_KEY_TYPE ->
-                            "${request.host} is known, but presented a key of a type you have not seen from it."
-                        else -> "You have not connected to ${request.host}:${request.port} before. Check that the fingerprint matches the server's."
+                        HostKeyStatus.CHANGED -> stringResource(R.string.terminal_hostkey_changed_text, request.host)
+                        HostKeyStatus.NEW_KEY_TYPE -> stringResource(R.string.terminal_hostkey_new_type_text, request.host)
+                        // An address with its port is one thing; there is nothing in it for a translation to arrange.
+                        else -> stringResource(R.string.terminal_hostkey_unknown_text, "${request.host}:${request.port}")
                     },
                 )
                 Text(request.key.type, style = MaterialTheme.typography.labelLarge)
                 Text(request.key.fingerprint, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
                 if (changed) {
                     for (old in request.knownKeys.filter { it.type == request.key.type }) {
-                        Text("Previously trusted:", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.terminal_hostkey_previously_trusted), style = MaterialTheme.typography.labelLarge)
                         Text(old.fingerprint, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
                     }
                 }
@@ -505,13 +512,15 @@ private fun HostKeyDialog(prompt: SessionPrompt.HostKey) {
         },
         confirmButton = {
             TextButton(onClick = { prompt.respond(HostKeyDecision.ACCEPT_AND_REMEMBER) }) {
-                Text(if (changed) "Replace and connect" else "Trust and connect")
+                Text(stringResource(if (changed) R.string.terminal_hostkey_replace else R.string.terminal_hostkey_trust))
             }
         },
         dismissButton = {
             Row {
-                TextButton(onClick = { prompt.respond(HostKeyDecision.REJECT) }) { Text("Cancel") }
-                if (!changed) TextButton(onClick = { prompt.respond(HostKeyDecision.ACCEPT_ONCE) }) { Text("Just once") }
+                TextButton(onClick = { prompt.respond(HostKeyDecision.REJECT) }) { Text(stringResource(R.string.action_cancel)) }
+                if (!changed) {
+                    TextButton(onClick = { prompt.respond(HostKeyDecision.ACCEPT_ONCE) }) { Text(stringResource(R.string.terminal_hostkey_once)) }
+                }
             }
         },
     )
@@ -522,18 +531,19 @@ private fun PasswordDialog(prompt: SessionPrompt.Password) {
     val password = remember(prompt) { TextFieldState() }
     AlertDialog(
         onDismissRequest = { prompt.respond(null) },
-        title = { Text("Password") },
+        title = { Text(stringResource(R.string.terminal_password_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    if (prompt.attempt > 1) "That password was not accepted. Try again for ${prompt.target.username}@${prompt.target.host}."
-                    else "Password for ${prompt.target.username}@${prompt.target.host}",
-                )
-                SecretField(password, "Password", Modifier.fillMaxWidth())
+                // "user@host" is one thing; there is nothing in it for a translation to arrange.
+                val account = "${prompt.target.username}@${prompt.target.host}"
+                Text(stringResource(if (prompt.attempt > 1) R.string.terminal_password_again else R.string.terminal_password_for, account))
+                SecretField(password, stringResource(R.string.terminal_password_label), Modifier.fillMaxWidth())
             }
         },
-        confirmButton = { TextButton(onClick = { prompt.respond(password.text.toString().toCharArray()) }) { Text("Log in") } },
-        dismissButton = { TextButton(onClick = { prompt.respond(null) }) { Text("Cancel") } },
+        confirmButton = {
+            TextButton(onClick = { prompt.respond(password.text.toString().toCharArray()) }) { Text(stringResource(R.string.terminal_log_in)) }
+        },
+        dismissButton = { TextButton(onClick = { prompt.respond(null) }) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -543,20 +553,17 @@ internal fun AgentUseDialog(prompt: SessionPrompt.AgentUse) {
     AlertDialog(
         onDismissRequest = { prompt.respond(AgentAnswer.DENY) },
         icon = { AppIcon(R.drawable.ic_key, null) },
-        title = { Text("Use your key?") },
-        text = {
-            Text(
-                "${prompt.target.host} asks to sign in somewhere else with your key \"${prompt.keyName}\". " +
-                    "Allow it if you have just started something there that needs it, such as ssh or git.",
-            )
-        },
+        title = { Text(stringResource(R.string.terminal_agent_title)) },
+        text = { Text(stringResource(R.string.terminal_agent_text, prompt.target.host, prompt.keyName)) },
         confirmButton = {
             FlowRow(horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = { prompt.respond(AgentAnswer.ONCE) }) { Text("Allow once", softWrap = false) }
-                TextButton(onClick = { prompt.respond(AgentAnswer.SESSION) }) { Text("Allow for this session", softWrap = false) }
+                TextButton(onClick = { prompt.respond(AgentAnswer.ONCE) }) { Text(stringResource(R.string.terminal_agent_allow_once), softWrap = false) }
+                TextButton(onClick = { prompt.respond(AgentAnswer.SESSION) }) {
+                    Text(stringResource(R.string.terminal_agent_allow_session), softWrap = false)
+                }
             }
         },
-        dismissButton = { TextButton(onClick = { prompt.respond(AgentAnswer.DENY) }) { Text("Deny") } },
+        dismissButton = { TextButton(onClick = { prompt.respond(AgentAnswer.DENY) }) { Text(stringResource(R.string.terminal_agent_deny)) } },
     )
 }
 
@@ -567,7 +574,7 @@ private fun ChallengeDialog(prompt: SessionPrompt.Challenge) {
     val answer = remember(prompt) { TextFieldState() }
     AlertDialog(
         onDismissRequest = { prompt.respond(null) },
-        title = { Text(challenge.name.ifBlank { "Verification" }) },
+        title = { Text(challenge.name.ifBlank { stringResource(R.string.terminal_challenge_title) }) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (challenge.instruction.isNotBlank()) Text(challenge.instruction)
@@ -583,7 +590,9 @@ private fun ChallengeDialog(prompt: SessionPrompt.Challenge) {
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { prompt.respond(listOf(answer.text.toString())) }) { Text("Continue") } },
-        dismissButton = { TextButton(onClick = { prompt.respond(null) }) { Text("Cancel") } },
+        confirmButton = {
+            TextButton(onClick = { prompt.respond(listOf(answer.text.toString())) }) { Text(stringResource(R.string.action_continue)) }
+        },
+        dismissButton = { TextButton(onClick = { prompt.respond(null) }) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

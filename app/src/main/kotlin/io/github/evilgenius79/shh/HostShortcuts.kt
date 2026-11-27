@@ -24,7 +24,7 @@ object HostShortcuts {
         val shortcuts = hosts.mapIndexed { rank, host ->
             ShortcutInfoCompat.Builder(context, host.id)
                 .setShortLabel(host.title)
-                .setLongLabel("Connect to ${host.title}")
+                .setLongLabel(context.getString(R.string.shortcut_connect_to, host.title))
                 .setIcon(IconCompat.createWithResource(context, R.drawable.ic_shortcut_host))
                 .setRank(rank)
                 .setIntent(

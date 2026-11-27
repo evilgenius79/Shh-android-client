@@ -15,7 +15,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.data.Identity
 import io.github.evilgenius79.shh.session.TerminalSession
 import kotlinx.coroutines.Dispatchers
@@ -39,23 +42,22 @@ fun installKeyCommand(publicKeyLine: String): String {
 /** Lets the user pick one of their keys and installs its public half on the connected server. */
 @Composable
 fun InstallKeyDialog(session: TerminalSession, identities: List<Identity>, onDismiss: () -> Unit) {
+    // The texts about how it went are put together in a coroutine, out of reach of stringResource().
+    val resources = LocalResources.current
     val scope = rememberCoroutineScope()
     var result by remember { mutableStateOf<String?>(null) }
     var working by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = { if (!working) onDismiss() },
-        title = { Text("Install a public key") },
+        title = { Text(stringResource(R.string.installkey_title)) },
         text = {
             Column {
                 val status = result
                 if (status != null) {
                     Text(status)
                 } else {
-                    Text(
-                        "Adds the public key to ~/.ssh/authorized_keys on ${session.host.title}, so that this key can log in there.",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                    Text(stringResource(R.string.installkey_text, session.host.title), style = MaterialTheme.typography.bodyMedium)
                     for (identity in identities) {
                         Column(
                             Modifier
@@ -65,16 +67,18 @@ fun InstallKeyDialog(session: TerminalSession, identities: List<Identity>, onDis
                                     scope.launch {
                                         result = try {
                                             val outcome = withContext(Dispatchers.IO) {
-                                                val connection = session.connection ?: throw IOException("The session is not connected")
+                                                val connection = session.connection
+                                                    ?: throw IOException(resources.getString(R.string.installkey_reason_not_connected))
                                                 connection.execute(installKeyCommand("${identity.publicKey} ${identity.name}"))
                                             }
-                                            if (outcome.isSuccess) {
-                                                "${identity.name} is installed. Select it as the key for this host to log in without a password."
-                                            } else {
-                                                "The server reported an error: " + outcome.stderr.trim().ifEmpty { "exit status ${outcome.exitStatus}" }
+                                            val complaint = outcome.stderr.trim()
+                                            when {
+                                                outcome.isSuccess -> resources.getString(R.string.installkey_installed, identity.name)
+                                                complaint.isNotEmpty() -> resources.getString(R.string.installkey_server_error, complaint)
+                                                else -> resources.getString(R.string.installkey_server_error_status, outcome.exitStatus)
                                             }
                                         } catch (e: IOException) {
-                                            "Could not install the key: ${e.message}"
+                                            resources.getString(R.string.installkey_failed, e.message)
                                         }
                                         working = false
                                     }
@@ -88,6 +92,10 @@ fun InstallKeyDialog(session: TerminalSession, identities: List<Identity>, onDis
                 }
             }
         },
-        confirmButton = { TextButton(enabled = !working, onClick = onDismiss) { Text(if (result != null) "Done" else "Cancel") } },
+        confirmButton = {
+            TextButton(enabled = !working, onClick = onDismiss) {
+                Text(stringResource(if (result != null) R.string.installkey_done else R.string.action_cancel))
+            }
+        },
     )
 }

@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texts of the terminal screen and its dialogs, the file browser, the keys screen, the dialogs for installing a
+     public key and for security keys, and of notifications and launcher shortcuts. -->
+<resources>
+
+    <!-- ===== Terminal screen ===== -->
+
+    <!-- Shown under the title of a session while it is being set up. -->
+    <string name="terminal_connecting">Connecting…</string>
+    <!-- Shown under the title of a session, and in the bar below the terminal, while a lost connection is being set up again. -->
+    <string name="terminal_reconnecting">Reconnecting…</string>
+    <!-- The same from the second attempt on. %1$d is the number of the attempt, 2 or more. -->
+    <string name="terminal_reconnecting_attempt">Reconnecting, attempt %1$d…</string>
+    <!-- Spoken by screen readers for the arrow that leads from the terminal back to the list of hosts. -->
+    <string name="terminal_back_to_hosts">Hosts</string>
+    <!-- Spoken by screen readers for the button that types what is on the clipboard into the terminal. -->
+    <string name="terminal_paste">Paste</string>
+
+    <!-- Menu entry: goes to the list of hosts to open another session next to this one. -->
+    <string name="terminal_menu_new_session">New session</string>
+    <!-- Menu entry: opens the list of saved commands to type into the session. -->
+    <string name="terminal_menu_snippets">Snippets</string>
+    <!-- Menu entry: opens the browser for the files on the server. -->
+    <string name="terminal_menu_files">Files</string>
+    <!-- Menu entry: opens the list of forwarded ports of the session. -->
+    <string name="terminal_menu_port_forwards">Port forwards</string>
+    <!-- Menu entry: opens the dialog that puts the public half of one of the user's keys on the server. -->
+    <string name="terminal_menu_install_key">Install a public key</string>
+    <!-- Menu entry: opens the choice of colour schemes. -->
+    <string name="terminal_menu_colours">Colours</string>
+    <!-- Menu entry: makes the text of the terminal one size larger. -->
+    <string name="terminal_menu_larger_text">Larger text</string>
+    <!-- Menu entry: makes the text of the terminal one size smaller. -->
+    <string name="terminal_menu_smaller_text">Smaller text</string>
+    <!-- Menu entry: brings up the on-screen keyboard. -->
+    <string name="terminal_menu_show_keyboard">Show keyboard</string>
+    <!-- Menu entry: opens the page that explains the keys and gestures. -->
+    <string name="terminal_menu_how_to_use">How to use</string>
+    <!-- Menu entry: puts the terminal back into its initial state, for when a program left it garbled. -->
+    <string name="terminal_menu_reset">Reset terminal</string>
+    <!-- Menu entry: disconnects and closes the session. -->
+    <string name="terminal_menu_close_session">Close session</string>
+
+    <!-- Title of the dialog that lists the snippets to type into the session. -->
+    <string name="terminal_snippets_title">Snippets</string>
+    <!-- Shown in that dialog when no snippets are saved. -->
+    <string name="terminal_snippets_empty">No snippets yet. Add some from the host list menu.</string>
+    <!-- Title of the dialog for choosing a colour scheme. -->
+    <string name="terminal_colours_title">Colours for this session</string>
+
+    <!-- Menu entry and button of the bar under a session that is over: connect it again. -->
+    <string name="terminal_reconnect">Reconnect</string>
+    <!-- Button that asks Android for the permission to reach the local network. -->
+    <string name="terminal_allow_local_network">Allow access</string>
+    <!-- Button that makes the next attempt to reconnect at once instead of after a wait. -->
+    <string name="terminal_reconnect_try_now">Try now</string>
+    <!-- Button that gives up reconnecting. -->
+    <string name="terminal_reconnect_stop">Stop</string>
+
+    <!-- Shown under the reason a connection failed when Android withholds the local network from the app. "Allow access" is the button under it. -->
+    <string name="terminal_hint_local_network_blocked">Android is not letting this app reach devices on your local network. If this server is on your Wi-Fi or another local network, allow access and it will connect again.</string>
+    <!-- Suggestions shown under the reason a connection failed, in this order: nothing answered, the connection was
+         refused, the name is not known, the two sides could not agree on how to talk, the login was turned down. -->
+    <string name="terminal_hint_no_answer">Nothing answered. Check the address and port, and that this device is on the right network.</string>
+    <string name="terminal_hint_refused">The host is reachable but nothing is listening on that port.</string>
+    <string name="terminal_hint_unknown_host">The name could not be resolved. Check the spelling and your connection.</string>
+    <!-- "Allow legacy algorithms" is the name of a switch in the host editor: use the words it has there. -->
+    <string name="terminal_hint_protocol">If this is an old device, try \"Allow legacy algorithms\" in the host settings.</string>
+    <string name="terminal_hint_auth_failed">Check the user name, password or key for this host.</string>
+
+    <!-- Titles of the question about the key a server identifies itself with, in this order: the key is not the one
+         trusted so far, the key is of a kind not seen from this server before, the server was never connected to. -->
+    <string name="terminal_hostkey_changed_title">Host key has changed</string>
+    <string name="terminal_hostkey_new_type_title">New key for a known host</string>
+    <string name="terminal_hostkey_unknown_title">Unknown host</string>
+    <!-- %1$s is the name or address of the server. -->
+    <string name="terminal_hostkey_changed_text">%1$s presented a different key than the one you trusted before. Unless you know the server was reinstalled, someone may be intercepting the connection.</string>
+    <!-- %1$s is the name or address of the server. -->
+    <string name="terminal_hostkey_new_type_text">%1$s is known, but presented a key of a type you have not seen from it.</string>
+    <!-- %1$s is the address of the server with its port, like example.org:22. -->
+    <string name="terminal_hostkey_unknown_text">You have not connected to %1$s before. Check that the fingerprint matches the server\'s.</string>
+    <!-- Heading above the fingerprint of the key that was trusted so far. -->
+    <string name="terminal_hostkey_previously_trusted">Previously trusted:</string>
+    <!-- Button: trust the new key in place of the old one, and connect. -->
+    <string name="terminal_hostkey_replace">Replace and connect</string>
+    <!-- Button: remember the key as trusted, and connect. -->
+    <string name="terminal_hostkey_trust">Trust and connect</string>
+    <!-- Button: connect this time without remembering the key. -->
+    <string name="terminal_hostkey_once">Just once</string>
+
+    <!-- Title of the dialog that asks for the password of an account on a server. -->
+    <string name="terminal_password_title">Password</string>
+    <!-- %1$s is the account and the server, written user@host. -->
+    <string name="terminal_password_for">Password for %1$s</string>
+    <!-- %1$s is the account and the server, written user@host. -->
+    <string name="terminal_password_again">That password was not accepted. Try again for %1$s.</string>
+    <!-- Label of the field the password is typed into. -->
+    <string name="terminal_password_label">Password</string>
+    <!-- Button that sends the password. -->
+    <string name="terminal_log_in">Log in</string>
+
+    <!-- Title of the question put when a program on the server wants to use one of the user's keys through the forwarded SSH agent. -->
+    <string name="terminal_agent_title">Use your key?</string>
+    <!-- %1$s is the name or address of the server, %2$s the name the user gave the key. -->
+    <string name="terminal_agent_text">%1$s asks to sign in somewhere else with your key \"%2$s\". Allow it if you have just started something there that needs it, such as ssh or git.</string>
+    <!-- Button: let the key be used this one time. -->
+    <string name="terminal_agent_allow_once">Allow once</string>
+    <!-- Button: let the key be used until the session ends, without asking again. -->
+    <string name="terminal_agent_allow_session">Allow for this session</string>
+    <!-- Button: do not let the key be used. -->
+    <string name="terminal_agent_deny">Deny</string>
+
+    <!-- Title of a question the server asks during the login, a one-time code for example, when the server gives it no title of its own. -->
+    <string name="terminal_challenge_title">Verification</string>
+
+    <!-- What a copy of a saved host is called to begin with, in the host editor. %1$s is the name of the host that was copied. -->
+    <string name="terminal_host_copy_name">%1$s (copy)</string>
+
+    <!-- ===== File browser ===== -->
+
+    <!-- Spoken by screen readers for the button that sends a file from the device to the folder shown. -->
+    <string name="files_upload">Upload a file</string>
+    <!-- Spoken by screen readers for the button that creates a folder in the folder shown. -->
+    <string name="files_new_folder">New folder</string>
+    <!-- Spoken by screen readers for the button that reads the folder from the server again. -->
+    <string name="files_refresh">Refresh</string>
+    <!-- Spoken by screen readers for the arrow that goes up one folder. -->
+    <string name="files_parent_folder">Parent folder</string>
+
+    <!-- A transfer under way. %1$s is the name of the file, %2$s how much of it has gone through so far, like 1.2 MB. -->
+    <string name="files_uploading">Uploading %1$s · %2$s</string>
+    <!-- %1$s is the name of the file, %2$s how much of it has gone through so far, like 1.2 MB. -->
+    <string name="files_downloading">Downloading %1$s · %2$s</string>
+
+    <!-- Shown in place of the list when a folder has nothing in it: a heading and a line under it. -->
+    <string name="files_empty_title">Empty folder</string>
+    <string name="files_empty_text">Upload a file or create a folder with the buttons above.</string>
+
+    <!-- The line under the name of a file. %1$s is its size, %2$s when it was last changed, %3$s its permissions, like rw-r-xr-x. -->
+    <string name="files_entry_details_with_size">%1$s · %2$s · %3$s</string>
+    <!-- The same for folders and links, which show no size. %1$s is when it was last changed, %2$s its permissions. -->
+    <string name="files_entry_details">%1$s · %2$s</string>
+    <!-- Spoken by screen readers for the menu button of a file or folder. %1$s is its name. -->
+    <string name="files_options_for">Options for %1$s</string>
+
+    <!-- Menu entry of a file: copies it from the server to the device. -->
+    <string name="files_download">Download</string>
+    <!-- Menu entry of a file: opens it in the text editor. -->
+    <string name="files_edit_as_text">Edit as text</string>
+    <!-- Menu entry of a file or folder, and the button that confirms its new name. -->
+    <string name="files_rename">Rename</string>
+    <!-- Menu entry of a file or folder: opens the dialog for its access permissions. -->
+    <string name="files_permissions">Permissions</string>
+    <!-- Menu entry of a file or folder: puts its full path on the clipboard. -->
+    <string name="files_copy_path">Copy path</string>
+    <!-- What the clipboard calls a path that was copied to it. -->
+    <string name="files_path_clip_label">Path</string>
+
+    <!-- Title of the dialog that asks what a new folder is to be called. -->
+    <string name="files_new_folder_title">New folder</string>
+    <!-- Button that creates the folder. -->
+    <string name="files_create">Create</string>
+    <!-- Title of the dialog that asks for the new name of a file or folder. -->
+    <string name="files_rename_title">Rename</string>
+    <!-- Label of the field the new name is typed into. -->
+    <string name="files_new_name_label">New name</string>
+
+    <!-- Title of the question before a file or folder is deleted. %1$s is its name. -->
+    <string name="files_delete_title">Delete %1$s?</string>
+    <string name="files_delete_folder_text">The folder and everything in it is deleted on the server. This cannot be undone.</string>
+    <string name="files_delete_file_text">The file is deleted on the server. This cannot be undone.</string>
+
+    <!-- Title of the dialog for the access permissions of a file or folder. %1$s is its name. -->
+    <string name="files_permissions_title">Permissions of %1$s</string>
+    <!-- Label of the field for the permissions, which are typed as an octal number the way chmod takes them. -->
+    <string name="files_permissions_label">Octal mode, for example 644</string>
+    <!-- Button that sets the permissions. -->
+    <string name="files_apply">Apply</string>
+
+    <!-- Title of the question when the text editor is left with changes that were not saved. -->
+    <string name="files_discard_title">Discard changes?</string>
+    <!-- %1$s is the name of the file being edited. -->
+    <string name="files_discard_text">Your edits to %1$s have not been saved.</string>
+    <!-- Button that throws the changes away. -->
+    <string name="files_discard">Discard</string>
+
+    <!-- What went wrong in the file browser. The last placeholder of each of these is the reason, in the words of the
+         server or of the system, or one of the files_reason_ texts below. -->
+    <!-- %1$s is the reason. -->
+    <string name="files_error_open_browser">Could not open the file browser: %1$s</string>
+    <!-- %1$s is the name of a file or the path of a folder, %2$s the reason. -->
+    <string name="files_error_open">Could not open %1$s: %2$s</string>
+    <!-- %1$s is the reason. -->
+    <string name="files_error_create_folder">Could not create the folder: %1$s</string>
+    <!-- %1$s is the name of the file or folder, %2$s the reason. -->
+    <string name="files_error_rename">Could not rename %1$s: %2$s</string>
+    <!-- %1$s is the name of the file or folder, %2$s the reason. -->
+    <string name="files_error_delete">Could not delete %1$s: %2$s</string>
+    <!-- %1$s is the reason. -->
+    <string name="files_error_permissions">Could not change permissions: %1$s</string>
+    <!-- %1$s is the name of the file, %2$s the reason. -->
+    <string name="files_error_download">Download of %1$s failed: %2$s</string>
+    <!-- %1$s is the name of the file, %2$s the reason. -->
+    <string name="files_error_upload">Upload of %1$s failed: %2$s</string>
+    <!-- %1$s is the name of the file, %2$s the reason. -->
+    <string name="files_error_save">Could not save %1$s: %2$s</string>
+    <!-- Shown after the user stopped an upload or download. -->
+    <string name="files_transfer_cancelled">Transfer cancelled</string>
+
+    <!-- Reasons the app itself gives; each takes the place of the last placeholder of one of the texts above. -->
+    <!-- The session the file browser belongs to has no connection to the server. -->
+    <string name="files_reason_session_not_connected">The session is not connected</string>
+    <!-- The file browser has not got through to the server, or no longer does. -->
+    <string name="files_reason_not_connected">Not connected</string>
+    <!-- The place on the device that the user chose for a download. -->
+    <string name="files_reason_destination_not_opened">The destination could not be opened</string>
+    <!-- The file on the device that the user chose for an upload. -->
+    <string name="files_reason_file_not_opened">The file could not be opened</string>
+
+    <!-- ===== Keys screen ===== -->
+
+    <!-- Title of the screen that lists the user's SSH keys. -->
+    <string name="keys_title">Keys</string>
+    <!-- Spoken by screen readers for the button that opens the menu of ways to add a key. -->
+    <string name="keys_add">Add key</string>
+    <!-- Entry of that menu: has the app make a new key pair. -->
+    <string name="keys_add_generate">Generate a new key</string>
+    <!-- Entry of that menu: takes in a private key the user already has. -->
+    <string name="keys_add_import">Import an existing key</string>
+    <!-- Entry of that menu: has a security key (FIDO2) make a key that stays on it. -->
+    <string name="keys_add_on_security_key">New key on a security key</string>
+
+    <!-- Shown in place of the list while there are no keys: a heading and a line under it. -->
+    <string name="keys_empty_title">No keys yet</string>
+    <string name="keys_empty_text">Generate a key pair or import one, then put its public key on your servers to log in without a password.</string>
+
+    <!-- The line under the name of a key that saved hosts log in with. %1$s is the kind of key, like Ed25519, %2$d the number of those hosts. -->
+    <plurals name="keys_kind_used_by">
+        <item quantity="one">%1$s · used by %2$d host</item>
+        <item quantity="other">%1$s · used by %2$d hosts</item>
+    </plurals>
+
+    <!-- Title of the dialog that makes a new key. -->
+    <string name="keys_generate_title">Generate key</string>
+    <!-- Label of the choice of the kind of key: Ed25519, RSA and so on. -->
+    <string name="keys_type_label">Type</string>
+    <!-- Shown when Ed25519 is chosen as the kind of key. -->
+    <string name="keys_generate_ed25519_hint">Ed25519 is the recommended choice: small, fast and supported by every current server.</string>
+    <!-- Shown when another kind of key is chosen. -->
+    <string name="keys_generate_other_hint">Use this only if a server does not accept Ed25519 keys.</string>
+    <!-- Shown next to a spinner while the key is being made. -->
+    <string name="keys_generating">Generating…</string>
+    <!-- Button that makes the key. -->
+    <string name="keys_generate">Generate</string>
+
+    <!-- Title of the dialog that makes a new key on a security key (FIDO2). -->
+    <string name="keys_security_key_title">New key on a security key</string>
+    <string name="keys_security_key_intro">The private key is made on the security key and never leaves it. Logging in then takes the key in your hand: a phone that is lost or broken into gives nothing away.</string>
+    <!-- Shown when Ed25519 is chosen as the kind of key. -->
+    <string name="keys_security_key_ed25519_hint">Ed25519 is the usual choice. Some older security keys cannot make it: choose ECDSA for those.</string>
+    <!-- Shown when ECDSA is chosen as the kind of key. -->
+    <string name="keys_security_key_ecdsa_hint">Every FIDO2 security key can make this kind.</string>
+    <!-- A switch and the explanation under it. "The touch" is the touch of the security key that every login takes. -->
+    <string name="keys_security_key_pin_title">Ask for the PIN at every login</string>
+    <string name="keys_security_key_pin_summary">Besides the touch. The security key needs to have a PIN set.</string>
+    <string name="keys_security_key_server_note">Servers need OpenSSH 8.2 or later to accept such a key.</string>
+    <!-- Shown while the security key is wanted for making the key. %1$s is the name the user gave the new key. -->
+    <string name="keys_security_key_why">The new key “%1$s” will be made on your security key.</string>
+
+    <!-- Title of the dialog that takes in a key the user already has. -->
+    <string name="keys_import_title">Import key</string>
+    <!-- Label of the field the private key is pasted into. -->
+    <string name="keys_import_private_key_label">Private key</string>
+    <!-- Button that opens the system's file picker. -->
+    <string name="keys_choose_file">Choose a file…</string>
+    <!-- Label of the field for the passphrase the key being imported is protected with. -->
+    <string name="keys_import_passphrase_label">Passphrase of this key</string>
+    <string name="keys_import_formats">OpenSSH, PEM, PKCS#8 and PuTTY (.ppk) keys are supported. The key is stored encrypted on this device.</string>
+    <string name="keys_import_too_large">That file is too large to be a private key.</string>
+    <!-- %1$s is the reason, in the words of the system. -->
+    <string name="keys_error_file_not_read">The file could not be read: %1$s</string>
+    <string name="keys_import_needs_passphrase">This key is protected by a passphrase.</string>
+    <string name="keys_import_wrong_passphrase">That passphrase is not correct.</string>
+    <string name="keys_import_not_a_key">This is not a private key that can be read.</string>
+    <!-- Button that takes the key in. -->
+    <string name="keys_import">Import</string>
+
+    <!-- Shown in the details of a key that lives on a security key (FIDO2). -->
+    <string name="keys_details_on_security_key">The private key is on the security key. The app holds only what the security key needs to find it, so logging in takes the security key itself.</string>
+    <!-- Heading above the public key in the details of a key. -->
+    <string name="keys_public_key_heading">Public key</string>
+    <string name="keys_public_key_hint">Add the public key as a line to ~/.ssh/authorized_keys on a server to log in with this key.</string>
+    <!-- What the clipboard calls a public key that was copied to it. -->
+    <string name="keys_public_key_clip_label">Public key</string>
+    <!-- Title of the system's sheet for choosing the app to send the public key with. -->
+    <string name="keys_share_public_key">Share public key</string>
+    <!-- Button that opens the dialog for writing the private key to a file. -->
+    <string name="keys_export_private_key">Export private key</string>
+    <!-- Heading above what is known about the certificate of the key. -->
+    <string name="keys_certificate_heading">Certificate</string>
+    <!-- Button that takes the certificate off the key. -->
+    <string name="keys_certificate_remove">Remove certificate</string>
+    <string name="keys_certificate_hint">If a certificate authority signed this key, add the certificate it gave you. Servers that trust the authority then accept the key without knowing it.</string>
+    <!-- Button that opens the dialog for adding a certificate. -->
+    <string name="keys_certificate_add">Add a certificate…</string>
+
+    <!-- Title of the question before a key is deleted. %1$s is the name of the key. -->
+    <string name="keys_delete_title">Delete %1$s?</string>
+    <!-- %1$d is the number of saved hosts that log in with the key. The English says "host(s)" for every number because
+         that is what the app has always said; a translation is free to use its proper forms. -->
+    <plurals name="keys_delete_text_in_use">
+        <item quantity="one">%1$d host(s) use this key and will fall back to password login. This cannot be undone.</item>
+        <item quantity="other">%1$d host(s) use this key and will fall back to password login. This cannot be undone.</item>
+    </plurals>
+    <!-- The same question for a key that no saved host uses. -->
+    <string name="keys_delete_text">The private key is removed from this device. This cannot be undone.</string>
+
+    <!-- One line about the certificate of a key. %1$s is the name the certificate carries, %2$s the accounts it is
+         for, separated by commas, and %3$s, in the texts that have it, the date and time its validity ends. -->
+    <string name="keys_certificate_not_valid_yet">\"%1$s\" for %2$s, not valid yet</string>
+    <string name="keys_certificate_endless">\"%1$s\" for %2$s, does not expire</string>
+    <string name="keys_certificate_valid_until">\"%1$s\" for %2$s, valid until %3$s</string>
+    <string name="keys_certificate_expired">\"%1$s\" for %2$s, expired on %3$s</string>
+    <!-- The same for a certificate that names no accounts and so is good for all of them. %1$s is the name the
+         certificate carries and %2$s, in the texts that have it, the date and time its validity ends. -->
+    <string name="keys_certificate_any_account_not_valid_yet">\"%1$s\" for any account, not valid yet</string>
+    <string name="keys_certificate_any_account_endless">\"%1$s\" for any account, does not expire</string>
+    <string name="keys_certificate_any_account_valid_until">\"%1$s\" for any account, valid until %2$s</string>
+    <string name="keys_certificate_any_account_expired">\"%1$s\" for any account, expired on %2$s</string>
+
+    <!-- Title of the dialog that adds a certificate to a key. -->
+    <string name="keys_certificate_add_title">Add a certificate</string>
+    <string name="keys_certificate_add_text">Paste the contents of the -cert.pub file made for this key, or choose the file.</string>
+    <!-- Label of the field the certificate is pasted into. -->
+    <string name="keys_certificate_label">Certificate</string>
+    <!-- Why a certificate is not taken; shown under the field. -->
+    <string name="keys_certificate_other_key">This certificate was issued for a different key</string>
+    <string name="keys_certificate_for_server">This certificate identifies a server; it cannot be used to log in</string>
+
+    <!-- Title of the dialog that writes the private key to a file. -->
+    <string name="keys_export_title">Export private key</string>
+    <string name="keys_export_text">Writes the private key in OpenSSH format, as used by ssh and ssh-add. Anyone who gets this file can log in as you.</string>
+    <!-- Label of the field for the passphrase that is to protect the file, and the explanation under it. -->
+    <string name="keys_export_passphrase_label">Passphrase (recommended)</string>
+    <string name="keys_export_passphrase_hint">Leave empty to write the key unencrypted.</string>
+    <!-- Button that opens the system's dialog for choosing where the file goes. -->
+    <string name="keys_export_choose_destination">Choose where to save</string>
+    <!-- %1$s is the reason, in the words of the system, or the text below. -->
+    <string name="keys_export_failed">Export failed: %1$s</string>
+    <!-- A reason for the text above: the place the user chose for the file. -->
+    <string name="keys_reason_destination_not_opened">The destination could not be opened</string>
+
+    <!-- ===== Installing a public key on the server ===== -->
+
+    <!-- Title of the dialog that puts the public half of one of the user's keys on the server. -->
+    <string name="installkey_title">Install a public key</string>
+    <!-- %1$s is the name of the host the session is connected to. -->
+    <string name="installkey_text">Adds the public key to ~/.ssh/authorized_keys on %1$s, so that this key can log in there.</string>
+    <!-- %1$s is the name of the key. -->
+    <string name="installkey_installed">%1$s is installed. Select it as the key for this host to log in without a password.</string>
+    <!-- %1$s is what the server printed as the error. -->
+    <string name="installkey_server_error">The server reported an error: %1$s</string>
+    <!-- Used when the server printed nothing. %1$d is the exit status of the command that was run there. -->
+    <string name="installkey_server_error_status">The server reported an error: exit status %1$d</string>
+    <!-- %1$s is the reason, in the words of the connection, or the text below. -->
+    <string name="installkey_failed">Could not install the key: %1$s</string>
+    <!-- A reason for the text above. -->
+    <string name="installkey_reason_not_connected">The session is not connected</string>
+    <!-- Button that closes the dialog once it has said how the installing went. -->
+    <string name="installkey_done">Done</string>
+
+    <!-- ===== Security keys (FIDO2) ===== -->
+
+    <!-- Title of the dialog shown while a security key is wanted, for logging in or for making a key on it. -->
+    <string name="seckey_title">Security key</string>
+    <!-- %1$s is the name or address of the server, %2$s the name the user gave the key. -->
+    <string name="seckey_why_login">Logging in to %1$s takes the security key that holds “%2$s”.</string>
+    <!-- Button that goes on with the login without the security key. -->
+    <string name="seckey_log_in_another_way">Log in another way</string>
+
+    <!-- How to present the security key, depending on what the phone has. The ones that say "again" are shown after
+         a try that came to nothing and after the PIN was typed in. -->
+    <string name="seckey_present_nfc_or_usb">Hold the key against the back of the phone and keep it there, or plug it in and touch it.</string>
+    <string name="seckey_present_nfc_or_usb_again">Hold the key against the back of the phone again and keep it there, or plug it in and touch it.</string>
+    <string name="seckey_present_nfc">Hold the key against the back of the phone and keep it there.</string>
+    <string name="seckey_present_nfc_again">Hold the key against the back of the phone again and keep it there.</string>
+    <string name="seckey_present_usb_nfc_off">Plug the key in and touch it. NFC is switched off; with it on, the key can also be held against the phone.</string>
+    <string name="seckey_present_usb_nfc_off_again">Plug the key in again and touch it. NFC is switched off; with it on, the key can also be held against the phone.</string>
+    <string name="seckey_present_nfc_off">NFC is switched off. Switch it on to hold the key against the phone.</string>
+    <string name="seckey_present_usb">Plug the key in and touch it.</string>
+    <string name="seckey_present_usb_again">Plug the key in again and touch it.</string>
+    <string name="seckey_present_impossible">This phone has neither NFC nor a USB port that a key could use.</string>
+    <!-- Button that opens the page of the system's settings where NFC is switched on. -->
+    <string name="seckey_open_nfc_settings">Open the NFC settings</string>
+
+    <!-- Shown next to a spinner while the app and the security key are at work. -->
+    <string name="seckey_working">Talking to the key. Keep it where it is.</string>
+    <!-- Shown next to a spinner while the security key waits to be touched. -->
+    <string name="seckey_touch">Touch the key now. Its light is blinking.</string>
+
+    <!-- Shown when the security key turned the PIN down without saying how many tries are left. -->
+    <string name="seckey_pin_wrong">That PIN is not right.</string>
+    <!-- %1$d is how many more wrong PINs the security key puts up with. -->
+    <plurals name="seckey_pin_wrong_tries_left">
+        <item quantity="one">That PIN is not right. %1$d more try before the key locks itself.</item>
+        <item quantity="other">That PIN is not right. %1$d more tries before the key locks itself.</item>
+    </plurals>
+    <string name="seckey_pin_wanted">This key wants its PIN first. That is the PIN of the security key itself, not a password of the server.</string>
+    <!-- Label of the field the PIN is typed into. -->
+    <string name="seckey_pin_label">PIN of the security key</string>
+    <!-- A note at the foot of the dialog about how far this feature has been tested. -->
+    <string name="seckey_untested_note">Support for security keys is new and has only been tried against a stand-in made of software, not yet with a real key.</string>
+
+    <!-- ===== Notifications ===== -->
+
+    <!-- Name of the notification channel for the terminal bell, as the system's settings show it. -->
+    <string name="notify_bell_channel">Bell</string>
+    <!-- What that channel is for, shown under its name in the system's settings. -->
+    <string name="notify_bell_channel_description">A session in the background rang the bell</string>
+    <!-- Text of the notification. Its title is the name of the session. -->
+    <string name="notify_bell_text">Rang the bell</string>
+
+    <!-- ===== Launcher shortcuts ===== -->
+
+    <!-- The long label of a shortcut under the app's icon. %1$s is the name of the host. -->
+    <string name="shortcut_connect_to">Connect to %1$s</string>
+</resources>

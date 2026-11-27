@@ -298,9 +298,9 @@ class ScreensTest {
         org.junit.Assume.assumeTrue(TestCertificates.available)
         val certificate = TestCertificates.certify(sampleKey, principal = "deploy,root", id = "laptop-2026")
         val now = java.util.Date()
-        assertTrue(describeCertificate(certificate, now).startsWith("\"laptop-2026\" for deploy, root, valid until "))
-        assertTrue(describeCertificate(certificate, java.util.Date(now.time + 3_600_000)).contains("expired on "))
-        assertTrue(describeCertificate(certificate, java.util.Date(now.time - 3_600_000)).endsWith("not valid yet"))
+        assertTrue(describeCertificate(context.resources, certificate, now).startsWith("\"laptop-2026\" for deploy, root, valid until "))
+        assertTrue(describeCertificate(context.resources, certificate, java.util.Date(now.time + 3_600_000)).contains("expired on "))
+        assertTrue(describeCertificate(context.resources, certificate, java.util.Date(now.time - 3_600_000)).endsWith("not valid yet"))
     }
 
     @Test
@@ -474,7 +474,7 @@ class ScreensTest {
         val off = io.github.evilgenius79.shh.security.SecurityKeyFinder.Nfc.SWITCHED_OFF
         val absent = io.github.evilgenius79.shh.security.SecurityKeyFinder.Nfc.ABSENT
         fun how(nfc: io.github.evilgenius79.shh.security.SecurityKeyFinder.Nfc, usb: Boolean, again: Boolean) =
-            io.github.evilgenius79.shh.ui.howToPresent(nfc, usb, again)
+            io.github.evilgenius79.shh.ui.howToPresent(context.resources, nfc, usb, again)
         assertEquals("Hold the key against the back of the phone and keep it there.", how(ready, false, false))
         assertEquals("Plug the key in again and touch it.", how(absent, true, true))
         assertEquals("NFC is switched off. Switch it on to hold the key against the phone.", how(off, false, false))
