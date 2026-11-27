@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.evilgenius79.shh.R
 
@@ -54,7 +55,7 @@ fun AppIcon(@DrawableRes id: Int, description: String?, modifier: Modifier = Mod
 @Composable
 fun BackTopBar(title: String, onBack: () -> Unit, actions: @Composable () -> Unit = {}) {
     TopAppBar(
-        title = { Text(title, maxLines = 1) },
+        title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         navigationIcon = {
             IconButton(onClick = onBack) { AppIcon(R.drawable.ic_arrow_back, "Back") }
         },
@@ -233,13 +234,13 @@ fun Entry(
             leadingContent = leading,
             trailingContent = trailing,
             supportingContent = supporting,
-        ) { Text(headline, maxLines = 2) }
+        ) { Text(headline, maxLines = 2, overflow = TextOverflow.Ellipsis) }
     } else {
         ListItem(
             modifier = modifier,
             leadingContent = leading,
             trailingContent = trailing,
             supportingContent = supporting,
-        ) { Text(headline, maxLines = 2) }
+        ) { Text(headline, maxLines = 2, overflow = TextOverflow.Ellipsis) }
     }
 }

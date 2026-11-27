@@ -252,7 +252,7 @@ class OpenSshInteropTest {
 
         shell.write("exit 5\n".toByteArray())
         val buffer = ByteArray(256)
-        while (shell.output.read(buffer) >= 0) Unit
+        while (shell.output.read(buffer) >= 0) continue
         assertEquals(5, shell.awaitExit(5000))
     }
 

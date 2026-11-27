@@ -48,7 +48,7 @@ fun ShhRoot(container: AppContainer, model: AppViewModel = viewModel()) {
         fun connect(host: Host) {
             val wanted = ArrayList<String>()
             if (Build.VERSION.SDK_INT >= 33) wanted.add(Manifest.permission.POST_NOTIFICATIONS)
-            if (SessionManager.needsLocalNetworkPermission) wanted.add(Manifest.permission.ACCESS_LOCAL_NETWORK)
+            if (SessionManager.needsLocalNetworkPermission) wanted.add(SessionManager.LOCAL_NETWORK_PERMISSION)
             val missing = wanted.filter { ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED }
             if (missing.isEmpty()) {
                 model.showSession(container.sessions.open(host).id)

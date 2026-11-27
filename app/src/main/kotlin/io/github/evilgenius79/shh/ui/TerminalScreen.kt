@@ -2,14 +2,20 @@
 
 package io.github.evilgenius79.shh.ui
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings as AndroidSettings
 import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
@@ -50,17 +56,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
 import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.data.CursorStyle
 import io.github.evilgenius79.shh.data.Identity
 import io.github.evilgenius79.shh.data.Settings
 import io.github.evilgenius79.shh.data.Snippet
+import io.github.evilgenius79.shh.session.SessionManager
 import io.github.evilgenius79.shh.session.SessionPrompt
 import io.github.evilgenius79.shh.session.SessionState
 import io.github.evilgenius79.shh.session.TerminalSession
@@ -114,7 +124,7 @@ fun TerminalScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text(title, maxLines = 1, style = MaterialTheme.typography.titleMedium)
+                            Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
                             Text(
                                 when (val s = state) {
                                     is SessionState.Connecting -> "Connecting…"
@@ -122,6 +132,7 @@ fun TerminalScreen(
                                     is SessionState.Disconnected -> s.message
                                 },
                                 maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = if (state is SessionState.Disconnected) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -171,7 +182,7 @@ fun TerminalScreen(
                             Tab(
                                 selected = session === active,
                                 onClick = { onSelect(session) },
-                                text = { Text(tabTitle, maxLines = 1) },
+                                text = { Text(tabTitle, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             )
                         }
                     }
@@ -268,6 +279,7 @@ fun TerminalScreen(
                                 Text(
                                     snippet.command,
                                     maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
                                     fontFamily = FontFamily.Monospace,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -345,24 +357,70 @@ private fun ConnectingOverlay(state: SessionState.Connecting, onCancel: () -> Un
 
 @Composable
 private fun DisconnectedBar(state: SessionState.Disconnected, onReconnect: () -> Unit, onClose: () -> Unit, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val activity = LocalActivity.current
+    // Without its permission, Android 17 lets connections to the local network run into a timeout
+    // and says nothing. When that is the likely cause, say so and offer the way out.
+    val nothingAnswered = state.failure == SshFailure.TIMEOUT || state.failure == SshFailure.UNREACHABLE
+    val blocked = remember(state) { nothingAnswered && SessionManager.isLocalNetworkBlocked(context) }
+    val askForLocalNetwork = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        when {
+            granted -> onReconnect()
+            // Android stops showing its dialog after it was declined twice. From then on the
+            // permission can only be given on the app's page in the system settings.
+            activity != null && !ActivityCompat.shouldShowRequestPermissionRationale(activity, SessionManager.LOCAL_NETWORK_PERMISSION) ->
+                context.startActivity(Intent(AndroidSettings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)))
+        }
+    }
+    DisconnectedBarContent(
+        state = state,
+        localNetworkBlocked = blocked,
+        onAllowLocalNetwork = { askForLocalNetwork.launch(SessionManager.LOCAL_NETWORK_PERMISSION) },
+        onReconnect = onReconnect,
+        onClose = onClose,
+        modifier = modifier,
+    )
+}
+
+/** What [DisconnectedBar] shows. [localNetworkBlocked] adds the explanation and the button for it. */
+@Composable
+internal fun DisconnectedBarContent(
+    state: SessionState.Disconnected,
+    localNetworkBlocked: Boolean,
+    onAllowLocalNetwork: () -> Unit,
+    onReconnect: () -> Unit,
+    onClose: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Surface(modifier.fillMaxWidth(), tonalElevation = 6.dp, shadowElevation = 6.dp) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
             Text(state.message, style = MaterialTheme.typography.bodyMedium)
-            hintFor(state.failure)?.let {
-                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val hint = if (localNetworkBlocked) LOCAL_NETWORK_HINT else hintFor(state.failure)
+            if (hint != null) {
+                Text(hint, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onClose) { Text("Close") }
-                Button(onClick = onReconnect) { Text("Reconnect") }
+            // Buttons that do not fit side by side on a narrow screen move to a second line; a
+            // plain row would squeeze the last one until its label broke apart.
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, itemVerticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onClose) { Text("Close", softWrap = false) }
+                if (localNetworkBlocked) {
+                    TextButton(onClick = onReconnect) { Text("Reconnect", softWrap = false) }
+                    Button(onClick = onAllowLocalNetwork) { Text("Allow access", softWrap = false) }
+                } else {
+                    Button(onClick = onReconnect) { Text("Reconnect", softWrap = false) }
+                }
             }
         }
     }
 }
 
+private const val LOCAL_NETWORK_HINT =
+    "Android is not letting this app reach devices on your local network. If this server is on your Wi-Fi or " +
+        "another local network, allow access and it will connect again."
+
 /** A suggestion for what the user could try, for the failures where there is an obvious one. */
 private fun hintFor(failure: SshFailure?): String? = when (failure) {
-    SshFailure.TIMEOUT, SshFailure.UNREACHABLE ->
-        "Check the address and your network. For servers on your Wi-Fi, Android 17 and later also need the \"Nearby devices\" permission for this app."
+    SshFailure.TIMEOUT, SshFailure.UNREACHABLE -> "Nothing answered. Check the address and port, and that this device is on the right network."
     SshFailure.REFUSED -> "The host is reachable but nothing is listening on that port."
     SshFailure.UNKNOWN_HOST -> "The name could not be resolved. Check the spelling and your connection."
     SshFailure.PROTOCOL -> "If this is an old device, try \"Allow legacy algorithms\" in the host settings."

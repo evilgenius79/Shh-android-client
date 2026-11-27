@@ -24,10 +24,13 @@ import io.github.evilgenius79.shh.data.Snippet
 import io.github.evilgenius79.shh.data.ThemeMode
 import io.github.evilgenius79.shh.session.SessionEnvironment
 import io.github.evilgenius79.shh.session.SessionManager
+import io.github.evilgenius79.shh.session.SessionState
 import io.github.evilgenius79.shh.session.TerminalSession
 import io.github.evilgenius79.shh.ssh.InMemoryHostKeyStore
 import io.github.evilgenius79.shh.ssh.KeyAlgorithm
+import io.github.evilgenius79.shh.ssh.SshFailure
 import io.github.evilgenius79.shh.ssh.SshKeys
+import io.github.evilgenius79.shh.ui.DisconnectedBarContent
 import io.github.evilgenius79.shh.ui.HostEditScreen
 import io.github.evilgenius79.shh.ui.HostsScreen
 import io.github.evilgenius79.shh.ui.KeysScreen
@@ -282,6 +285,64 @@ class ScreensTest {
         shot("terminal-screen-dark")
         compose.onNodeWithText("Close").performClick()
         assertEquals(1, closed)
+    }
+
+    // ----- the bar under a session that is over -----
+
+    /** Fails unless the button called [label] shows its label whole and on one line. */
+    private fun assertLabelIntact(label: String) {
+        val node = compose.onNodeWithText(label, useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode()
+        val layouts = ArrayList<androidx.compose.ui.text.TextLayoutResult>()
+        node.config[androidx.compose.ui.semantics.SemanticsActions.GetTextLayoutResult].action!!.invoke(layouts)
+        val layout = layouts.single()
+        assertEquals(1, layout.lineCount, "\"$label\" is broken over several lines")
+        // The framework's own overflow flag is no use here: for a label that may not wrap it is
+        // set whenever there was room to spare. Compare the box with what the text needs.
+        val needed = layout.multiParagraph.maxIntrinsicWidth
+        assertTrue(layout.size.width + 0.5f >= needed, "\"$label\" is cut off: it needs $needed px and got ${layout.size.width}")
+    }
+
+    @Test
+    @Config(qualifiers = "w320dp-h640dp-normal-long-notround-any-mdpi-keyshidden-nonav")
+    fun theDisconnectedBarOffersLocalNetworkAccessAndFitsANarrowScreen() {
+        // A small phone set to large text: the three buttons cannot share one line.
+        org.robolectric.RuntimeEnvironment.setFontScale(1.3f)
+        var allowed = 0
+        var reconnects = 0
+        show {
+            DisconnectedBarContent(
+                state = SessionState.Disconnected("Timed out connecting to 192.168.1.20:22", SshFailure.TIMEOUT),
+                localNetworkBlocked = true,
+                onAllowLocalNetwork = { allowed++ },
+                onReconnect = { reconnects++ },
+                onClose = {},
+            )
+        }
+        shot("disconnected-blocked-narrow")
+        compose.onNodeWithText("Android is not letting this app reach devices on your local network", substring = true).assertIsDisplayed()
+        // None of them may be squeezed until its label breaks or is cut off, which is what a
+        // plain row does to the last one.
+        for (label in listOf("Close", "Reconnect", "Allow access")) assertLabelIntact(label)
+        compose.onNodeWithText("Allow access").performClick()
+        compose.onNodeWithText("Reconnect").performClick()
+        assertEquals(1 to 1, allowed to reconnects)
+    }
+
+    @Test
+    fun theDisconnectedBarSuggestsWhatToCheckWhenAccessIsNotTheProblem() {
+        show {
+            DisconnectedBarContent(
+                state = SessionState.Disconnected("Timed out connecting to example.org:22", SshFailure.TIMEOUT),
+                localNetworkBlocked = false,
+                onAllowLocalNetwork = {},
+                onReconnect = {},
+                onClose = {},
+            )
+        }
+        shot("disconnected-timeout")
+        compose.onNodeWithText("Nothing answered", substring = true).assertIsDisplayed()
+        compose.onNodeWithText("Reconnect").assertIsDisplayed()
+        assertEquals(0, compose.onAllNodesWithTextCount("Allow access"))
     }
 }
 

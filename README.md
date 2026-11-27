@@ -64,7 +64,8 @@ output of `vim`, produced by the test suite.
 
 Android 8.0 (API 26) or later. On Android 17 and later the app asks for the "Nearby devices"
 permission the first time you connect: the system requires it for reaching servers on your local
-network.
+network. Without it Android silently drops those connections, so they time out; the app says so
+when that happens and offers to ask again.
 
 ## Building
 

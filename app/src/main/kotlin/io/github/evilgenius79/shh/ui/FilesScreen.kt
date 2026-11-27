@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.session.TerminalSession
@@ -266,6 +267,7 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
                     Text(
                         state.path.ifEmpty { "…" },
                         maxLines = 1,
+                        overflow = TextOverflow.StartEllipsis,
                         fontFamily = FontFamily.Monospace,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
@@ -280,6 +282,7 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
                             (if (transfer.upload) "Uploading " else "Downloading ") + transfer.name + " · " +
                                 Formatter.formatShortFileSize(context, transfer.done),
                             maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.weight(1f),
                         )
@@ -317,7 +320,7 @@ fun FilesScreen(session: TerminalSession, onBack: () -> Unit) {
                                 entry.modifiedSeconds * 1000,
                                 DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_ALL,
                             )
-                            Text("$size$date · ${entry.permissionString}", maxLines = 1, style = MaterialTheme.typography.bodySmall)
+                            Text("$size$date · ${entry.permissionString}", maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
                         },
                         leading = {
                             AppIcon(

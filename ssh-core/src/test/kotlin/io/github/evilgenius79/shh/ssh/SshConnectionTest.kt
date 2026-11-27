@@ -156,6 +156,54 @@ class SshConnectionTest {
         assertTrue(error.serverAuthMethods.contains("password"))
     }
 
+    /**
+     * What OpenSSH does when logging in takes longer than its LoginGraceTime (two minutes by
+     * default): it closes the connection without a word, typically while the user is still typing
+     * the password. [noticedAfterMillis] is how much later the "user" submits it.
+     */
+    private fun serverHangsUpWhileThePasswordIsTyped(noticedAfterMillis: Long): SshConnectException {
+        prompts.passwords.addAll(listOf("wonderland", "wonderland", "wonderland"))
+        prompts.whilePasswordPromptIsOpen = {
+            server.dropClients()
+            Thread.sleep(noticedAfterMillis)
+        }
+        return assertFailsWith<SshConnectException> { connect(target(password = null)) }
+    }
+
+    /** The error and everything that caused it, for assertion messages. */
+    private fun describe(error: Throwable): String =
+        generateSequence(error) { it.cause }.take(8).joinToString(" <- ") { "${it.javaClass.simpleName}: ${it.message}" }
+
+    @Test
+    fun aServerThatHangsUpDuringLoginIsNotReportedAsAWrongPassword() {
+        val error = serverHangsUpWhileThePasswordIsTyped(noticedAfterMillis = 500)
+        assertEquals(SshFailure.IO, error.failure, describe(error))
+        assertTrue(error.message!!.contains("closed the connection"), error.message)
+        assertEquals(emptyList(), server.passwordAttempts.toList(), "the password never reached the server")
+        assertEquals(listOf(1), prompts.passwordRequests, "nobody is asked again on a dead connection")
+    }
+
+    @Test
+    fun aServerThatHangsUpAtTheMomentThePasswordIsSentIsReportedTheSameWay() {
+        val error = serverHangsUpWhileThePasswordIsTyped(noticedAfterMillis = 0)
+        assertEquals(SshFailure.IO, error.failure, describe(error))
+        assertTrue(error.message!!.contains("closed the connection"), error.message)
+        assertEquals(listOf(1), prompts.passwordRequests)
+    }
+
+    @Test
+    fun aServerThatGivesUpWaitingForTheLoginIsQuotedInTheError() {
+        // Other servers announce that they are hanging up. Their reason is passed on.
+        server.loginTimeout(400)
+        prompts.passwords.add("wonderland")
+        prompts.whilePasswordPromptIsOpen = { Thread.sleep(1500) }
+        val error = assertFailsWith<SshConnectException> { connect(target(password = null)) }
+        assertEquals(SshFailure.IO, error.failure, describe(error))
+        // This server's words for it; they are vague, but they are what it said.
+        assertEquals("127.0.0.1:${server.port} closed the connection during login: Protocol error or corrupt packet", error.message)
+        assertEquals(emptyList(), server.passwordAttempts.toList())
+    }
+
     @Test
     fun dismissingThePasswordPromptCancels() {
         val error = assertFailsWith<SshConnectException> { connect(target(password = null)) }
@@ -282,7 +330,7 @@ class SshConnectionTest {
         shell.write("exit 7\n".toByteArray())
         // Reading to the end of the stream means the channel has closed.
         val buffer = ByteArray(64)
-        while (shell.output.read(buffer) >= 0) Unit
+        while (shell.output.read(buffer) >= 0) continue
         assertEquals(7, shell.awaitExit(5000))
         assertFalse(shell.isOpen)
     }

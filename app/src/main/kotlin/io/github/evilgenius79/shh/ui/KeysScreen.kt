@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import io.github.evilgenius79.shh.AppContainer
@@ -118,7 +119,7 @@ fun KeysScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
                         supporting = {
                             Column {
                                 Text(identity.algorithm + if (users > 0) " · used by $users host" + (if (users > 1) "s" else "") else "")
-                                Text(identity.fingerprint, maxLines = 1, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
+                                Text(identity.fingerprint, maxLines = 1, overflow = TextOverflow.Ellipsis, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
                             }
                         },
                         leading = { AppIcon(R.drawable.ic_key, null) },

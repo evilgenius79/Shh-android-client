@@ -20,6 +20,7 @@ import java.net.ConnectException
 import java.net.NoRouteToHostException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.util.concurrent.TimeoutException
 
 /** Opens SSH connections. */
 object SshConnector {
@@ -142,8 +143,14 @@ object SshConnector {
             client.auth(hop.username, method)
             true
         } catch (e: UserAuthException) {
-            if (!client.isConnected) throw e
+            // sshj reports a connection that broke while a method was being tried in the same way
+            // as the server rejecting that method. Only the cause tells them apart, and asking the
+            // client whether it is still connected does not: it says yes for a moment longer.
+            val broken = causes(e).firstOrNull { it is TransportException || it is TimeoutException }
+            if (broken != null || !client.isConnected) throw LoginInterruptedException(broken ?: e)
             false
+        } catch (e: TransportException) {
+            throw LoginInterruptedException(e)
         }
 
         private inner class PasswordProvider : PasswordFinder {
@@ -213,7 +220,7 @@ object SshConnector {
         if (verifier.rejected != null) {
             return SshConnectException(SshFailure.HOST_KEY_REJECTED, "The host key of $where was not accepted", error)
         }
-        val chain = generateSequence(error) { it.cause }.take(8).toList()
+        val chain = causes(error)
         chain.firstOrNull { it is UnknownHostException }?.let {
             return SshConnectException(SshFailure.UNKNOWN_HOST, "Unknown host: ${hop.host}", error)
         }
@@ -234,6 +241,7 @@ object SshConnector {
         chain.firstOrNull { it is OpenFailException }?.let {
             return SshConnectException(SshFailure.UNREACHABLE, "The jump host could not reach $where: ${it.message}", error)
         }
+        if (error is LoginInterruptedException) return interruptedLogin(where, error)
         if (error is UserAuthException) {
             val methods = runCatching { client.userAuth.allowedMethods.toList() }.getOrDefault(emptyList())
             return SshConnectException(
@@ -243,9 +251,8 @@ object SshConnector {
                 methods,
             )
         }
-        if (error is TransportException || error is SSHException) {
-            val reason = (error as SSHException).disconnectReason
-            return when (reason) {
+        if (error is SSHException) {
+            return when (error.disconnectReason) {
                 DisconnectReason.HOST_KEY_NOT_VERIFIABLE ->
                     SshConnectException(SshFailure.HOST_KEY_REJECTED, "The host key of $where was not accepted", error)
                 DisconnectReason.KEY_EXCHANGE_FAILED ->
@@ -257,4 +264,31 @@ object SshConnector {
         }
         return SshConnectException(SshFailure.IO, "Connection to $where failed: ${error.message ?: error.javaClass.simpleName}", error)
     }
+
+    /**
+     * The connection ended between the key exchange and the end of the login. The usual reason is
+     * a server that limits how long logging in may take (OpenSSH: LoginGraceTime, two minutes by
+     * default) and hangs up, mostly without a word, while the user is still typing a password.
+     * That is not a wrong password and must not be reported as one.
+     */
+    private fun interruptedLogin(where: String, error: LoginInterruptedException): SshConnectException {
+        val chain = causes(error)
+        val transport = chain.firstOrNull { it is TransportException } as TransportException?
+        // What the server said when it disconnected, if it said anything.
+        val said = transport?.takeIf { it.disconnectReason != DisconnectReason.UNKNOWN }?.message?.trim().orEmpty()
+        if (transport?.disconnectReason == DisconnectReason.NO_MORE_AUTH_METHODS_AVAILABLE) {
+            return SshConnectException(SshFailure.AUTH_FAILED, "$where closed the connection: $said", error)
+        }
+        val message = when {
+            said.isNotEmpty() -> "$where closed the connection during login: $said"
+            transport == null && chain.any { it is TimeoutException } -> "$where stopped answering during login"
+            else -> "$where closed the connection during login. Servers do that when logging in takes too long."
+        }
+        return SshConnectException(SshFailure.IO, message, error)
+    }
+
+    private fun causes(error: Throwable): List<Throwable> = generateSequence(error) { it.cause }.take(8).toList()
+
+    /** The connection broke, or the server stopped answering, in the middle of logging in. */
+    private class LoginInterruptedException(cause: Throwable) : Exception(cause)
 }

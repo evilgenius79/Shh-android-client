@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -90,7 +91,22 @@ class SessionManager(
     }
 
     companion object {
+        /**
+         * The runtime permission Android 17 (API 37) introduced for reaching the local network.
+         * Spelled out because the platform's constant for it does not exist on older versions.
+         */
+        const val LOCAL_NETWORK_PERMISSION = "android.permission.ACCESS_LOCAL_NETWORK"
+
         /** True on Android versions that put local network access behind a runtime permission. */
         val needsLocalNetworkPermission: Boolean get() = Build.VERSION.SDK_INT >= 37
+
+        /**
+         * True when Android is withholding the local network from this app. The system then drops
+         * the app's packets to local addresses without an error, so that a connection attempt
+         * simply runs into its timeout.
+         */
+        fun isLocalNetworkBlocked(context: Context): Boolean =
+            needsLocalNetworkPermission &&
+                ContextCompat.checkSelfPermission(context, LOCAL_NETWORK_PERMISSION) != PackageManager.PERMISSION_GRANTED
     }
 }

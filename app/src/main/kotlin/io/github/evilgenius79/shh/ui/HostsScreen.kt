@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.data.AppData
@@ -182,7 +183,7 @@ fun HostsScreen(
                             val state by session.state.collectAsStateCompat()
                             AssistChip(
                                 onClick = { onOpenSession(session) },
-                                label = { Text(session.host.title, maxLines = 1) },
+                                label = { Text(session.host.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                 leadingIcon = {
                                     AppIcon(
                                         R.drawable.ic_terminal,
@@ -249,8 +250,8 @@ private fun HostRow(host: Host, jump: Host?, onConnect: () -> Unit, onEdit: () -
         headline = host.title,
         supporting = {
             Column {
-                if (host.name.isNotBlank()) Text(host.address, maxLines = 1)
-                if (jump != null) Text("via ${jump.title}", maxLines = 1, style = MaterialTheme.typography.bodySmall)
+                if (host.name.isNotBlank()) Text(host.address, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (jump != null) Text("via ${jump.title}", maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
             }
         },
         leading = { AppIcon(R.drawable.ic_dns, null) },

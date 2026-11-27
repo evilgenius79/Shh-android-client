@@ -102,6 +102,11 @@ class TestSshServer(
         for (session in server.activeSessions) session.close(true)
     }
 
+    /** How long a client may take to log in before the server disconnects it, saying why. */
+    fun loginTimeout(millis: Long) {
+        CoreModuleProperties.AUTH_TIMEOUT.set(server, java.time.Duration.ofMillis(millis))
+    }
+
     override fun close() {
         server.stop(true)
     }
@@ -248,8 +253,12 @@ class TestPrompts(
         return hostKeyDecision
     }
 
+    /** Runs while the "user" is looking at the password prompt, before the answer is given. */
+    var whilePasswordPromptIsOpen: () -> Unit = {}
+
     override fun requestPassword(target: SshTarget, attempt: Int): CharArray? {
         passwordRequests.add(attempt)
+        whilePasswordPromptIsOpen()
         return passwords.removeFirstOrNull()?.toCharArray()
     }
 
