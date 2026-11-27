@@ -19,3 +19,6 @@ keystore.properties
 
 # OS
 .DS_Store
+
+# Working copies of helper agents
+.claude/worktrees/
