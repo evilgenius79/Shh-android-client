@@ -280,6 +280,29 @@ class LiveSessionTest {
     }
 
     @Test
+    fun aLongPasteArrivesComplete() {
+        val session = open(host())
+        session.acceptHostKey()
+        waitFor("the connection") { session.isConnected }
+
+        // Two thousand lines, 160 000 characters, each line different from every other.
+        val lines = (1..2000).map { number -> "line %04d ".format(number) + "abcdefghijklmnopqrstuvwxyz0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ+".repeat(2).take(69) }
+        val text = lines.joinToString("\n", postfix = "\n")
+        assertEquals(160_000, text.length)
+        val expected = java.security.MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }
+
+        // Into a program that just stores what it is given, without the echo slowing things down.
+        val file = "/tmp/shh-paste-${System.nanoTime()}.txt"
+        session.sendText("stty -echo; echo waiting-\$((40+2)); cat > $file; stty echo; sha256sum $file; rm $file\n")
+        waitFor("the program that takes the paste") { session.screen().contains("waiting-42") }
+        session.paste(text)
+        // Ctrl+D at the start of a line ends the input.
+        session.sendText("d", io.github.evilgenius79.shh.terminal.KeyModifiers.CTRL)
+        waitFor("the checksum of what arrived", timeoutMs = 60_000) { Regex("[0-9a-f]{64}").containsMatchIn(session.screen()) }
+        assertEquals(expected, Regex("[0-9a-f]{64}").find(session.screen())!!.value, "every character of the paste arrived, in order")
+    }
+
+    @Test
     fun leavingTheShellClosesItsTabUnlessItEndedWithAnError() {
         assumeTrue(spec != null)
         val context: Context = ApplicationProvider.getApplicationContext()
