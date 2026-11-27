@@ -1,5 +1,6 @@
 package io.github.evilgenius79.shh
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.DpRect
 import androidx.compose.ui.unit.dp
+import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.captureRoboImage
 import io.github.evilgenius79.shh.data.Settings
 import io.github.evilgenius79.shh.data.ThemeMode
@@ -247,12 +249,14 @@ class ExtraKeysTest {
     fun theHowToOnlyNamesKeysTheBarReallyHas() {
         show()
         key("More keys").performClick()
-        val section = HelpSections.first { it.title == "The key bar" }
+        // The how-to holds its texts as string resources: read them as the app shows them.
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val section = HelpSections.first { context.getString(it.title) == "The key bar" }
         // The key caps shown in front of the explanations, the keys named in capitals in the
         // text ("PGUP", "F12"), and the characters the text lists for the panel.
         val caps = section.items.flatMap { it.keys }
-        val named = section.items.flatMap { Regex("\\b[A-Z]{2,}[0-9]*\\b|\\bF[0-9]+\\b").findAll(it.text).map { match -> match.value }.toList() }
-        val characters = section.items.single { it.keys == listOf("⋯") }.text.substringAfter("such as ").substringBefore(".").split(" ")
+        val named = section.items.flatMap { Regex("\\b[A-Z]{2,}[0-9]*\\b|\\bF[0-9]+\\b").findAll(context.getString(it.text)).map { match -> match.value }.toList() }
+        val characters = context.getString(section.items.single { it.keys == listOf("⋯") }.text).substringAfter("such as ").substringBefore(".").split(" ")
         assertTrue(listOf("CTRL", "ALT", "ESC", "TAB", "PGUP", "PGDN", "DEL", "F1", "F12").all { it in caps + named }, "found $caps and $named")
         assertEquals(listOf("~", "\\", "`", "{", "}", "[", "]"), characters)
         for (label in (caps + named + characters).distinct()) {

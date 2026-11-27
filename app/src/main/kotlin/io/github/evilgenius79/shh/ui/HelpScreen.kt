@@ -1,5 +1,6 @@
 package io.github.evilgenius79.shh.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -19,146 +20,123 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import io.github.evilgenius79.shh.R
 
 /**
- * One thing the how-to explains. [keys] are drawn as small key caps in front of [text]: keys of
+ * What stands in a key cap in front of an explanation: a key by its legend, which is the same in
+ * every language, or a word that is translated, such as the name of a gesture or of a menu entry.
+ */
+internal sealed interface HelpCap {
+    data class Key(val legend: String) : HelpCap
+
+    data class Word(@StringRes val text: Int) : HelpCap
+}
+
+/**
+ * One thing the how-to explains. [caps] are drawn as small key caps in front of [text]: keys of
  * the key bar, keys of the keyboard, or the name of a gesture. Without any, [text] is a note.
  */
-internal data class HelpItem(val keys: List<String>, val text: String)
+internal data class HelpItem(val caps: List<HelpCap>, @StringRes val text: Int) {
+    /** The legends of the keys among [caps]: what can be held against the keys the bar has. */
+    val keys: List<String> get() = caps.filterIsInstance<HelpCap.Key>().map { it.legend }
+}
 
-internal data class HelpSection(val title: String, val items: List<HelpItem>)
+internal data class HelpSection(@StringRes val title: Int, val items: List<HelpItem>)
 
-private fun item(vararg keys: String, text: String) = HelpItem(keys.toList(), text)
+private fun item(vararg keys: String, @StringRes text: Int) = HelpItem(keys.map { HelpCap.Key(it) }, text)
 
-private fun note(text: String) = HelpItem(emptyList(), text)
+private fun item(vararg caps: HelpCap, @StringRes text: Int) = HelpItem(caps.toList(), text)
 
-/** Everything the how-to says. Kept as data so that tests can hold it against the real key bar. */
+private fun note(@StringRes text: Int) = HelpItem(emptyList(), text)
+
+/**
+ * Everything the how-to says. Kept as data so that tests can hold it against the real key bar.
+ * The texts are in strings_keybar_help.xml, in this order.
+ */
 internal val HelpSections: List<HelpSection> = listOf(
     HelpSection(
-        "The key bar",
+        R.string.help_bar_title,
         listOf(
-            note("The two rows above the keyboard have the keys a phone keyboard lacks."),
-            item(
-                "CTRL", "ALT",
-                text = "Tap once. The key lights up, applies to the next key you press and then switches itself off. " +
-                    "For Ctrl+C, tap CTRL and then C on the keyboard.",
-            ),
-            item(
-                "CTRL", "CTRL",
-                text = "Tap twice in a row to lock it. A locked key shows a dot and stays on for every key until you tap it again. " +
-                    "ALT works the same way.",
-            ),
-            item("←", "→", text = "Hold an arrow, PGUP, PGDN or DEL and it repeats, as on a keyboard."),
-            item(
-                "⋯",
-                text = "Opens a panel with F1 to F12, DEL and the characters that are hard to reach on a phone keyboard, " +
-                    "such as ~ \\ ` { } [ ]. Tap it again to close the panel.",
-            ),
-            item("ESC", text = "Leaves insert mode in vi and closes menus in many programs."),
-            item("TAB", text = "Completes the command or file name you have started typing."),
-            note(
-                "Which keys the bar shows, and where, is yours to choose: Settings, Keys of the bar. " +
-                    "A key can also type a few characters of your own.",
-            ),
-            note("The bar can be switched off in Settings, under Extra keys, or set to hide while a hardware keyboard is connected."),
+            note(R.string.help_bar_intro),
+            item("CTRL", "ALT", text = R.string.help_bar_modifier_once),
+            item("CTRL", "CTRL", text = R.string.help_bar_modifier_lock),
+            item("←", "→", text = R.string.help_bar_repeat),
+            item("⋯", text = R.string.help_bar_more),
+            item("ESC", text = R.string.help_bar_esc),
+            item("TAB", text = R.string.help_bar_tab),
+            note(R.string.help_bar_arrange),
+            note(R.string.help_bar_hide),
         ),
     ),
     HelpSection(
-        "Combinations worth knowing",
+        R.string.help_combos_title,
         listOf(
-            item("CTRL", "C", text = "Stop the program that is running."),
-            item("CTRL", "D", text = "End of input. At an empty prompt it logs you out."),
-            item("CTRL", "Z", text = "Pause the running program. Type fg to bring it back."),
-            item("CTRL", "L", text = "Clear the screen."),
-            item("CTRL", "R", text = "Search through the commands you typed before."),
-            item("CTRL", "A", text = "Jump to the start of the line. CTRL and then E jumps to the end."),
-            item("CTRL", "W", text = "Delete the word before the cursor."),
-            item("↑", text = "Bring back the previous command."),
+            item("CTRL", "C", text = R.string.help_combos_ctrl_c),
+            item("CTRL", "D", text = R.string.help_combos_ctrl_d),
+            item("CTRL", "Z", text = R.string.help_combos_ctrl_z),
+            item("CTRL", "L", text = R.string.help_combos_ctrl_l),
+            item("CTRL", "R", text = R.string.help_combos_ctrl_r),
+            item("CTRL", "A", text = R.string.help_combos_ctrl_a),
+            item("CTRL", "W", text = R.string.help_combos_ctrl_w),
+            item("↑", text = R.string.help_combos_up),
         ),
     ),
     HelpSection(
-        "Touch",
+        R.string.help_touch_title,
         listOf(
-            item("Tap", text = "Opens the keyboard. In programs that understand the mouse, such as htop or mc, a tap clicks instead."),
-            item(
-                "Swipe",
-                text = "Scrolls back through earlier output. In full-screen programs such as less, man or vim it scrolls the program.",
-            ),
-            item("Pinch", text = "Makes the text smaller or larger."),
-            item(
-                "Hold",
-                text = "Selects the word under your finger. Keep the finger down and drag to select more, then choose Copy. " +
-                    "When what you selected is a web address, Open link is offered too.",
-            ),
-            note("The clipboard button at the top of the terminal pastes."),
-            note(
-                "If voice typing, swipe typing or a keyboard for another script does not work in the terminal, " +
-                    "switch on Full keyboard features in Settings.",
-            ),
+            item(HelpCap.Word(R.string.help_cap_tap), text = R.string.help_touch_tap),
+            item(HelpCap.Word(R.string.help_cap_swipe), text = R.string.help_touch_swipe),
+            item(HelpCap.Word(R.string.help_cap_pinch), text = R.string.help_touch_pinch),
+            item(HelpCap.Word(R.string.help_cap_hold), text = R.string.help_touch_hold),
+            note(R.string.help_touch_paste),
+            note(R.string.help_touch_full_keyboard),
         ),
     ),
     HelpSection(
-        "With a hardware keyboard",
+        R.string.help_keyboard_title,
         listOf(
-            item("Ctrl", "Shift", "C", text = "Copy the selected text."),
-            item("Ctrl", "Shift", "V", text = "Paste."),
-            note("Every other key goes to the server exactly as typed."),
+            // What a keyboard prints on these two keys differs from country to country, unlike the legends of the bar.
+            item(HelpCap.Word(R.string.help_cap_ctrl), HelpCap.Word(R.string.help_cap_shift), HelpCap.Key("C"), text = R.string.help_keyboard_copy),
+            item(HelpCap.Word(R.string.help_cap_ctrl), HelpCap.Word(R.string.help_cap_shift), HelpCap.Key("V"), text = R.string.help_keyboard_paste),
+            note(R.string.help_keyboard_other_keys),
         ),
     ),
     HelpSection(
-        "Sessions",
+        R.string.help_sessions_title,
         listOf(
-            note("Sessions stay connected when you leave the app. A notification shows that they are open and can disconnect them all."),
-            note("Open another one with New session in the ⋮ menu. With more than one open, tabs appear to switch between them."),
-            note(
-                "When a connection drops, for example because the phone changed networks, the app reconnects by itself and " +
-                    "runs the host's startup command again. With a command such as tmux new -A -s main you are back where you were.",
-            ),
-            note("When a session ends for another reason, the bar under the terminal says why and offers to reconnect."),
-            note("Leaving the shell with exit or with CTRL and then D closes its tab."),
-            note(
-                "A session you are not looking at that rings the bell sends a notification. " +
-                    "End a long command with ; printf '\\a' to be told when it is done.",
-            ),
-            note("Hold the app's icon on the home screen for shortcuts to the hosts you used last."),
-            note("On the host list, typing user@host or user@host:port into the search field connects without saving a host."),
-            note(
-                "If you have an SSH config file from a computer, Import SSH config in the host list's ⋮ menu adds its hosts, " +
-                    "with their jump hosts and port forwards.",
-            ),
+            note(R.string.help_sessions_background),
+            note(R.string.help_sessions_new),
+            note(R.string.help_sessions_reconnect),
+            note(R.string.help_sessions_ended),
+            note(R.string.help_sessions_exit),
+            note(R.string.help_sessions_bell),
+            note(R.string.help_sessions_shortcuts),
+            note(R.string.help_sessions_quick_connect),
+            note(R.string.help_sessions_import_config),
         ),
     ),
     HelpSection(
-        "Logging in with a key",
+        R.string.help_login_title,
         listOf(
-            note("Create or import a key under Keys, the key button on the host list."),
-            note("While you are connected with a password, Install a public key in the ⋮ menu puts the key on the server."),
-            note("Then choose the key in the host's settings. From then on no password is asked for."),
-            note(
-                "If your servers trust a certificate authority, add the certificate it issued for the key: " +
-                    "tap the key under Keys and choose Add a certificate.",
-            ),
-            note(
-                "With a FIDO2 security key, the + button under Keys can make a key on it. Logging in then takes the security key: " +
-                    "hold it against the back of the phone or plug it in, and touch it when it blinks. " +
-                    "This is new and has not been tried with real hardware yet.",
-            ),
-            note(
-                "To use your keys from a server, for ssh or git there, switch on Forward the SSH agent in that host's settings. " +
-                    "The keys stay on the phone, and you are asked before one is used.",
-            ),
+            note(R.string.help_login_create),
+            note(R.string.help_login_install),
+            note(R.string.help_login_choose),
+            note(R.string.help_login_certificate),
+            note(R.string.help_login_security_key),
+            note(R.string.help_login_agent),
         ),
     ),
     HelpSection(
-        "Also in the ⋮ menu of a terminal",
+        R.string.help_menu_title,
         listOf(
-            item("Files", text = "Browse the server's files; upload, download, rename and edit them."),
-            item("Port forwards", text = "Reach a service on the server's network through the connection."),
-            item("Snippets", text = "Send a command you saved earlier."),
-            item("Colours", text = "Change the colour scheme. Settings holds the default, and a host's settings can give that host its own."),
-            note("Settings also lets you draw the terminal with a font of your own: any monospaced .ttf or .otf file on the phone."),
+            item(HelpCap.Word(R.string.help_cap_files), text = R.string.help_menu_files),
+            item(HelpCap.Word(R.string.help_cap_port_forwards), text = R.string.help_menu_port_forwards),
+            item(HelpCap.Word(R.string.help_cap_snippets), text = R.string.help_menu_snippets),
+            item(HelpCap.Word(R.string.help_cap_colours), text = R.string.help_menu_colours),
+            note(R.string.help_menu_font),
         ),
     ),
 )
@@ -166,10 +144,10 @@ internal val HelpSections: List<HelpSection> = listOf(
 /** The how-to: what the keys of the bar do, the gestures, and where things are. */
 @Composable
 fun HelpScreen(onBack: () -> Unit) {
-    Scaffold(topBar = { BackTopBar("How to use Shh", onBack) }) { padding ->
+    Scaffold(topBar = { BackTopBar(stringResource(R.string.help_title), onBack) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
             for (section in HelpSections) {
-                SectionHeader(section.title)
+                SectionHeader(stringResource(section.title))
                 for (entry in section.items) HelpRow(entry)
             }
             Spacer(Modifier.height(24.dp))
@@ -183,7 +161,7 @@ private fun HelpRow(entry: HelpItem) {
         Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 7.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (entry.keys.isNotEmpty()) {
+        if (entry.caps.isNotEmpty()) {
             // A fixed column, so that the explanations line up whatever stands in front of them.
             FlowRow(
                 Modifier.width(KeysColumn),
@@ -192,11 +170,16 @@ private fun HelpRow(entry: HelpItem) {
             ) {
                 // The arrows keep pointing where they point, also in right-to-left languages.
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                    for (key in entry.keys) KeyLegend(key)
+                    for (cap in entry.caps) {
+                        when (cap) {
+                            is HelpCap.Key -> KeyLegend(cap.legend)
+                            is HelpCap.Word -> KeyLegend(stringResource(cap.text), word = true)
+                        }
+                    }
                 }
             }
         }
-        Text(entry.text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+        Text(stringResource(entry.text), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
     }
 }
 

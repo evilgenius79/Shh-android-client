@@ -41,9 +41,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import io.github.evilgenius79.shh.R
 
 /**
  * Where the user arranges the key bar: pick a place on the bar, then the key that belongs there.
@@ -69,34 +72,26 @@ fun KeyBarScreen(layout: List<String>, onChange: (List<String>) -> Unit, onBack:
 
     Scaffold(
         topBar = {
-            BackTopBar("Keys of the bar", onBack) {
-                TextButton(enabled = layout.isNotEmpty(), onClick = { onChange(emptyList()) }) { Text("Reset") }
+            BackTopBar(stringResource(R.string.keybar_title), onBack) {
+                TextButton(enabled = layout.isNotEmpty(), onClick = { onChange(emptyList()) }) { Text(stringResource(R.string.keybar_reset)) }
             }
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
             Text(
-                "Tap a place on the bar, then the key that belongs there. The next place is picked for you, " +
-                    "so a row is filled by tapping its keys one after the other.",
+                stringResource(R.string.keybar_intro),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             )
             KeyBarPreview(layout, selected, onSelect = { selected = it })
-            Note(
-                if (KeyBarLayout.MORE in keys) {
-                    "On a wide screen, such as a phone held sideways, the two rows are shown as one."
-                } else {
-                    "The bar has no key for the panel now, so F1 to F12 and the characters on it cannot be reached. " +
-                        "Put the key with the three dots back to get them."
-                },
-            )
+            Note(stringResource(if (KeyBarLayout.MORE in keys) R.string.keybar_note_wide else R.string.keybar_note_no_panel_key))
 
-            SectionHeader("Keys")
+            SectionHeader(stringResource(R.string.keybar_section_keys))
             Palette(KeyBarLayout.NAMED, put)
-            SectionHeader("Characters")
+            SectionHeader(stringResource(R.string.keybar_section_characters))
             Palette(KeyBarLayout.CHARACTERS, put)
 
-            SectionHeader("Your own")
+            SectionHeader(stringResource(R.string.keybar_section_own))
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -104,7 +99,7 @@ fun KeyBarScreen(layout: List<String>, onChange: (List<String>) -> Unit, onBack:
             ) {
                 OutlinedTextField(
                     state = own,
-                    label = { Text("Text the key types") },
+                    label = { Text(stringResource(R.string.keybar_own_label)) },
                     lineLimits = TextFieldLineLimits.SingleLine,
                     inputTransformation = InputTransformation.maxLengthTrim(KeyBarLayout.MAX_TEXT),
                     modifier = Modifier.weight(1f),
@@ -116,9 +111,9 @@ fun KeyBarScreen(layout: List<String>, onChange: (List<String>) -> Unit, onBack:
                         put(text)
                         own.clearText()
                     },
-                ) { Text("Use") }
+                ) { Text(stringResource(R.string.keybar_own_use)) }
             }
-            Note("Up to ${KeyBarLayout.MAX_TEXT} characters, for example :wq or a letter you need often. Longer commands belong in Snippets.")
+            Note(pluralStringResource(R.plurals.keybar_own_note, KeyBarLayout.MAX_TEXT, KeyBarLayout.MAX_TEXT))
             Spacer(Modifier.height(24.dp))
         }
     }
@@ -137,6 +132,7 @@ private fun Note(text: String) {
 /** The keys that can be put on the bar, each drawn as it will look there. */
 @Composable
 private fun Palette(names: List<String>, onPick: (String) -> Unit) {
+    val putOnBar = stringResource(R.string.keybar_put_on_bar)
     // The arrows keep pointing where they point, also in right-to-left languages.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         FlowRow(
@@ -150,7 +146,7 @@ private fun Palette(names: List<String>, onPick: (String) -> Unit) {
                     Modifier
                         .testTag("key:$name")
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable(role = Role.Button, onClickLabel = "put on the bar") { onPick(name) }
+                        .clickable(role = Role.Button, onClickLabel = putOnBar) { onPick(name) }
                         .defaultMinSize(minWidth = 44.dp)
                         .height(40.dp),
                 )
