@@ -33,10 +33,12 @@ import kotlin.math.ceil
  *
  * The reference client keeps a complete terminal for every state it has received, so it can apply
  * a diff against any of them. This client keeps none: output goes straight to the owner's
- * emulator, so it holds exactly one screen, the newest. A diff is therefore applied only when it
- * starts from that screen (or from a state known to show the same screen, see [held]); any other
- * is ignored and the held state is acknowledged again. The server then diffs from it as soon as
- * it learns of it, at the latest one retransmission timeout later.
+ * emulator, which shows exactly one screen, the newest. So it can use a diff only if its base is
+ * the screen being shown, or, a little more generally, if the output delivered since its base was
+ * shown is the beginning of the diff; then the rest of the diff is what is still missing (see
+ * [shown]). Any other diff is ignored and the state shown is acknowledged again. The server
+ * diffs from that state as soon as it learns of it, at the latest one retransmission timeout
+ * later.
  *
  * There is one trap in that. mosh-server remembers at most 32 states it has sent and forgets
  * those in the middle first; an acknowledgement of a forgotten state is ignored. The reference
@@ -115,18 +117,47 @@ internal class Transport(
 
     // ---- Receiver: the screen -------------------------------------------------------------
 
-    /**
-     * Numbers of the server states that all show what has been delivered to [Sink.output], oldest
-     * first. More than one when the server sent states that changed nothing visible (its
-     * heartbeats and echo acknowledgements); a diff from any of them fits. The last is the one
-     * acknowledged to the server.
-     */
-    private val held = ArrayList<Long>().apply { add(0L) }
+    /** The output delivered since some state of the server's screen was shown. */
+    private class Trail {
+        private var bytes = ByteArray(32)
+        var size = 0
+            private set
+
+        fun append(data: ByteArray) {
+            if (size + data.size > bytes.size) bytes = bytes.copyOf(maxOf(bytes.size * 2, size + data.size))
+            System.arraycopy(data, 0, bytes, size, data.size)
+            size += data.size
+        }
+
+        fun isStartOf(data: ByteArray): Boolean {
+            if (data.size < size) return false
+            for (i in 0 until size) if (data[i] != bytes[i]) return false
+            return true
+        }
+    }
 
     /**
-     * Number of the first input state created after the newest entry of [held] was adopted. Once
-     * the server acknowledges this state or a later one, it has seen an acknowledgement of that
-     * entry.
+     * The server states that have been shown and may still be named as the base of a diff, each
+     * with the output delivered since it was shown, in the order they were shown. For the state
+     * on the screen right now that is nothing. It is also nothing for the states before it that
+     * differ from it in nothing visible (the server's heartbeats and echo acknowledgements).
+     *
+     * A diff fits if it starts with everything delivered since its base: delivering the rest
+     * gives the emulator, byte for byte, what it would have got had the states in between never
+     * been sent. The plain case, a diff from the state on the screen, is the one where nothing
+     * was delivered since. The other case is common where it matters most. While keys are typed
+     * faster than acknowledgements travel, the server makes each little update from the last
+     * state it knows the client to have, and the update for two keys begins like the update for
+     * the first.
+     */
+    private val shown = LinkedHashMap<Long, Trail>().apply { put(0L, Trail()) }
+
+    /** The state on the screen: the newest one taken over, and the one acknowledged to the server. */
+    private var newestShown = 0L
+
+    /**
+     * Number of the first input state created after [newestShown] was taken over. Once the server
+     * acknowledges this state or a later one, it has seen an acknowledgement of [newestShown].
      */
     private var ackCarrier = 1L
 
@@ -152,7 +183,7 @@ internal class Transport(
     var applied = 0
         private set
 
-    /** Instructions from the server that could not be used: duplicates, and diffs from a state not held. */
+    /** Instructions from the server that could not be used: duplicates, and diffs that do not fit the screen. */
     @Volatile
     var unusable = 0
         private set
@@ -165,6 +196,11 @@ internal class Transport(
     /** Instructions sent. */
     @Volatile
     var instructionsSent = 0
+        private set
+
+    /** Highest number of a server state that any instruction received has led to, usable or not. */
+    @Volatile
+    var newestServerState = 0L
         private set
 
     // ---- Session end ----------------------------------------------------------------------
@@ -262,7 +298,9 @@ internal class Transport(
         }
         if (unusableShutdownSince != NONE && !remoteShutdown && now - unusableShutdownSince >= finalUpdatePatience()) {
             // The server is leaving and a usable version of its last update is not coming.
-            adopt(SHUTDOWN_STATE, sameScreen = false)
+            shown.clear()
+            shown[SHUTDOWN_STATE] = Trail()
+            newestShown = SHUTDOWN_STATE
             remoteShutdown = true
             nextAckTime = minOf(nextAckTime, now)
         }
@@ -361,55 +399,90 @@ internal class Transport(
         acknowledged(instruction.ackNum, now)
         if (finished) return
         if (remoteShutdown) return
+        if (instruction.newNum != SHUTDOWN_STATE && isOlder(newestServerState, instruction.newNum)) newestServerState = instruction.newNum
         checkStillInStep(instruction, now)
 
-        val newest = held.last()
-        when {
-            held.contains(instruction.newNum) -> noteUnusable(instruction, now)
-            isOlder(instruction.newNum, newest) -> Unit
-            held.contains(instruction.oldNum) -> apply(instruction, HostMessage.decode(instruction.diff), now)
-            instruction.newNum == SHUTDOWN_STATE -> {
-                // The remote program has exited, but the last change to the screen starts from a
-                // state not held here. Say again what is held and wait a little for a version
-                // that fits; [tick] goes without it when the wait is over. The server repeats
-                // itself only sixteen times, and at first optimistically, from the final state
-                // itself.
-                if (unusableShutdownSince == NONE) unusableShutdownSince = now
-                unusable++
-                pendingAck = true
-            }
-            recoveryAttempt > 0 -> {
+        val used = when {
+            // Nothing new, or older than what is on the screen.
+            shown.containsKey(instruction.newNum) -> false
+            isOlder(instruction.newNum, newestShown) -> return
+            else -> {
                 val events = HostMessage.decode(instruction.diff)
-                if (events.any { it is HostEvent.Resize }) apply(instruction, events, now) else noteUnusable(instruction, now)
+                val base = shown[instruction.oldNum]
+                (base != null && take(instruction, events, base, now)) ||
+                    // While looking for a way back, a diff that repaints everything is welcome
+                    // whatever it starts from.
+                    (recoveryAttempt > 0 && events.any { it is HostEvent.Resize } && take(instruction, events, null, now))
             }
-            else -> noteUnusable(instruction, now)
+        }
+        if (!used) {
+            unusable++
+            if (instruction.newNum == SHUTDOWN_STATE) {
+                // The remote program has exited, but the last change to the screen starts from a
+                // state that cannot be continued from. Say again what is shown here and wait a
+                // little for a version that fits; [tick] goes without it when the wait is over.
+                // The server repeats itself only sixteen times, and at first optimistically,
+                // from the final state itself.
+                if (unusableShutdownSince == NONE) unusableShutdownSince = now
+                pendingAck = true
+            } else {
+                noteUnusable(instruction, now)
+            }
         }
 
-        // States older than the one the server will diff from at the earliest are of no use.
-        while (held.size > 1 && isOlder(held[0], instruction.throwawayNum)) held.removeAt(0)
-        while (held.size > MAX_HELD) held.removeAt(0)
+        // The server will not diff from anything older than the state it names as known; and a
+        // state that much output has been delivered since is not worth remembering.
+        val entries = shown.entries.iterator()
+        while (entries.hasNext()) {
+            val entry = entries.next()
+            if (entry.key == newestShown) continue
+            if (isOlder(entry.key, instruction.throwawayNum) || entry.value.size > MAX_TRAIL) entries.remove()
+        }
+        while (shown.size > MAX_SHOWN) shown.remove(shown.keys.first())
     }
 
-    private fun apply(instruction: Instruction, events: List<HostEvent>, now: Long) {
-        applied++
-        var changesScreen = false
+    /**
+     * Uses [instruction] if it fits: delivers what it adds to the screen and takes its state over.
+     * [base] is what has been delivered since the state it starts from was shown, or null to take
+     * it on trust that the diff does not depend on where it starts.
+     */
+    private fun take(instruction: Instruction, events: List<HostEvent>, base: Trail?, now: Long): Boolean {
+        var resize: HostEvent.Resize? = null
+        var output = EMPTY
         for (event in events) {
             when (event) {
-                is HostEvent.Bytes -> if (event.data.isNotEmpty()) {
-                    changesScreen = true
-                    sink.output(event.data)
-                }
-                is HostEvent.Resize -> {
-                    changesScreen = true
-                    sink.resized(event.columns, event.rows)
-                }
+                is HostEvent.Bytes -> output = if (output.isEmpty()) event.data else output + event.data
+                is HostEvent.Resize -> resize = event
                 // Only local echo prediction needs to know how far the server has echoed.
                 is HostEvent.EchoAck -> Unit
             }
         }
-        adopt(instruction.newNum, sameScreen = !changesScreen)
-        if (changesScreen) {
-            // The sooner the server knows which screen is held here, the sooner it diffs from it.
+        val repaint = resize != null || base == null
+        if (base != null) {
+            if (repaint) {
+                // A new size, and with it a repaint: only on top of the very screen it was made for.
+                if (base.size != 0) return false
+            } else {
+                if (!base.isStartOf(output)) return false
+                output = if (base.size == 0) output else output.copyOfRange(base.size, output.size)
+            }
+        }
+
+        applied++
+        if (resize != null) sink.resized(resize.columns, resize.rows)
+        if (output.isNotEmpty()) sink.output(output)
+        if (repaint) {
+            // Nothing that was shown before can be continued from across a change of size.
+            shown.clear()
+        } else if (output.isNotEmpty()) {
+            for (trail in shown.values) trail.append(output)
+        }
+        shown[instruction.newNum] = Trail()
+        newestShown = instruction.newNum
+        ackCarrier = sent.last().num + 1
+
+        if (repaint || output.isNotEmpty()) {
+            // The sooner the server knows which screen is shown here, the sooner it diffs from it.
             pendingAck = true
         } else if (instruction.diff.isNotEmpty()) {
             // Nothing to see (an echo acknowledgement), but the server repeats what is not
@@ -427,33 +500,27 @@ internal class Transport(
             recoveryResizeAckedAt = NONE
             if (!closing && !remoteShutdown) requestWantedSize()
         }
+        return true
     }
 
-    private fun adopt(num: Long, sameScreen: Boolean) {
-        if (!sameScreen) held.clear()
-        held.add(num)
-        ackCarrier = sent.last().num + 1
-    }
-
-    /** The server sent something that cannot be used; make sure it knows what is held here. */
+    /** The server sent something that cannot be used; make sure it knows what is shown here. */
     private fun noteUnusable(instruction: Instruction, now: Long) {
-        unusable++
         // If the state it diffs from in the worst case is ours it knows already and is merely
         // being optimistic. Otherwise an acknowledgement is on its way or was lost; it is lost
         // if the last one had a round trip's time to show an effect.
-        if (instruction.throwawayNum != held.last() && now - lastSendTime >= ceil(srtt + rttvar).toLong()) pendingAck = true
+        if (instruction.throwawayNum != newestShown && now - lastSendTime >= ceil(srtt + rttvar).toLong()) pendingAck = true
     }
 
     /**
      * Detects the receiver being stuck for good; see the class description. The server's
      * [Instruction.throwawayNum] is the newest state it knows the client to have. If the server
-     * has processed an acknowledgement of the newest state held here and still names a state that
-     * is not held, it has forgotten ours, and nothing it sends will ever fit.
+     * has processed an acknowledgement of the state shown here and still names a state that shows
+     * something else, it has forgotten ours, and what it sends will fit by luck at best.
      */
     private fun checkStillInStep(instruction: Instruction, now: Long) {
         if (closing || instruction.ackNum == SHUTDOWN_STATE) return
         if (isOlder(instruction.ackNum, ackCarrier)) return
-        if (held.contains(instruction.throwawayNum)) return
+        if (shown[instruction.throwawayNum]?.size == 0) return
         val firstTime = recoveryAttempt == 0
         val lastAttemptFailed = recoveryResizeAckedAt != NONE && now - recoveryResizeAckedAt >= RECOVERY_RETRY
         if (firstTime || lastAttemptFailed) beginRecovery()
@@ -462,7 +529,7 @@ internal class Transport(
     /**
      * Asks for a slightly different terminal size. The diff to a screen of another size is a
      * clear followed by a complete repaint, whatever state it starts from, so it can be applied
-     * to the screen held here even though that is not its base. (What such a diff does not carry
+     * to the screen shown here even though that is not its base. (What such a diff does not carry
      * is anything that is the same in both of the server's states apart from the cells: a window
      * title set in between can be missed.) Each attempt uses another size in case the state the
      * server diffs from happens to have had the previous one.
@@ -598,7 +665,7 @@ internal class Transport(
     private fun emit(oldNum: Long, newNum: Long, diff: ByteArray, now: Long) {
         instructionsSent++
         val chaff = ByteArray(random.nextInt(MAX_CHAFF + 1)).also { random.nextBytes(it) }
-        val instruction = Instruction(MOSH_PROTOCOL_VERSION, oldNum, newNum, held.last(), sent[0].num, diff, chaff)
+        val instruction = Instruction(MOSH_PROTOCOL_VERSION, oldNum, newNum, newestShown, sent[0].num, diff, chaff)
         val payload = Zlib.deflate(instruction.encode())
         val room = maxDatagram - Packet.OVERHEAD - Fragment.HEADER_LENGTH
         // Every instruction gets a new id, also a repeated one: its acknowledgement field and
@@ -672,9 +739,9 @@ internal class Transport(
     private fun rto(): Long = ceil(srtt + 4 * rttvar).toLong().coerceIn(MIN_RTO, MAX_RTO)
 
     /**
-     * How long to wait, once the server has announced the end, for a final update that starts
-     * from a state held here: long enough for the server to notice it was too optimistic about
-     * what the client has (its retransmission timeout, estimated with this side's numbers).
+     * How long to wait, once the server has announced the end, for a final update that fits the
+     * screen shown here: long enough for the server to notice it was too optimistic about what
+     * the client has (its retransmission timeout, estimated with this side's numbers).
      */
     private fun finalUpdatePatience(): Long = maxOf(MIN_FINAL_UPDATE_PATIENCE, 2 * (rto() + ACK_DELAY))
 
@@ -733,7 +800,10 @@ internal class Transport(
         const val MAX_SENT_STATES = 32
         /** Most instructions with new input sent in one go when there is a backlog. */
         private const val MAX_INSTALMENTS_PER_TICK = 4
-        private const val MAX_HELD = 256
+        /** Most states remembered as possible bases of a diff. */
+        private const val MAX_SHOWN = 64
+        /** A state is forgotten as a possible base once this much output has been delivered since. */
+        private const val MAX_TRAIL = 64 * 1024
         private const val MIN_FINAL_UPDATE_PATIENCE = 500L
         /** Ask for another repaint if one has not arrived this long after the server saw the request. */
         private const val RECOVERY_RETRY = 2000L

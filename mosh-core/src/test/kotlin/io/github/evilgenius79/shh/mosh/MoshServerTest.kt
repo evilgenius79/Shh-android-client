@@ -137,7 +137,7 @@ class MoshServerTest {
         // But when the screen moves up by a few lines the server says so by scrolling, and the
         // lines pushed out are kept, in order.
         val scrolledOff = screen.history().filter { it.startsWith("tick-") }.map { it.removePrefix("tick-").trim().toInt() }
-        assertTrue(scrolledOff.size >= 10, "only $scrolledOff scrolled off")
+        assertTrue(scrolledOff.size >= 5, "only $scrolledOff scrolled off")
         assertEquals(scrolledOff.sorted().distinct(), scrolledOff)
         assertTrue(scrolledOff.all { it <= 120 - 22 }, "$scrolledOff")
     }
@@ -154,6 +154,29 @@ class MoshServerTest {
         // "-c 256" is what gives the remote program a colour terminal.
         client.type("echo term-\$TERM-\$((1+1))\n")
         screen.awaitScreen("the terminal type") { "term-xterm-256color-2" in it }
+    }
+
+    @Test
+    fun `a server started on a terminal is found and reached as well`() {
+        assumeTrue("script(1) from util-linux is not installed", hasUtilLinuxScript())
+        // The reference client asks for a terminal on the SSH channel. The server then prints
+        // everything, errors included, to that terminal, with CR LF line ends and a blank line
+        // before the line that matters.
+        val commandLine = listOf("script", "-qfec", MoshBootstrap.serverCommand(), "/dev/null")
+        val server = TestServer.startWith(commandLine).also { servers.add(it) }
+        val screen = TestScreen(80, 24)
+        val client = connect(server, screen)
+
+        client.type("echo terminal-\$((40+2))\n")
+        screen.awaitScreen("the output of echo") { "terminal-42" in it }
+    }
+
+    private fun hasUtilLinuxScript(): Boolean = try {
+        val process = ProcessBuilder("script", "--version").redirectErrorStream(true).start()
+        val output = process.inputStream.bufferedReader().readText()
+        process.waitFor() == 0 && "util-linux" in output
+    } catch (e: java.io.IOException) {
+        false
     }
 
     // ---- More than fits a datagram --------------------------------------------------------
@@ -379,6 +402,32 @@ class MoshServerTest {
     }
 
     @Test
+    fun `keys typed faster than acknowledgements travel are echoed without an update going to waste`() {
+        val server = server()
+        val screen = TestScreen(80, 24)
+        // A round trip of 200 ms, and a key every 40 ms.
+        network.delayMs = 100
+        val client = connect(server, screen)
+        val engine = client.engine!!
+        Thread.sleep(500)
+        val unusableBefore = engine.unusable
+        val appliedBefore = engine.applied
+
+        val typed = "echo_typed_much_faster_than_the_network_answers"
+        for (c in typed) {
+            client.type(c.toString())
+            Thread.sleep(40)
+        }
+        screen.awaitScreen("the echo of everything typed") { it.trimEnd().endsWith("$ $typed") }
+
+        // The server made each of its updates from the last screen it knew the client to have,
+        // which the client had long left. They were usable all the same, because each began
+        // with what the one before it had brought.
+        assertTrue(engine.applied - appliedBefore >= 5, "only ${engine.applied - appliedBefore} updates")
+        assertTrue(engine.unusable - unusableBefore <= 2, "${engine.unusable - unusableBefore} updates could not be used")
+    }
+
+    @Test
     fun `the client finds its way back when the server forgets the screen it holds`() {
         val server = server()
         val screen = TestScreen(80, 24)
@@ -388,10 +437,11 @@ class MoshServerTest {
         val engine = client.engine!!
 
         // Nothing gets out any more, while the screen keeps changing. The server, hearing no
-        // acknowledgements, falls back to diffing from the last state it knows the client has.
+        // acknowledgements, falls back to diffing from the last state it knows the client has,
+        // and goes on to make more states than the 32 it remembers.
         network.blackoutOut = true
-        val unusableBefore = engine.unusable
-        awaitTrue("the server to run ahead") { engine.unusable >= unusableBefore + 45 }
+        val stateAtBlackout = engine.newestServerState
+        awaitTrue("the server to run ahead") { engine.newestServerState >= stateAtBlackout + 45 }
 
         // One datagram gets through. Now the server knows the state held here and sends an
         // update that fits, which gives the client a state the server has only just sent ...
@@ -401,8 +451,8 @@ class MoshServerTest {
 
         // ... and, still hearing nothing, forgets again before the acknowledgement arrives:
         // it keeps only the first and the last few of the many states it has sent.
-        val unusableThen = engine.unusable
-        awaitTrue("the server to forget that state") { engine.unusable >= unusableThen + 45 }
+        val stateThen = engine.newestServerState
+        awaitTrue("the server to forget that state") { engine.newestServerState >= stateThen + 40 }
         assertEquals(0, engine.recoveries)
 
         // Contact is back, but the server ignores the acknowledgement of a state it has

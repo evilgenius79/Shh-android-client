@@ -20,7 +20,9 @@ public object MoshBootstrap {
      *
      * The server prints a `MOSH CONNECT` line for [parseConnect] on its standard output, detaches
      * and the command returns; the server itself stays behind, waiting up to a minute for the
-     * client's first datagram. No terminal should be requested for the command.
+     * client's first datagram. Everything else it prints (a licence notice, its process id) goes
+     * to standard error. The command needs no terminal on the channel; with one it works as
+     * well, and the lines then end in CR LF.
      *
      * `-s` makes the server listen on the address the SSH connection came in on, `-c 256` gives
      * the remote program a 256 colour terminal (`TERM=xterm-256color`).

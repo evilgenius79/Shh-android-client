@@ -65,8 +65,9 @@ internal class TestServer private constructor(val port: Int, val key: String, va
 
             val connect = MoshBootstrap.parseConnect(output)
                 ?: error("mosh-server did not start.\nstdout: $output\nstderr: $errors")
-            val pid = Regex("\\[mosh-server detached, pid = ([0-9]+)]").find(errors)?.groupValues?.get(1)?.toLong()
-                ?: error("mosh-server did not say which process it became.\nstderr: $errors")
+            // On a terminal both streams end up in one.
+            val pid = Regex("\\[mosh-server detached, pid = ([0-9]+)]").find("$errors$output")?.groupValues?.get(1)?.toLong()
+                ?: error("mosh-server did not say which process it became.\nstdout: $output\nstderr: $errors")
             return TestServer(connect.first, connect.second, pid)
         }
 

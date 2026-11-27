@@ -381,7 +381,7 @@ class TransportTest {
 
         rig.fromServer(oldNum = 1, newNum = 2, ackNum = 1, events = rig.bytes("a"))
         rig.fromServer(oldNum = 1, newNum = 2, ackNum = 1, events = rig.bytes("a")) // duplicate
-        rig.fromServer(oldNum = 1, newNum = 3, ackNum = 1, events = rig.bytes("ab")) // from a screen no longer shown
+        rig.fromServer(oldNum = 1, newNum = 3, ackNum = 1, events = rig.bytes("xb")) // from a screen no longer shown
         rig.fromServer(oldNum = 7, newNum = 8, ackNum = 1, events = rig.bytes("zzz")) // from one never seen
         assertEquals("$ a", rig.output.toString())
 
@@ -405,13 +405,13 @@ class TransportTest {
         // The server has not seen that acknowledgement (it still names state 1 as known) and
         // keeps diffing from state 1. Remind it, but only once per retransmission timeout.
         rig.advance(5)
-        rig.fromServer(oldNum = 1, newNum = 3, ackNum = 1, throwawayNum = 1, events = rig.bytes("ab"))
+        rig.fromServer(oldNum = 1, newNum = 3, ackNum = 1, throwawayNum = 1, events = rig.bytes("xb"))
         rig.advance(5)
-        rig.fromServer(oldNum = 1, newNum = 4, ackNum = 1, throwawayNum = 1, events = rig.bytes("abc"))
+        rig.fromServer(oldNum = 1, newNum = 4, ackNum = 1, throwawayNum = 1, events = rig.bytes("xbc"))
         rig.advance(5)
         assertEquals(before + 1, rig.instructions.size)
         rig.advance(60)
-        rig.fromServer(oldNum = 1, newNum = 5, ackNum = 1, throwawayNum = 1, events = rig.bytes("abcd"))
+        rig.fromServer(oldNum = 1, newNum = 5, ackNum = 1, throwawayNum = 1, events = rig.bytes("xbcd"))
         rig.advance(0)
         assertEquals(before + 2, rig.instructions.size)
         assertEquals(2L, rig.instructions.last().second.ackNum)
@@ -434,6 +434,59 @@ class TransportTest {
         assertEquals("$ x", rig.output.toString())
         rig.fromServer(oldNum = 4, newNum = 5, ackNum = 1, throwawayNum = 4, events = rig.bytes("y"))
         assertEquals("$ xy", rig.output.toString())
+    }
+
+    @Test
+    fun `an update that begins with what was delivered since its base is continued from there`() {
+        val rig = Rig()
+        connected(rig)
+        // Keys typed faster than acknowledgements travel: the server makes every update from
+        // state 1, the last it knows the client to have.
+        rig.fromServer(oldNum = 1, newNum = 2, ackNum = 1, events = rig.bytes("a"))
+        rig.fromServer(oldNum = 1, newNum = 3, ackNum = 1, events = rig.bytes("ab"))
+        assertEquals("$ ab", rig.output.toString())
+        rig.fromServer(oldNum = 1, newNum = 4, ackNum = 1, events = rig.bytes("abc"))
+        assertEquals("$ abc", rig.output.toString())
+        rig.advance(0)
+        assertEquals(4L, rig.instructions.last().second.ackNum)
+
+        // An update from state 1 that does not begin with "abc" leads somewhere else.
+        rig.fromServer(oldNum = 1, newNum = 5, ackNum = 1, events = rig.bytes("abX"))
+        rig.fromServer(oldNum = 1, newNum = 5, ackNum = 1, events = rig.bytes("ab"))
+        assertEquals("$ abc", rig.output.toString())
+        // From state 2 "bc" has been delivered since.
+        rig.fromServer(oldNum = 2, newNum = 6, ackNum = 1, throwawayNum = 1, events = rig.bytes("bcd"))
+        assertEquals("$ abcd", rig.output.toString())
+
+        // An update that brings nothing new stands for the screen as it is ...
+        rig.fromServer(oldNum = 1, newNum = 7, ackNum = 1, events = listOf(HostEvent.EchoAck(9), HostEvent.Bytes("abcd".toByteArray())))
+        assertEquals("$ abcd", rig.output.toString())
+        // ... so the next one can start from it.
+        rig.fromServer(oldNum = 7, newNum = 8, ackNum = 1, throwawayNum = 7, events = rig.bytes("e"))
+        assertEquals("$ abcde", rig.output.toString())
+        // What the server no longer diffs from is forgotten.
+        rig.fromServer(oldNum = 1, newNum = 9, ackNum = 1, throwawayNum = 7, events = rig.bytes("abcdef"))
+        assertEquals("$ abcde", rig.output.toString())
+        assertEquals(0, rig.transport.recoveries)
+    }
+
+    @Test
+    fun `nothing is continued across a change of size`() {
+        val rig = Rig()
+        connected(rig)
+        rig.fromServer(oldNum = 1, newNum = 2, ackNum = 1, events = rig.bytes("a"))
+        // A resize comes with a repaint, which is only right on top of the screen it was made for.
+        rig.fromServer(oldNum = 1, newNum = 3, ackNum = 1, events = listOf(HostEvent.Resize(90, 30), HostEvent.Bytes("aR".toByteArray())))
+        assertEquals("$ a", rig.output.toString())
+        rig.fromServer(oldNum = 2, newNum = 3, ackNum = 1, events = listOf(HostEvent.Resize(90, 30), HostEvent.Bytes("R".toByteArray())))
+        assertEquals("$ aR", rig.output.toString())
+        assertEquals(listOf(90 to 30), rig.resizes)
+        // And what was delivered before it no longer counts as the beginning of anything.
+        rig.fromServer(oldNum = 2, newNum = 4, ackNum = 1, events = rig.bytes("Rb"))
+        rig.fromServer(oldNum = 1, newNum = 4, ackNum = 1, events = rig.bytes("aRb"))
+        assertEquals("$ aR", rig.output.toString())
+        rig.fromServer(oldNum = 3, newNum = 4, ackNum = 1, events = rig.bytes("b"))
+        assertEquals("$ aRb", rig.output.toString())
     }
 
     @Test
@@ -475,13 +528,13 @@ class TransportTest {
         // one it knows the client to have: it no longer has state 2 and will never diff from it.
         val carrier = rig.newestSent
         assertEquals(2L, rig.instructions.last().second.ackNum)
-        rig.fromServer(oldNum = 1, newNum = 9, ackNum = carrier, throwawayNum = 1, events = rig.bytes("abc"))
+        rig.fromServer(oldNum = 1, newNum = 9, ackNum = carrier, throwawayNum = 1, events = rig.bytes("xbc"))
         assertEquals(1, rig.transport.recoveries)
         rig.advance(20)
         assertEquals("80x23", rig.userEvents(rig.instructions.last().second))
 
         // More of the same changes nothing ...
-        rig.fromServer(oldNum = 1, newNum = 10, ackNum = carrier, throwawayNum = 1, events = rig.bytes("abcd"))
+        rig.fromServer(oldNum = 1, newNum = 10, ackNum = carrier, throwawayNum = 1, events = rig.bytes("xbcd"))
         assertEquals("$ a", rig.output.toString())
         assertEquals(1, rig.transport.recoveries)
 
@@ -510,7 +563,7 @@ class TransportTest {
         connected(rig)
         rig.fromServer(oldNum = 1, newNum = 2, ackNum = rig.newestSent, events = rig.bytes("a"))
         rig.advance(20)
-        rig.fromServer(oldNum = 1, newNum = 9, ackNum = rig.newestSent, throwawayNum = 1, events = rig.bytes("abc"))
+        rig.fromServer(oldNum = 1, newNum = 9, ackNum = rig.newestSent, throwawayNum = 1, events = rig.bytes("xbc"))
         rig.advance(20)
         assertEquals("80x23", rig.userEvents(rig.instructions.last().second))
 
@@ -518,7 +571,7 @@ class TransportTest {
         // already, so what it sends is an ordinary update that does not fit.
         var serverState = 20L
         repeat(30) {
-            rig.fromServer(oldNum = 1, newNum = serverState++, ackNum = rig.newestSent, throwawayNum = 1, events = rig.bytes("abc$it"))
+            rig.fromServer(oldNum = 1, newNum = serverState++, ackNum = rig.newestSent, throwawayNum = 1, events = rig.bytes("x$it"))
             rig.advance(100)
         }
         assertEquals(2, rig.transport.recoveries)
@@ -630,7 +683,7 @@ class TransportTest {
         rig.advance(20)
         // The server's attempts all start from states that are not held here.
         repeat(5) {
-            rig.fromServer(oldNum = 1, newNum = SHUTDOWN_STATE, ackNum = 1, throwawayNum = 1, events = rig.bytes("abye"))
+            rig.fromServer(oldNum = 1, newNum = SHUTDOWN_STATE, ackNum = 1, throwawayNum = 1, events = rig.bytes("xbye"))
             rig.advance(20)
         }
         assertFalse(rig.transport.finished)
@@ -650,7 +703,7 @@ class TransportTest {
         connected(rig)
         rig.fromServer(oldNum = 1, newNum = 2, ackNum = rig.newestSent, events = rig.bytes("a"))
         rig.advance(20)
-        rig.fromServer(oldNum = 1, newNum = SHUTDOWN_STATE, ackNum = 1, throwawayNum = 1, events = rig.bytes("abye"))
+        rig.fromServer(oldNum = 1, newNum = SHUTDOWN_STATE, ackNum = 1, throwawayNum = 1, events = rig.bytes("xbye"))
         rig.advance(100)
         rig.fromServer(oldNum = 2, newNum = SHUTDOWN_STATE, ackNum = rig.newestSent, throwawayNum = 2, events = rig.bytes("bye"))
         rig.advance(30)

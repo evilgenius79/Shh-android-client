@@ -84,16 +84,15 @@ public interface MoshListener {
  * - **No local echo prediction.** Keystrokes show when the server's answer arrives.
  * - **One screen state.** The reference client keeps a terminal of its own for every state the
  *   server may still refer to. This one passes output on, so it can only use an update that
- *   builds on the screen it showed last; any other is skipped and the server is told again what
- *   is shown here. Nothing is ever applied to the wrong screen and nothing is lost for good, but
- *   it costs time where the round trip is noticeable. The server makes two updates per round
- *   trip, and the second is often made before it can know that the first has arrived, from a
- *   screen this client no longer has. Measured against mosh-server 1.4 with a 100 ms round
- *   trip: a key typed on its own is echoed after 110 ms, keys typed in quick succession after
- *   160 ms (median); steadily scrolling output arrives as about ten screens a second with an
- *   occasional pause of 300 ms, where the reference client would show twenty. After a lost
- *   datagram the wait is one retransmission timeout of the server, as it is for the reference
- *   client. With a round trip below 20 ms there is no difference.
+ *   builds on the screen it shows, or one that begins with exactly what has been shown since
+ *   the screen it builds on. Any other is skipped and the server is told again what is shown
+ *   here. Nothing is ever applied to the wrong screen and nothing is lost for good. Typing does
+ *   not suffer: measured against mosh-server 1.4 over a simulated path with a 100 ms round
+ *   trip, keys are echoed after 110 to 160 ms, which is as fast as the server sends. Output
+ *   that keeps scrolling does: about half of the server's updates are skipped then, so that
+ *   eleven screens a second arrive where the server sends twenty, with pauses of up to a sixth
+ *   of a second. With a round trip below 20 ms there is no difference. After a lost datagram
+ *   the wait is one retransmission timeout of the server, as it is for the reference client.
  * - Pasted input is sent in instalments of at most 2 KiB, a few at a time, rather than at once.
  *
  * @param host the server's address, ideally the IP address the SSH connection was made to
