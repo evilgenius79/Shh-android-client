@@ -574,6 +574,25 @@ class SshConnectionTest {
         assertTrue(error.failure == SshFailure.PROTOCOL || error.failure == SshFailure.IO, "was ${error.failure}")
     }
 
+    @Test
+    fun aServerThatHangsUpAtOnceIsExplained() {
+        // What a client sees of an OpenSSH server that is turning its address away for a while
+        // after failed logins, or that has too many logins under way.
+        val door = ServerSocket(0)
+        open.add(door)
+        Thread {
+            runCatching {
+                while (true) door.accept().close()
+            }
+        }.apply { isDaemon = true }.start()
+        val error = assertFailsWith<SshConnectException> {
+            SshConnector.connect(SshTarget("127.0.0.1", door.localPort, "alice"), hostKeys, prompts)
+        }
+        assertEquals(SshFailure.IO, error.failure, "not a refusal of the login, and nothing a setting would cure")
+        assertTrue(error.message!!.startsWith("127.0.0.1:${door.localPort} hung up at once."), error.message)
+        assertTrue("wait a minute and try again" in error.message!!, error.message)
+    }
+
     // ----- port forwarding -----
 
     @Test

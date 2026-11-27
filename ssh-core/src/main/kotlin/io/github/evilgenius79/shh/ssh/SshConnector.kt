@@ -318,6 +318,17 @@ object SshConnector {
             return SshConnectException(SshFailure.UNREACHABLE, "The jump host could not reach $where: ${it.message}", error)
         }
         if (error is LoginInterruptedException) return interruptedLogin(where, error)
+        // The server took the connection and dropped it without a word. Current OpenSSH does
+        // that for a while to an address with several failed logins behind it, and any version
+        // when too many logins are under way.
+        chain.firstOrNull { it is TransportException && it.message?.contains("identification exchange") == true }?.let {
+            return SshConnectException(
+                SshFailure.IO,
+                "$where hung up at once. Servers do that for a while after several failed logins from one address, " +
+                    "or when too many logins are under way: wait a minute and try again.",
+                error,
+            )
+        }
         if (error is UserAuthException) {
             val methods = runCatching { client.userAuth.allowedMethods.toList() }.getOrDefault(emptyList())
             return SshConnectException(

@@ -83,6 +83,14 @@ MACs hmac-sha1
 LogLevel VERBOSE
 CONF
 
+    # OpenSSH 9.8 and later turn an address away for a while after a few failed logins from it
+    # (PerSourcePenalties). The tests fail logins on purpose, all of them from 127.0.0.1, and
+    # would then find the door shut. Older versions do not know the option, hence the probe.
+    if /usr/sbin/sshd -t -f "$DIR/sshd_config" -o "PerSourcePenalties no" 2>/dev/null; then
+        echo "PerSourcePenalties no" >> "$DIR/sshd_config"
+        echo "PerSourcePenalties no" >> "$DIR/sshd_config_legacy"
+    fi
+
     /usr/sbin/sshd -f "$DIR/sshd_config" -E "$DIR/sshd.log"
     /usr/sbin/sshd -f "$DIR/sshd_config_legacy" -E "$DIR/sshd-legacy.log"
     sleep 0.5

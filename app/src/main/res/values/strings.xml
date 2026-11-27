@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Shh</string>
+    <string name="app_name" translatable="false">Shh</string>
     <string name="channel_sessions">Open sessions</string>
     <string name="channel_sessions_description">Shown while SSH sessions are open so that they stay connected in the background.</string>
     <plurals name="notification_sessions">
