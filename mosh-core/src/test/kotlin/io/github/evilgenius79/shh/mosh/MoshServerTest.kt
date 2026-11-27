@@ -511,6 +511,24 @@ class MoshServerTest {
     }
 
     @Test
+    fun `a server whose client is gone for good ends itself when it was told how long to wait`() {
+        // What becomes of a session when the client's process is killed: nothing tells the server.
+        val limited = TestServer.startWith(listOf("/bin/sh", "-c", MoshBootstrap.serverCommand("C.UTF-8", abandonAfterSeconds = 4))).also { servers.add(it) }
+        val unlimited = TestServer.startWith(listOf("/bin/sh", "-c", MoshBootstrap.serverCommand("C.UTF-8"))).also { servers.add(it) }
+        for (server in listOf(limited, unlimited)) {
+            val screen = TestScreen(80, 24)
+            val client = connect(server, screen)
+            client.type("echo alive-\$((5+5))\n")
+            screen.awaitScreen("the session to work") { "alive-10" in it }
+        }
+        // From now on nothing the clients send arrives, their goodbye included.
+        network.blackoutOut = true
+
+        assertTrue(limited.awaitExit(20_000), "the server that was given four seconds is still waiting")
+        assertTrue(unlimited.isRunning(), "a server without a limit waits for its client, as Mosh means it to")
+    }
+
+    @Test
     fun `leaving the remote shell closes the session`() {
         val server = server()
         val screen = TestScreen(80, 24)

@@ -33,6 +33,11 @@ data class Host(
     val internetProtocol: InternetProtocol = InternetProtocol.AUTOMATIC,
     /** Lend the keys stored in the app to programs on this server (agent forwarding). */
     val forwardAgent: Boolean = false,
+    /**
+     * Run the terminal over Mosh: log in with SSH, start a Mosh server there and talk to it over
+     * UDP from then on. Such a session survives changes of network and long silences.
+     */
+    val useMosh: Boolean = false,
 ) {
     /** `user@host` plus the port when it is not 22. */
     val address: String

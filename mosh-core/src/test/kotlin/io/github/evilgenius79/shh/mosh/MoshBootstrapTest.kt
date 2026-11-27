@@ -69,6 +69,13 @@ class MoshBootstrapTest {
             MoshBootstrap.serverCommand("de_DE.UTF-8", "60000:60010"),
         )
         assertEquals("mosh-server new -s -c 256 -l LANG=C.UTF-8 -p 61000", MoshBootstrap.serverCommand("C.UTF-8", "61000"))
+        assertEquals(
+            "env MOSH_SERVER_NETWORK_TMOUT=86400 mosh-server new -s -c 256 -l LANG=en_US.UTF-8 || " +
+                "env MOSH_SERVER_NETWORK_TMOUT=86400 mosh-server new -s -c 256 -l LANG=C.UTF-8",
+            MoshBootstrap.serverCommand(abandonAfterSeconds = 86400),
+        )
+        assertFailsWith<IllegalArgumentException> { MoshBootstrap.serverCommand(abandonAfterSeconds = 0) }
+        assertFailsWith<IllegalArgumentException> { MoshBootstrap.serverCommand(abandonAfterSeconds = -5) }
     }
 
     @Test

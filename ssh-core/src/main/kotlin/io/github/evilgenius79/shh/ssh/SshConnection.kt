@@ -52,6 +52,14 @@ class SshConnection internal constructor(
     }
 
     /**
+     * The address this connection was made to, as text, when it was made directly: the one
+     * among the host name's addresses that answered. Null for a connection through jump hosts,
+     * which ends at an address only the last jump host can see.
+     */
+    val remoteAddress: String?
+        get() = if (clients.size == 1) client.remoteAddress?.hostAddress else null
+
+    /**
      * True once the server agreed to forward the agent on some session of this connection.
      * Servers can be configured to refuse (`AllowAgentForwarding no`).
      */

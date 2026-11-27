@@ -80,6 +80,7 @@ kotlin {
 dependencies {
     implementation(project(":terminal-core"))
     implementation(project(":ssh-core"))
+    implementation(project(":mosh-core"))
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)

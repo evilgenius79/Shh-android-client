@@ -5,6 +5,9 @@ import io.github.evilgenius79.shh.data.ForwardKind
 import io.github.evilgenius79.shh.data.Host
 import io.github.evilgenius79.shh.data.InternetProtocol
 import io.github.evilgenius79.shh.data.SecretBox
+import io.github.evilgenius79.shh.mosh.MoshBootstrap
+import io.github.evilgenius79.shh.mosh.MoshClient
+import io.github.evilgenius79.shh.mosh.MoshListener
 import io.github.evilgenius79.shh.ssh.ConnectOptions
 import io.github.evilgenius79.shh.ssh.HostKeyDecision
 import io.github.evilgenius79.shh.ssh.HostKeyRequest
@@ -34,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.IOException
+import java.net.DatagramSocket
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -134,11 +138,27 @@ class SessionEnvironment(
      * list is used up the session gives up.
      */
     val reconnectDelaysMs: List<Long> = DEFAULT_RECONNECT_DELAYS_MS,
+    /** The command that starts a Mosh server on a host, for hosts set to use Mosh. */
+    val moshServerCommand: String = MoshBootstrap.serverCommand(abandonAfterSeconds = MOSH_ABANDON_AFTER_SECONDS),
+    /** Makes the UDP sockets of Mosh sessions. */
+    val moshSockets: () -> DatagramSocket = { DatagramSocket() },
+    /**
+     * How long a Mosh server that was just started gets to answer over UDP. When nothing comes,
+     * usually because a firewall does not let UDP through, the session carries on over SSH.
+     */
+    val moshFirstContactMs: Long = 8_000,
 ) {
     companion object {
         /** Quick at first, for a network that only blinked; then patient, for about five minutes. */
         val DEFAULT_RECONNECT_DELAYS_MS: List<Long> =
             listOf(1_000, 2_000, 5_000, 10_000, 20_000, 30_000, 30_000, 30_000, 30_000, 30_000, 60_000, 60_000)
+
+        /**
+         * A Mosh server that has not heard from the app for this long ends itself and the
+         * programs under it. Without a limit, every session whose app was killed would stay
+         * behind on the server for good. A week rides out a phone that was off for some days.
+         */
+        const val MOSH_ABANDON_AFTER_SECONDS = 7 * 24 * 60 * 60
     }
 }
 
@@ -171,6 +191,22 @@ class TerminalSession(
     /** Port forwards currently running on this session. */
     val forwards: StateFlow<List<PortForward>> = forwardsFlow.asStateFlow()
 
+    private val moshFlow = MutableStateFlow(false)
+
+    /**
+     * True while the terminal runs over Mosh. The SSH connection is gone then, and with it what
+     * only SSH can do: files, port forwards, the forwarded agent.
+     */
+    val isMosh: StateFlow<Boolean> = moshFlow.asStateFlow()
+
+    private val silenceFlow = MutableStateFlow(0L)
+
+    /**
+     * For how many milliseconds the server of a Mosh session has not been heard from; 0 while
+     * all is well. Silence is no error to Mosh: the session goes on when the server is back.
+     */
+    val silentForMs: StateFlow<Long> = silenceFlow.asStateFlow()
+
     /** Invoked (on any thread) whenever the screen content changed and should be redrawn. */
     @Volatile
     var onScreenChanged: (() -> Unit)? = null
@@ -181,6 +217,10 @@ class TerminalSession(
 
     @Volatile
     private var shell: SshShell? = null
+
+    /** The Mosh session the terminal runs over, once it has taken over from SSH. */
+    @Volatile
+    private var mosh: MoshClient? = null
     private val closed = AtomicBoolean(false)
     private var writer: ExecutorService = newWriter()
     private var columns = 80
@@ -247,6 +287,8 @@ class TerminalSession(
      */
     fun retryNow() {
         if (stateFlow.value is SessionState.Reconnecting) reconnectWait?.interrupt()
+        // A Mosh session has nothing to reconnect: it carries on from a new socket.
+        mosh?.rebind()
     }
 
     /** Gives up getting the connection back; the session is then simply disconnected. */
@@ -312,7 +354,11 @@ class TerminalSession(
                 return
             }
             connection = newConnection
-            newConnection.onDisconnect { reason -> if (attempt == generation) onConnectionLost(reason) }
+            // Only while this is the connection the session lives on: one that Mosh has taken
+            // over from is closed on purpose.
+            newConnection.onDisconnect { reason -> if (attempt == generation && connection === newConnection) onConnectionLost(reason) }
+
+            if (host.useMosh && startMosh(newConnection, attempt)) return
 
             val (cols, lines) = synchronized(emulator) { columns to rows }
             val newShell = newConnection.openShell(host.termType, cols, lines, cols * cellWidthPx, lines * cellHeightPx, mapOf("LANG" to "C.UTF-8"))
@@ -330,6 +376,132 @@ class TerminalSession(
         } catch (e: java.security.GeneralSecurityException) {
             if (attempt == generation && !closed.get()) fail("A saved secret could not be decrypted: ${e.message}", SshFailure.IO)
         }
+    }
+
+    // ----- Mosh -----
+
+    /** Where a Mosh session stands between its start and taking over the terminal. */
+    private enum class MoshStage { WAITING, ACTIVE, GIVEN_UP }
+
+    /**
+     * Starts a Mosh server through [ssh] and hands the terminal over to it once it answers.
+     *
+     * @return true when Mosh has taken over, or the session ended meanwhile. False when Mosh is
+     * not to be had; a line in the terminal says why, and the caller carries on over SSH.
+     */
+    private fun startMosh(ssh: SshConnection, attempt: Int): Boolean {
+        onProgress("Starting Mosh on the server")
+        val started = try {
+            ssh.execute(environment.moshServerCommand, timeoutSeconds = 30)
+        } catch (e: IOException) {
+            printNotice("Mosh could not be started: ${e.message}. Carrying on over SSH")
+            return false
+        }
+        val where = MoshBootstrap.parseConnect(started.stdout)
+        if (where == null) {
+            // What the shell or the server said about it, such as "mosh-server: command not found".
+            val said = (started.stderr.lines() + started.stdout.lines()).map { it.trim() }.lastOrNull { it.isNotEmpty() }
+            printNotice("Mosh could not be started on this host" + (said?.let { " ($it)" } ?: "") + ". Is it installed there? Carrying on over SSH")
+            return false
+        }
+        val (port, key) = where
+        if (attempt != generation || closed.get()) return true
+
+        val lock = Any()
+        var stage = MoshStage.WAITING
+        val answered = java.util.concurrent.CountDownLatch(1)
+        val (cols, lines) = synchronized(emulator) { columns to rows }
+        lateinit var client: MoshClient
+        val listener = object : MoshListener {
+            override fun onOutput(data: ByteArray) {
+                synchronized(lock) {
+                    if (stage == MoshStage.GIVEN_UP || attempt != generation || closed.get()) return
+                    if (stage == MoshStage.WAITING) {
+                        stage = MoshStage.ACTIVE
+                        takeOver(client, ssh, cols, lines)
+                        // The session was closed in that very moment: nobody else knows of this client.
+                        if (attempt != generation || closed.get()) {
+                            if (mosh === client) mosh = null
+                            client.close()
+                            return
+                        }
+                    }
+                }
+                synchronized(emulator) { emulator.append(data, 0, data.size) }
+                onScreenChanged?.invoke()
+                answered.countDown()
+            }
+
+            override fun onResize(columns: Int, rows: Int) {
+                // The server's screen is the one that counts: what it sends next is drawn for it.
+                synchronized(emulator) { emulator.resize(columns, rows) }
+                onScreenChanged?.invoke()
+            }
+
+            override fun onContact(silentForMs: Long) {
+                if (mosh === client) silenceFlow.value = silentForMs
+            }
+
+            override fun onClosed(error: String?) {
+                val wasActive = synchronized(lock) { stage == MoshStage.ACTIVE }
+                if (!wasActive || mosh !== client || attempt != generation || closed.get()) return
+                if (error != null) {
+                    finish(error, SshFailure.IO)
+                } else {
+                    finish("Session ended", null)
+                    environment.onShellExited(this@TerminalSession, System.currentTimeMillis() - lastUserInputAt <= EXIT_FOLLOWS_INPUT_MS)
+                }
+            }
+        }
+        // The address the SSH connection reached, so that UDP goes to the same machine.
+        client = MoshClient(ssh.remoteAddress ?: host.host, port, key, cols, lines, listener, environment.moshSockets)
+        onProgress("Waiting for Mosh to answer on UDP port $port")
+        client.start()
+        val inTime = try {
+            answered.await(environment.moshFirstContactMs, java.util.concurrent.TimeUnit.MILLISECONDS)
+        } catch (_: InterruptedException) {
+            false
+        }
+        val stale = attempt != generation || closed.get()
+        val givenUp = synchronized(lock) {
+            if (stage == MoshStage.WAITING || stale) stage = MoshStage.GIVEN_UP
+            stage == MoshStage.GIVEN_UP
+        }
+        if (!givenUp) return true
+        client.close()
+        if (stale) return true
+        // The server that was started ends itself when no client turns up within a minute.
+        printNotice(
+            "Mosh did not answer on UDP port $port" + (if (inTime) "" else " within ${environment.moshFirstContactMs / 1000} seconds") +
+                ". A firewall may be in the way. Carrying on over SSH",
+        )
+        return false
+    }
+
+    /**
+     * The first answer from the Mosh server is here: from now on the terminal is its. Mosh sends
+     * what changes on a screen that starts out blank and is as large as the client said, so the
+     * emulator is made exactly that, and nothing but Mosh writes to it while the session lasts.
+     */
+    private fun takeOver(client: MoshClient, ssh: SshConnection, columnsAtStart: Int, rowsAtStart: Int) {
+        val (columnsNow, rowsNow) = synchronized(emulator) {
+            emulator.resize(columnsAtStart, rowsAtStart)
+            emulator.reset()
+            columns to rows
+        }
+        mosh = client
+        moshFlow.value = true
+        silenceFlow.value = 0
+        // The view may have changed its size while the server was being started.
+        if (columnsNow != columnsAtStart || rowsNow != rowsAtStart) client.resize(columnsNow, rowsNow)
+        stateFlow.value = SessionState.Connected
+        environment.onConnected(host)
+        if (host.startupCommand.isNotBlank()) client.send((host.startupCommand + "\r").toByteArray(Charsets.UTF_8))
+        // SSH has done its part. Without it there are no port forwards and no files, and nothing
+        // that breaks when the network changes.
+        if (connection === ssh) connection = null
+        forwardsFlow.value = emptyList()
+        Thread({ ssh.close() }, "shh-close-$id").apply { isDaemon = true }.start()
     }
 
     /** Reads a stored key, with its certificate when it has a usable one. */
@@ -486,6 +658,12 @@ class TerminalSession(
         shell = null
         forwardsFlow.value = emptyList()
         if (old != null) Thread({ old.close() }, "shh-close-$id").apply { isDaemon = true }.start()
+        val oldMosh = mosh
+        mosh = null
+        moshFlow.value = false
+        silenceFlow.value = 0
+        // Tells the server that the session is over, so that it does not wait for the app.
+        oldMosh?.close()
     }
 
     /** Writes a line into the terminal that comes from the app rather than from the server. */
@@ -513,6 +691,10 @@ class TerminalSession(
      * this is safe on the main thread and also serves as the emulator's way to answer queries.
      */
     override fun write(data: ByteArray) {
+        mosh?.let {
+            it.send(data)
+            return
+        }
         val target = shell ?: return
         try {
             writer.execute {
@@ -555,7 +737,13 @@ class TerminalSession(
             if (newColumns == columns && newRows == rows) return
             columns = newColumns
             rows = newRows
-            emulator.resize(newColumns, newRows)
+            // With Mosh the emulator follows the server: it gets its new size when the server
+            // says that its screen has it, right before the screen is drawn afresh for it.
+            if (mosh == null) emulator.resize(newColumns, newRows)
+        }
+        mosh?.let {
+            it.resize(newColumns, newRows)
+            return
         }
         val target = shell ?: return
         try {

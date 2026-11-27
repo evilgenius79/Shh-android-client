@@ -34,19 +34,31 @@ public object MoshBootstrap {
      * at all. So when [locale] is something else, the command tries again with `C.UTF-8` if the
      * first attempt fails.
      *
+     * A server whose client never comes back stays behind for good, with the remote program
+     * still running: that is how Mosh rides out long silences, and what becomes of a session
+     * when the client's process is killed. [abandonAfterSeconds] puts a limit on it: the server
+     * ends itself when it has heard nothing from its client for that long
+     * (`MOSH_SERVER_NETWORK_TMOUT`, which mosh-server knows since version 1.3).
+     *
      * @param locale value for `LANG` on the remote side if its own locale is not UTF-8
      * @param udpPorts UDP port, or range `low:high`, for the server to choose from; by default
      *   it takes the first free port from 60001 to 60999
+     * @param abandonAfterSeconds how long a server waits for a client that has gone silent
+     *   before it gives up, or null to have it wait for ever
      * @throws IllegalArgumentException if an argument is not of the expected form (they end up
      *   on a shell command line)
      */
-    public fun serverCommand(locale: String = "en_US.UTF-8", udpPorts: String? = null): String {
+    public fun serverCommand(locale: String = "en_US.UTF-8", udpPorts: String? = null, abandonAfterSeconds: Int? = null): String {
         require(LOCALE.matches(locale)) { "Not a locale name: $locale" }
         require(udpPorts == null || UDP_PORTS.matches(udpPorts)) { "Not a UDP port or port range: $udpPorts" }
+        require(abandonAfterSeconds == null || abandonAfterSeconds > 0) { "Not a number of seconds: $abandonAfterSeconds" }
         val ports = if (udpPorts != null) " -p $udpPorts" else ""
-        val first = "mosh-server new -s -c 256 -l LANG=$locale$ports"
+        // "env" rather than an assignment in front of the command: the remote login shell may be
+        // one that does not know that notation.
+        val server = (if (abandonAfterSeconds != null) "env MOSH_SERVER_NETWORK_TMOUT=$abandonAfterSeconds " else "") + "mosh-server new -s -c 256"
+        val first = "$server -l LANG=$locale$ports"
         if (locale.equals(FALLBACK_LOCALE, ignoreCase = true)) return first
-        return "$first || mosh-server new -s -c 256 -l LANG=$FALLBACK_LOCALE$ports"
+        return "$first || $server -l LANG=$FALLBACK_LOCALE$ports"
     }
 
     /**
