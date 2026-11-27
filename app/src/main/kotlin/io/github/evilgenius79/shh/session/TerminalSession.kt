@@ -757,6 +757,24 @@ class TerminalSession(
         }
     }
 
+    /**
+     * Puts the terminal back into its initial state, for when a program left it in a mess. Over
+     * SSH that is the emulator's business alone. Over Mosh the server keeps the screen, and
+     * wiping it here would leave the two out of step: the server is made to draw its screen
+     * afresh instead, which it does for a terminal that changed its size.
+     */
+    fun resetTerminal() {
+        val client = mosh
+        if (client == null) {
+            synchronized(emulator) { emulator.reset() }
+            onScreenChanged?.invoke()
+            return
+        }
+        val (cols, lines) = synchronized(emulator) { columns to rows }
+        if (lines > 1) client.resize(cols, lines - 1)
+        client.resize(cols, lines)
+    }
+
     /** Ends the session for good. */
     fun close() {
         if (!closed.compareAndSet(false, true)) return

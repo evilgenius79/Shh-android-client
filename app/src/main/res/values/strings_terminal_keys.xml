@@ -9,6 +9,18 @@
     <string name="terminal_connecting">Connecting…</string>
     <!-- Shown under the title of a session, and in the bar below the terminal, while a lost connection is being set up again. -->
     <string name="terminal_reconnecting">Reconnecting…</string>
+    <!-- Shown under the terminal of a session that runs over Mosh while the server is not answering. %1$d is the number of seconds. -->
+    <plurals name="terminal_mosh_silent_seconds">
+        <item quantity="one">The server has not answered for %1$d second.</item>
+        <item quantity="other">The server has not answered for %1$d seconds.</item>
+    </plurals>
+    <!-- The same once it has been two minutes or more. %1$d is the number of minutes. -->
+    <plurals name="terminal_mosh_silent_minutes">
+        <item quantity="one">The server has not answered for %1$d minute.</item>
+        <item quantity="other">The server has not answered for %1$d minutes.</item>
+    </plurals>
+    <!-- Second line of that notice. Mosh is a name. -->
+    <string name="terminal_mosh_silent_explanation">Mosh keeps the session. It goes on by itself when the server can be reached again, also from another network.</string>
     <!-- The same from the second attempt on. %1$d is the number of the attempt, 2 or more. -->
     <string name="terminal_reconnecting_attempt">Reconnecting, attempt %1$d…</string>
     <!-- Spoken by screen readers for the arrow that leads from the terminal back to the list of hosts. -->

@@ -663,6 +663,23 @@ class ScreensTest {
     }
 
     @Test
+    fun whileAMoshServerIsSilentTheScreenSaysForHowLong() {
+        var silent by androidx.compose.runtime.mutableStateOf(1_000L)
+        show { io.github.evilgenius79.shh.ui.MoshSilentBar(silent) }
+        compose.onNodeWithText("The server has not answered for 1 second.").assertIsDisplayed()
+        silent = 12_400
+        compose.onNodeWithText("The server has not answered for 12 seconds.").assertIsDisplayed()
+        compose.onNodeWithText("Mosh keeps the session. It goes on by itself when the server can be reached again, also from another network.").assertIsDisplayed()
+        shot("mosh-silent")
+        silent = 119_999
+        compose.onNodeWithText("The server has not answered for 119 seconds.").assertIsDisplayed()
+        silent = 125_000
+        compose.onNodeWithText("The server has not answered for 2 minutes.").assertIsDisplayed()
+        silent = 3_700_000
+        compose.onNodeWithText("The server has not answered for 61 minutes.").assertIsDisplayed()
+    }
+
+    @Test
     fun whileReconnectingTheBarSaysSoAndLetsTheUserHurryOrStopIt() {
         var tries = 0
         var stops = 0

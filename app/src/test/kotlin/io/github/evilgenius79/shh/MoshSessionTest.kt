@@ -112,6 +112,15 @@ class MoshSessionTest {
         waitFor("the emulator to get the server's new size") { synchronized(session.emulator) { session.emulator.columns to session.emulator.rows } == 100 to 30 }
         session.run("stty size", "30 100")
 
+        // "Reset terminal" must not wipe a screen that only the server can draw again: it has
+        // the server draw it afresh, and what was there is there again afterwards.
+        session.run("clear; echo keep-\$((30+3))", "keep-33")
+        session.resetTerminal()
+        Thread.sleep(1_500)
+        waitFor("the screen to be drawn again") { session.screen().lines().any { it.trim() == "keep-33" } }
+        assertEquals(100 to 30, synchronized(session.emulator) { session.emulator.columns to session.emulator.rows }, "and the size is what it was")
+        session.run("stty size", "30 100")
+
         // The network changed: the session carries on from a new socket, with nothing to log in to.
         session.retryNow()
         session.run("echo after-\$((1+1))", "after-2")

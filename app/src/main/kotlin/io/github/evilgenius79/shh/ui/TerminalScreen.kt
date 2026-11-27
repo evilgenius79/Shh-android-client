@@ -55,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -99,6 +100,9 @@ fun TerminalScreen(
     val state by active.state.collectAsStateCompat()
     val title by active.title.collectAsStateCompat()
     val prompt by active.prompt.collectAsStateCompat()
+    // Over Mosh there is no SSH connection, and so nothing of what only SSH can do.
+    val overMosh by active.isMosh.collectAsStateCompat()
+    val silentForMs by active.silentForMs.collectAsStateCompat()
     var menuOpen by remember { mutableStateOf(false) }
     var showSnippets by remember { mutableStateOf(false) }
     var showForwards by remember { mutableStateOf(false) }
@@ -160,9 +164,9 @@ fun TerminalScreen(
                             }
                             entry(R.string.terminal_menu_new_session, R.drawable.ic_add) { onNewSession() }
                             entry(R.string.terminal_menu_snippets, R.drawable.ic_code, enabled = active.isConnected) { showSnippets = true }
-                            entry(R.string.terminal_menu_files, R.drawable.ic_folder, enabled = active.isConnected) { onOpenFiles(active) }
-                            entry(R.string.terminal_menu_port_forwards, R.drawable.ic_swap_horiz, enabled = active.isConnected) { showForwards = true }
-                            entry(R.string.terminal_menu_install_key, R.drawable.ic_key, enabled = active.isConnected && identities.isNotEmpty()) {
+                            entry(R.string.terminal_menu_files, R.drawable.ic_folder, enabled = active.isConnected && !overMosh) { onOpenFiles(active) }
+                            entry(R.string.terminal_menu_port_forwards, R.drawable.ic_swap_horiz, enabled = active.isConnected && !overMosh) { showForwards = true }
+                            entry(R.string.terminal_menu_install_key, R.drawable.ic_key, enabled = active.isConnected && !overMosh && identities.isNotEmpty()) {
                                 showInstallKey = true
                             }
                             HorizontalDivider()
@@ -176,7 +180,7 @@ fun TerminalScreen(
                             entry(R.string.terminal_menu_show_keyboard, R.drawable.ic_keyboard) { terminalView?.showKeyboard() }
                             entry(R.string.terminal_menu_how_to_use, R.drawable.ic_help) { onHelp() }
                             entry(R.string.terminal_menu_reset, R.drawable.ic_restart_alt) {
-                                synchronized(active.emulator) { active.emulator.reset() }
+                                active.resetTerminal()
                                 terminalView?.invalidate()
                             }
                             HorizontalDivider()
@@ -255,6 +259,7 @@ fun TerminalScreen(
             (state as? SessionState.Reconnecting)?.let {
                 ReconnectingBar(it, onTryNow = { active.retryNow() }, onStop = { active.stopReconnecting() })
             }
+            if (overMosh && silentForMs > 0) MoshSilentBar(silentForMs)
             if (keyBarShown(settings)) {
                 ExtraKeys(
                     ctrl = ctrl,
@@ -451,6 +456,30 @@ internal fun ReconnectingBar(state: SessionState.Reconnecting, onTryNow: () -> U
                 TextButton(onClick = onStop) { Text(stringResource(R.string.terminal_reconnect_stop), softWrap = false) }
                 Button(onClick = onTryNow) { Text(stringResource(R.string.terminal_reconnect_try_now), softWrap = false) }
             }
+        }
+    }
+}
+
+/**
+ * Shown while the server of a Mosh session has not been heard from for [silentForMs]. There is
+ * nothing to do about it and nothing is lost: the session goes on when the server answers again.
+ */
+@Composable
+internal fun MoshSilentBar(silentForMs: Long, modifier: Modifier = Modifier) {
+    val seconds = (silentForMs / 1000).toInt().coerceAtLeast(1)
+    Surface(modifier.fillMaxWidth(), tonalElevation = 6.dp, shadowElevation = 6.dp) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+            Text(
+                // Past two minutes the seconds no longer matter.
+                if (seconds < 120) pluralStringResource(R.plurals.terminal_mosh_silent_seconds, seconds, seconds)
+                else pluralStringResource(R.plurals.terminal_mosh_silent_minutes, seconds / 60, seconds / 60),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                stringResource(R.string.terminal_mosh_silent_explanation),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
