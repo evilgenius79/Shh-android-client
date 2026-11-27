@@ -176,6 +176,127 @@ class TerminalViewRenderTest {
     }
 
     @Test
+    fun aSelectionEndsWhenTheScreenSizeChanges() {
+        val session = session()
+        val view = laidOutView(session, columns = 40, rows = 10)
+        synchronized(session.emulator) { for (i in 1..30) session.emulator.append("word$i and some more text\r\n") }
+        val (cellWidth, cellHeight) = view.sizeFor(1, 1)
+        val start = android.os.SystemClock.uptimeMillis()
+        touch(view, android.view.MotionEvent.ACTION_DOWN, cellWidth * 1.5f, cellHeight * 4.5f, start, start)
+        org.robolectric.shadows.ShadowLooper.idleMainLooper(
+            android.view.ViewConfiguration.getLongPressTimeout() + 200L,
+            java.util.concurrent.TimeUnit.MILLISECONDS,
+        )
+        touch(view, android.view.MotionEvent.ACTION_UP, cellWidth * 1.5f, cellHeight * 4.5f, start, start + 700)
+        assertEquals("word26", view.selectedText())
+
+        // Laying the view out again at the same size changes nothing.
+        view.layout(0, 0, view.width, view.height)
+        assertEquals("word26", view.selectedText())
+
+        // The keyboard opens and leaves room for six rows: every line moves up, so the positions
+        // that were selected now hold other text. The selection must not silently follow them.
+        val (width, height) = view.sizeFor(40, 6)
+        view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+        view.layout(0, 0, width, height)
+        assertEquals(6, session.emulator.rows)
+        assertEquals(null, view.selectedText())
+    }
+
+    /** Two fingers at [first] and [second]; [action] says what they are doing. */
+    private fun twoFingers(view: View, action: Int, first: Pair<Float, Float>, second: Pair<Float, Float>, downTime: Long, eventTime: Long) {
+        val properties = Array(2) { index ->
+            android.view.MotionEvent.PointerProperties().apply {
+                id = index
+                toolType = android.view.MotionEvent.TOOL_TYPE_FINGER
+            }
+        }
+        val coords = arrayOf(first, second).map { (x, y) ->
+            android.view.MotionEvent.PointerCoords().apply {
+                this.x = x
+                this.y = y
+                pressure = 1f
+                size = 1f
+            }
+        }.toTypedArray()
+        val event = android.view.MotionEvent.obtain(
+            downTime, eventTime, action, 2, properties, coords, 0, 0, 1f, 1f, 0, 0,
+            android.view.InputDevice.SOURCE_TOUCHSCREEN, 0,
+        )
+        view.dispatchTouchEvent(event)
+        event.recycle()
+    }
+
+    /**
+     * Puts two fingers on the view [from] pixels apart, one above the other, and moves them until
+     * they are [to] apart. The second finger is lifted first; the first one then keeps moving for
+     * a moment before it is lifted too, as a real hand does.
+     */
+    private fun pinch(view: View, from: Float, to: Float) {
+        val x = view.width / 2f
+        val middle = view.height / 2f
+        val start = android.os.SystemClock.uptimeMillis()
+        val secondFinger = 1 shl android.view.MotionEvent.ACTION_POINTER_INDEX_SHIFT
+        touch(view, android.view.MotionEvent.ACTION_DOWN, x, middle - from / 2, start, start)
+        twoFingers(view, android.view.MotionEvent.ACTION_POINTER_DOWN or secondFinger, x to middle - from / 2, x to middle + from / 2, start, start + 10)
+        val steps = 10
+        for (i in 1..steps) {
+            val span = from + (to - from) * i / steps
+            twoFingers(view, android.view.MotionEvent.ACTION_MOVE, x to middle - span / 2, x to middle + span / 2, start, start + 10 + i * 5L)
+        }
+        twoFingers(view, android.view.MotionEvent.ACTION_POINTER_UP or secondFinger, x to middle - to / 2, x to middle + to / 2, start, start + 65)
+        for (i in 1..5) {
+            touch(view, android.view.MotionEvent.ACTION_MOVE, x, middle - to / 2 + i * 40f, start, start + 65 + i * 5L)
+        }
+        touch(view, android.view.MotionEvent.ACTION_UP, x, middle - to / 2 + 200f, start, start + 95)
+        // Anything the gesture left behind (a long press, a fling) gets its chance to fire.
+        org.robolectric.shadows.ShadowLooper.idleMainLooper(
+            android.view.ViewConfiguration.getLongPressTimeout() + 500L,
+            java.util.concurrent.TimeUnit.MILLISECONDS,
+        )
+    }
+
+    @Test
+    fun pinchingChangesTheTextSizeAndNothingElse() {
+        val session = session()
+        val view = laidOutView(session, columns = 40, rows = 30)
+        synchronized(session.emulator) { for (i in 1..200) session.emulator.append("line $i\r\n") }
+        val reported = ArrayList<Float>()
+        view.onFontSizeChanged = { reported.add(it) }
+        assertEquals(13f, view.fontSizeSp)
+        assertEquals(40, session.emulator.columns)
+
+        // Fingers move apart to twice the distance: the text grows, by a little less than twice
+        // because the first few millimetres only establish that this is a pinch.
+        pinch(view, from = view.height * 0.4f, to = view.height * 0.8f)
+        val enlarged = view.fontSizeSp
+        assertTrue(enlarged in 20f..26f, "about twice 13sp, was $enlarged")
+        assertEquals(enlarged, Math.round(enlarged).toFloat(), "whole steps only")
+        assertEquals(listOf(enlarged), reported, "the new size is reported once, when the pinch ends")
+        assertTrue(session.emulator.columns in 20..26, "fewer columns fit: ${session.emulator.columns}")
+        assertEquals(0, view.scrollOffset, "pinching is not scrolling, and neither is the finger that stays down afterwards")
+        assertEquals(null, view.selectedText(), "nor is it a long press")
+
+        // Fingers move together again.
+        pinch(view, from = view.height * 0.8f, to = view.height * 0.4f)
+        assertTrue(view.fontSizeSp in 10f..14f, "about half of $enlarged, was ${view.fontSizeSp}")
+        assertEquals(listOf(enlarged, view.fontSizeSp), reported)
+        assertEquals(0, view.scrollOffset)
+
+        // It stops at the limits instead of making the text unreadable or enormous.
+        repeat(6) { pinch(view, from = view.height * 0.8f, to = view.height * 0.3f) }
+        assertEquals(TerminalView.MIN_FONT_SP, view.fontSizeSp)
+        repeat(6) { pinch(view, from = view.height * 0.3f, to = view.height * 0.8f) }
+        assertEquals(TerminalView.MAX_FONT_SP, view.fontSizeSp)
+
+        // One finger scrolls as before once the pinch is over.
+        view.fontSizeSp = 13f
+        val cell = view.sizeFor(1, 1).second
+        drag(view, fromY = cell * 1f, toY = cell * 8f)
+        assertTrue(view.scrollOffset in 5..7, "scrolled back by about seven lines, was ${view.scrollOffset}")
+    }
+
+    @Test
     fun emptyTerminalIsFilledWithTheBackgroundAndShowsTheCursor() {
         val session = session(ColorScheme.DEFAULT_LIGHT)
         val view = TerminalView(context)

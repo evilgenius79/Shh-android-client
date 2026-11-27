@@ -159,8 +159,11 @@ class TerminalView(context: Context) : View(context) {
         if (width <= 0 || height <= 0) return
         val columns = floor(width / renderer.cellWidth).toInt().coerceAtLeast(MIN_COLUMNS)
         val rows = (height / renderer.cellHeight).coerceAtLeast(MIN_ROWS)
+        val changed = synchronized(current.emulator) { current.emulator.columns != columns || current.emulator.rows != rows }
         current.resize(columns, rows, renderer.cellWidth.roundToInt(), renderer.cellHeight)
         topRow = 0
+        // A selection is a range of screen positions, and re-wrapping moves the text under them.
+        if (changed) clearSelection()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -494,12 +497,21 @@ class TerminalView(context: Context) : View(context) {
         invalidate()
     }
 
+    /**
+     * True from the moment a pinch starts until every finger has been lifted. For the rest of that
+     * touch nothing else is recognised: a finger left on the screen after pinching must not scroll,
+     * fling, tap or start a selection.
+     */
+    private var pinching = false
+
     private val scaleGestures = ScaleGestureDetector(
         context,
         object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
             private var startSize = 0f
 
             override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+                // A second finger while selecting text is not a pinch.
+                if (selecting) return false
                 startSize = fontSizeSp
                 return true
             }
@@ -529,8 +541,18 @@ class TerminalView(context: Context) : View(context) {
     // looks for the call in this method.
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) pinching = false
         scaleGestures.onTouchEvent(event)
-        if (scaleGestures.isInProgress) return true
+        if (scaleGestures.isInProgress && !pinching) {
+            pinching = true
+            // The other detector saw the start of this touch; tell it that it is over, or it would
+            // work out a fling from the few movements it was given.
+            val cancel = MotionEvent.obtain(event)
+            cancel.action = MotionEvent.ACTION_CANCEL
+            gestures.onTouchEvent(cancel)
+            cancel.recycle()
+        }
+        if (pinching) return true
         if (selecting) {
             when (event.actionMasked) {
                 MotionEvent.ACTION_MOVE -> {
@@ -684,18 +706,20 @@ class TerminalView(context: Context) : View(context) {
         invalidate()
     }
 
-    private companion object {
-        const val BLINK_INTERVAL_MS = 600L
+    companion object {
+        /** The smallest and largest text size, in sp, that pinching or the menu can reach. */
         const val MIN_FONT_SP = 6f
         const val MAX_FONT_SP = 40f
-        const val MIN_COLUMNS = 4
-        const val MIN_ROWS = 2
-        const val MAX_WHEEL_STEPS = 20
-        const val MENU_COPY = 1
-        const val MENU_PASTE = 2
-        const val MENU_SELECT_ALL = 3
+
+        private const val BLINK_INTERVAL_MS = 600L
+        private const val MIN_COLUMNS = 4
+        private const val MIN_ROWS = 2
+        private const val MAX_WHEEL_STEPS = 20
+        private const val MENU_COPY = 1
+        private const val MENU_PASTE = 2
+        private const val MENU_SELECT_ALL = 3
 
         /** Characters that end a word when long-pressing to select. Paths and URLs stay whole. */
-        const val WORD_BREAKS = " \t\"'`()[]{}<>|;,"
+        private const val WORD_BREAKS = " \t\"'`()[]{}<>|;,"
     }
 }

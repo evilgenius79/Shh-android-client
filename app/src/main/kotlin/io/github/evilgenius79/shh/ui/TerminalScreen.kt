@@ -151,8 +151,8 @@ fun TerminalScreen(
                             entry("Install a public key", R.drawable.ic_key, enabled = active.isConnected && identities.isNotEmpty()) { showInstallKey = true }
                             HorizontalDivider()
                             entry("Colours", R.drawable.ic_palette) { showColors = true }
-                            entry("Larger text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp + 1).coerceAtMost(40)) }
-                            entry("Smaller text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp - 1).coerceAtLeast(6)) }
+                            entry("Larger text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp + 1).coerceAtMost(TerminalView.MAX_FONT_SP.toInt())) }
+                            entry("Smaller text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp - 1).coerceAtLeast(TerminalView.MIN_FONT_SP.toInt())) }
                             entry("Reset terminal", R.drawable.ic_restart_alt) {
                                 synchronized(active.emulator) { active.emulator.reset() }
                                 terminalView?.invalidate()

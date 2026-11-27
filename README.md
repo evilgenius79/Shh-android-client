@@ -68,8 +68,9 @@ network.
 
 ## Building
 
-You need JDK 17 or later and the Android SDK (platform 37.2, build tools 36.0.0). Point
-`ANDROID_HOME` at the SDK or create a `local.properties` with `sdk.dir=…`.
+You need JDK 21 (what the project is built and tested with) and the Android SDK (platform 37.2,
+build tools 36.0.0). Point `ANDROID_HOME` at the SDK or create a `local.properties` with
+`sdk.dir=…`.
 
 ```sh
 ./gradlew :app:assembleDebug        # app/build/outputs/apk/debug/app-debug.apk
