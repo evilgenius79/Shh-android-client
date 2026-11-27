@@ -110,6 +110,7 @@ internal val HelpSections: List<HelpSection> = listOf(
             note(R.string.help_sessions_background),
             note(R.string.help_sessions_new),
             note(R.string.help_sessions_reconnect),
+            note(R.string.help_sessions_mosh),
             note(R.string.help_sessions_ended),
             note(R.string.help_sessions_exit),
             note(R.string.help_sessions_bell),
