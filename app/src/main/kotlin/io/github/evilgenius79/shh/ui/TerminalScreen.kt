@@ -89,6 +89,7 @@ fun TerminalScreen(
     onNewSession: () -> Unit,
     onOpenFiles: (TerminalSession) -> Unit,
     onFontSize: (Int) -> Unit,
+    onHelp: () -> Unit,
     onBack: () -> Unit,
 ) {
     val state by active.state.collectAsStateCompat()
@@ -160,6 +161,7 @@ fun TerminalScreen(
                             entry("Larger text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp + 1).coerceAtMost(TerminalView.MAX_FONT_SP.toInt())) }
                             entry("Smaller text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp - 1).coerceAtLeast(TerminalView.MIN_FONT_SP.toInt())) }
                             entry("Show keyboard", R.drawable.ic_keyboard) { terminalView?.showKeyboard() }
+                            entry("How to use", R.drawable.ic_help) { onHelp() }
                             entry("Reset terminal", R.drawable.ic_restart_alt) {
                                 synchronized(active.emulator) { active.emulator.reset() }
                                 terminalView?.invalidate()

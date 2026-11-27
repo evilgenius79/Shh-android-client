@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -252,6 +253,48 @@ fun ExtraKeys(
         }
     }
 }
+
+/**
+ * A key as it looks on the bar, for explaining what it does: not something to tap. Arrows and the
+ * panel key are drawn with the icons the bar uses, and a single character in the terminal's
+ * typeface, like the character keys of the bar.
+ */
+@Composable
+fun KeyLegend(label: String, modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.colorScheme
+    val icon = LegendIcons[label]
+    val character = icon == null && label.length == 1 && label[0].code < 0x80
+    Box(
+        modifier
+            .height(24.dp)
+            .defaultMinSize(minWidth = 26.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(lerp(colors.surface, colors.onSurface, if (character) CHARACTER_KEY_TINT else CONTROL_KEY_TINT))
+            .padding(horizontal = 7.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        when {
+            icon != null -> Icon(painterResource(icon), label, Modifier.size(14.dp), tint = colors.onSurface.copy(alpha = 0.85f))
+            character -> Text(label, color = colors.onSurface, fontFamily = CharacterFont, fontSize = 13.sp, maxLines = 1, softWrap = false)
+            else -> Text(
+                label,
+                color = colors.onSurface.copy(alpha = 0.85f),
+                style = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.3.sp),
+                maxLines = 1,
+                softWrap = false,
+            )
+        }
+    }
+}
+
+/** The keys of the bar that show an icon instead of a word, by the character that stands for them in text. */
+private val LegendIcons: Map<String, Int> = mapOf(
+    "↑" to R.drawable.ic_arrow_upward,
+    "↓" to R.drawable.ic_arrow_downward,
+    "←" to R.drawable.ic_arrow_back,
+    "→" to R.drawable.ic_arrow_forward,
+    "⋯" to R.drawable.ic_more_horiz,
+)
 
 private fun describe(state: ModifierState): String = when (state) {
     ModifierState.OFF -> "Off"

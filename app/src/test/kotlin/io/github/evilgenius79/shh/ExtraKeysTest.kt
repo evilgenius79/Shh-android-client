@@ -30,6 +30,7 @@ import io.github.evilgenius79.shh.data.ThemeMode
 import io.github.evilgenius79.shh.terminal.ModifierState
 import io.github.evilgenius79.shh.terminal.TerminalKey
 import io.github.evilgenius79.shh.ui.ExtraKeys
+import io.github.evilgenius79.shh.ui.HelpSections
 import io.github.evilgenius79.shh.ui.ShhTheme
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -206,6 +207,28 @@ class ExtraKeysTest {
         assertTrue(bounds("F1").bottom <= bounds("ESC").top)
         key("More keys").performClick()
         assertTrue(!isShown("F1"), "and it closes again")
+    }
+
+    @Test
+    fun theHowToOnlyNamesKeysTheBarReallyHas() {
+        show()
+        key("More keys").performClick()
+        val section = HelpSections.first { it.title == "The key bar" }
+        // The key caps shown in front of the explanations, the keys named in capitals in the
+        // text ("PGUP", "F12"), and the characters the text lists for the panel.
+        val caps = section.items.flatMap { it.keys }
+        val named = section.items.flatMap { Regex("\\b[A-Z]{2,}[0-9]*\\b|\\bF[0-9]+\\b").findAll(it.text).map { match -> match.value }.toList() }
+        val characters = section.items.single { it.keys == listOf("⋯") }.text.substringAfter("such as ").substringBefore(".").split(" ")
+        assertTrue(listOf("CTRL", "ALT", "ESC", "TAB", "PGUP", "PGDN", "DEL", "F1", "F12").all { it in caps + named }, "found $caps and $named")
+        assertEquals(listOf("~", "\\", "`", "{", "}", "[", "]"), characters)
+        for (label in (caps + named + characters).distinct()) {
+            when (label) {
+                "←" -> key("Left").assertIsDisplayed()
+                "→" -> key("Right").assertIsDisplayed()
+                "⋯" -> key("More keys").assertIsDisplayed()
+                else -> assertTrue(isShown(label), "the how-to mentions a key called \"$label\" that the bar does not have")
+            }
+        }
     }
 
     @Test

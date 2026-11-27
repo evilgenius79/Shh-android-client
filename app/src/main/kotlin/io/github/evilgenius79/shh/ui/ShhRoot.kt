@@ -116,6 +116,7 @@ fun ShhRoot(container: AppContainer, model: AppViewModel = viewModel()) {
                     onNewSession = { model.open(Screen.Hosts) },
                     onOpenFiles = { model.open(Screen.Files(it.id)) },
                     onFontSize = { size -> container.store.updateSettings { it.copy(fontSizeSp = size) } },
+                    onHelp = { model.open(Screen.Help) },
                     onBack = model::back,
                 )
             }
@@ -131,6 +132,7 @@ fun ShhRoot(container: AppContainer, model: AppViewModel = viewModel()) {
                 onBack = model::back,
             )
             Screen.Settings -> SettingsScreen(container = container, data = data, onBack = model::back)
+            Screen.Help -> HelpScreen(onBack = model::back)
             Screen.About -> AboutScreen(onBack = model::back)
         }
     }

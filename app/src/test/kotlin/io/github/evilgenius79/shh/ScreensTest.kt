@@ -31,6 +31,7 @@ import io.github.evilgenius79.shh.ssh.KeyAlgorithm
 import io.github.evilgenius79.shh.ssh.SshFailure
 import io.github.evilgenius79.shh.ssh.SshKeys
 import io.github.evilgenius79.shh.ui.DisconnectedBarContent
+import io.github.evilgenius79.shh.ui.HelpScreen
 import io.github.evilgenius79.shh.ui.HostEditScreen
 import io.github.evilgenius79.shh.ui.HostsScreen
 import io.github.evilgenius79.shh.ui.KeysScreen
@@ -129,6 +130,11 @@ class ScreensTest {
 
         compose.onNodeWithContentDescription("Keys").performClick()
         assertEquals(listOf<Screen>(Screen.Keys), navigated)
+
+        // The how-to is in the menu.
+        compose.onNodeWithContentDescription("More").performClick()
+        compose.onNodeWithText("How to use").performClick()
+        assertEquals(listOf(Screen.Keys, Screen.Help), navigated)
     }
 
     @Test
@@ -272,11 +278,12 @@ class ScreensTest {
         }
         session.close()
         var closed = 0
+        var help = 0
         show {
             TerminalScreen(
                 sessions = listOf(session), active = session, settings = data.settings, snippets = data.snippets,
                 identities = data.identities, onSelect = {}, onClose = { closed++ }, onNewSession = {}, onOpenFiles = {},
-                onFontSize = {}, onBack = {},
+                onFontSize = {}, onHelp = { help++ }, onBack = {},
             )
         }
         compose.onNodeWithText("Web server").assertIsDisplayed()
@@ -295,6 +302,31 @@ class ScreensTest {
         assertTrue(assertNotNull(terminalIn(root.rootView)).isFocused, "the terminal view has the focus")
         compose.onNodeWithText("Close").performClick()
         assertEquals(1, closed)
+
+        // The how-to is one tap away from where the keys are.
+        compose.onNodeWithContentDescription("More").performClick()
+        compose.onNodeWithText("How to use").performClick()
+        assertEquals(1, help)
+    }
+
+    // ----- how-to -----
+
+    @Test
+    fun theHowToExplainsTheKeysAndGestures() {
+        var back = 0
+        show { HelpScreen(onBack = { back++ }) }
+        compose.onNodeWithText("How to use Shh").assertIsDisplayed()
+        compose.onNodeWithText("The key bar").assertIsDisplayed()
+        // The two things nobody can guess: one tap applies once, two taps lock.
+        compose.onNodeWithText("applies to the next key you press", substring = true).assertIsDisplayed()
+        compose.onNodeWithText("Tap twice in a row to lock it", substring = true).assertIsDisplayed()
+        shot("help-dark")
+        compose.onNodeWithText("Makes the text smaller or larger.").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Pinch").assertIsDisplayed()
+        shot("help-dark-touch")
+        compose.onNodeWithText("Browse the server's files", substring = true).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithContentDescription("Back").performClick()
+        assertEquals(1, back)
     }
 
     // ----- the bar under a session that is over -----

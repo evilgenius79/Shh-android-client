@@ -105,6 +105,7 @@ fun HostsScreen(
                             Triple("Snippets", R.drawable.ic_code, Screen.Snippets),
                             Triple("Known hosts", R.drawable.ic_fingerprint, Screen.KnownHosts),
                             Triple("Settings", R.drawable.ic_settings, Screen.Settings),
+                            Triple("How to use", R.drawable.ic_help, Screen.Help),
                             Triple("About", R.drawable.ic_info, Screen.About),
                         )
                         for ((label, icon, screen) in entries) {

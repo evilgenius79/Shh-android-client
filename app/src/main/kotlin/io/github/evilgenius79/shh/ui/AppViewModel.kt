@@ -25,6 +25,8 @@ sealed interface Screen {
 
     data object Settings : Screen
 
+    data object Help : Screen
+
     data object About : Screen
 }
 

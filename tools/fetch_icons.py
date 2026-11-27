@@ -18,7 +18,7 @@ BASE = "https://raw.githubusercontent.com/google/material-design-icons/master/sy
 ICONS = """
 add arrow_back arrow_downward arrow_forward arrow_upward bolt close code content_copy
 content_paste create_new_folder delete description dns download drive_file_rename_outline edit
-expand_more fingerprint folder history info key keyboard link lock more_horiz more_vert palette
+expand_more fingerprint folder help history info key keyboard link lock more_horiz more_vert palette
 power_settings_new refresh restart_alt save search settings swap_horiz terminal text_fields
 upload visibility visibility_off warning
 """.split()

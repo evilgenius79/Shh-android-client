@@ -204,21 +204,20 @@ class LiveSessionTest {
         // interrupted, exactly as it would for a person typing implausibly fast.
         waitFor("the interrupt") { session.screen().contains("never-run^C") }
 
-        // Locked, Ctrl stays on: Ctrl+C twice in a row without tapping it again, and nothing
-        // reports it as used up.
-        fun interrupts() = session.screen().windowed(2).count { it == "^C" }
-        ime.commitText("echo locked", 1)
+        // Locked, Ctrl stays on for one key after another and nothing reports it as used up:
+        // Ctrl+A goes to the start of a half typed line and Ctrl+K erases it. Had the lock let
+        // go after the first key, the second would have typed a "k" into the line instead.
+        ime.commitText("echo after-\$((7+1))\n", 1)
+        waitFor("output after Ctrl+C") { session.screen().contains("after-8") }
+        ime.commitText("echo keep-me-not", 1)
+        waitFor("the half typed line") { session.screen().contains("keep-me-not") }
         view.ctrl = ModifierState.LOCKED
-        ime.commitText("c", 1)
-        waitFor("the first Ctrl+C with Ctrl locked") { session.screen().contains("locked^C") }
-        val before = interrupts()
-        ime.commitText("c", 1)
-        waitFor("the second Ctrl+C with Ctrl locked") { interrupts() == before + 1 }
+        ime.commitText("a", 1)
+        ime.commitText("k", 1)
+        waitFor("Ctrl+A and Ctrl+K to erase the line") { !session.screen().contains("keep-me-not") }
         assertEquals(ModifierState.LOCKED, view.ctrl)
         assertEquals(1, consumed)
         view.ctrl = ModifierState.OFF
-        ime.commitText("echo after-\$((7+1))\n", 1)
-        waitFor("output after Ctrl+C") { session.screen().contains("after-8") }
 
         // Cursor keys: recall the previous command with Up and run it again.
         ime.commitText("clear\n", 1)
