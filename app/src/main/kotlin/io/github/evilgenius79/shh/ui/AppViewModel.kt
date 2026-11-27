@@ -25,6 +25,9 @@ sealed interface Screen {
 
     data object Settings : Screen
 
+    /** Arranging the bar of extra keys, reached from the settings. */
+    data object KeyBar : Screen
+
     data object Help : Screen
 
     data object About : Screen

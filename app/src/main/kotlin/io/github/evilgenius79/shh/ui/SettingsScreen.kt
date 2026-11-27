@@ -45,7 +45,7 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 
 @Composable
-fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
+fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit, onEditKeys: () -> Unit = {}) {
     val context = LocalContext.current
     val settings = data.settings
     val update: ((Settings) -> Settings) -> Unit = { transform -> container.store.updateSettings(transform) }
@@ -145,6 +145,17 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
             SwitchRow("Extra keys", "Esc, Tab, Ctrl, Alt, arrows and more, above the keyboard", settings.showExtraKeys, { on -> update { it.copy(showExtraKeys = on) } })
+            Entry(
+                headline = "Keys of the bar",
+                supporting = { Text(if (settings.keyBar.isEmpty()) "Choose which keys it shows, and where" else "Your own arrangement") },
+                onClick = onEditKeys,
+            )
+            SwitchRow(
+                "Hide the keys with a hardware keyboard",
+                "While a keyboard is connected the bar makes room for the terminal",
+                settings.hideKeysWithKeyboard,
+                { on -> update { it.copy(hideKeysWithKeyboard = on) } },
+            )
             SwitchRow(
                 "Full keyboard features",
                 "Voice typing, swipe typing and keyboards for other scripts. The keyboard may then correct what you type.",

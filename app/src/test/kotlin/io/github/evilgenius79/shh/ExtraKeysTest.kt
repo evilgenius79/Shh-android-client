@@ -11,15 +11,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.DpRect
@@ -31,7 +39,10 @@ import io.github.evilgenius79.shh.terminal.ModifierState
 import io.github.evilgenius79.shh.terminal.TerminalKey
 import io.github.evilgenius79.shh.ui.ExtraKeys
 import io.github.evilgenius79.shh.ui.HelpSections
+import io.github.evilgenius79.shh.ui.KeyBarLayout
+import io.github.evilgenius79.shh.ui.KeyBarScreen
 import io.github.evilgenius79.shh.ui.ShhTheme
+import io.github.evilgenius79.shh.ui.keyBarShown
 import org.junit.Rule
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -66,17 +77,40 @@ class ExtraKeysTest {
     private val words = listOf("ESC", "TAB", "CTRL", "ALT", "HOME", "END", "PGUP", "PGDN")
     private val arrows = listOf("Up", "Down", "Left", "Right")
 
+    /** What the settings hold for the bar: nothing for the standard keys. */
+    private var layout by mutableStateOf(emptyList<String>())
+
+    /** An arrangement of one's own, with keys the standard bar does not have. */
+    private val own = listOf("ESC", "TAB", "CTRL", "ALT", "MORE", "~", ":wq!", "ENTER", "F5", "INS", "DEL", "LEFT", "DOWN", "UP", "RIGHT", "x")
+
     private fun show(theme: ThemeMode = ThemeMode.DARK) {
         compose.setContent {
             ShhTheme(Settings(themeMode = theme, dynamicColor = false)) {
                 // A strip of terminal above the bar, as in the app.
                 Column(Modifier.background(Color(if (theme == ThemeMode.DARK) 0xFF101214 else 0xFFFFFFFF))) {
                     Box(Modifier.fillMaxWidth().height(48.dp))
-                    ExtraKeys(ctrl, alt, { ctrl = it }, { alt = it }, { sent.add(it) }, { typed.add(it) }, uptimeMillis = { now })
+                    ExtraKeys(ctrl, alt, { ctrl = it }, { alt = it }, { sent.add(it) }, { typed.add(it) }, layout = layout, uptimeMillis = { now })
                 }
             }
         }
     }
+
+    private fun showEditor() {
+        compose.setContent {
+            ShhTheme(Settings(themeMode = ThemeMode.DARK, dynamicColor = false)) { KeyBarScreen(layout, { layout = it }, onBack = {}) }
+        }
+    }
+
+    /** A place on the bar as the editor shows it, counted from 0 along the rows. */
+    private fun place(index: Int): SemanticsNodeInteraction = compose.onNodeWithTag("place:$index")
+
+    /** A key the editor offers for the bar. */
+    private fun offered(name: String): SemanticsNodeInteraction = compose.onNodeWithTag("key:$name").performScrollTo()
+
+    private fun arranged(): List<String> = KeyBarLayout.of(layout)
+
+    private fun isPicked(index: Int): Boolean =
+        place(index).fetchSemanticsNode().config[SemanticsProperties.StateDescription] == "Place ${index + 1} of 16, selected"
 
     private fun shot(name: String) {
         compose.waitForIdle()
@@ -230,6 +264,175 @@ class ExtraKeysTest {
             }
         }
     }
+
+    // ----- an arrangement of one's own -----
+
+    @Test
+    fun aBarOfOnesOwnShowsItsKeysInItsOrderAndTheyDoWhatTheyShow() {
+        layout = own
+        show()
+        shot("extra-keys-own")
+        val rows = listOf(
+            listOf("ESC", "TAB", "CTRL", "ALT", "More keys", "~", ":wq!", "ENTER"),
+            listOf("F5", "INS", "DEL", "Left", "Down", "Up", "Right", "x"),
+        )
+        for (row in rows) {
+            assertEquals(1, row.map { bounds(it).top }.distinct().size, "$row share a row")
+            assertEquals(row, row.sortedBy { bounds(it).left }, "in the order they were given")
+        }
+        assertTrue(bounds("ESC").bottom <= bounds("F5").top, "the first eight are the upper row")
+        assertTrue(!isShown("HOME") && !isShown("|"), "keys that were not asked for are gone")
+
+        for (label in listOf("ENTER", "F5", "INS", "DEL", "Up")) key(label).performClick()
+        assertEquals(listOf(TerminalKey.ENTER, TerminalKey.F5, TerminalKey.INSERT, TerminalKey.DELETE, TerminalKey.UP), sent)
+        for (label in listOf(":wq!", "x", "~")) key(label).performClick()
+        assertEquals(listOf(":wq!", "x", "~"), typed, "a key with text types exactly that text")
+    }
+
+    @Test
+    @Config(qualifiers = SMALL_PHONE)
+    fun aBarOfOnesOwnFitsASmallPhoneWithLargeText() {
+        RuntimeEnvironment.setFontScale(1.3f)
+        layout = own
+        show()
+        shot("extra-keys-own-small-phone-large-text")
+        for (label in listOf("ENTER", ":wq!", "ESC", "INS", "x")) assertLabelIntact(label)
+        val screen = compose.onRoot().getUnclippedBoundsInRoot()
+        for (label in listOf("ENTER", "x")) assertTrue(bounds(label).right <= screen.right, label)
+    }
+
+    @Test
+    @Config(qualifiers = LANDSCAPE)
+    fun aBarOfOnesOwnTakesASingleRowWhereThereIsRoomUpperRowFirst() {
+        layout = own
+        show()
+        val all = listOf("ESC", "TAB", "CTRL", "ALT", "More keys", "~", ":wq!", "ENTER", "F5", "INS", "DEL", "Left", "Down", "Up", "Right", "x")
+        assertEquals(1, all.map { bounds(it).top }.distinct().size)
+        assertEquals(all, all.sortedBy { bounds(it).left })
+        assertTrue(bounds("x").right <= compose.onRoot().getUnclippedBoundsInRoot().right)
+    }
+
+    @Test
+    fun aBarWithoutThePanelKeyHasNoPanel() {
+        layout = KeyBarLayout.with(emptyList(), KeyBarLayout.DEFAULT.indexOf("MORE"), "F1")
+        show()
+        compose.onNodeWithContentDescription("More keys").assertDoesNotExist()
+        key("F1").performClick()
+        assertEquals(listOf(TerminalKey.F1), sent)
+        assertTrue(!isShown("F2"))
+    }
+
+    @Test
+    fun whateverIsStoredBecomesSixteenUsableKeys() {
+        val standard = KeyBarLayout.DEFAULT
+        assertEquals(16, standard.size)
+        assertEquals(standard, KeyBarLayout.of(emptyList()))
+        assertEquals(listOf("F1") + standard.drop(1), KeyBarLayout.of(listOf("F1")), "missing places keep the standard key")
+        assertEquals(listOf("a", standard[1], "tool", "esc") + standard.drop(4), KeyBarLayout.of(listOf(" a ", "  ", "toolong", "esc")))
+        assertEquals(16, KeyBarLayout.of(List(40) { "q" }).size)
+        // A name is a key only as it is written: "esc" above is three letters to type.
+        assertTrue("ESC" in KeyBarLayout.NAMED && "esc" !in KeyBarLayout.NAMED)
+        assertEquals(emptyList(), KeyBarLayout.with(listOf("F1"), 0, "ESC"), "the standard keys are stored as nothing at all")
+        assertEquals(KeyBarLayout.NAMED.size + KeyBarLayout.CHARACTERS.size, (KeyBarLayout.NAMED + KeyBarLayout.CHARACTERS).distinct().size, "no key is offered twice")
+        assertTrue(standard.all { it in KeyBarLayout.NAMED || it in KeyBarLayout.CHARACTERS }, "every standard key can be put back")
+    }
+
+    @Test
+    fun aPickedPlaceTakesTheKeyThatIsTappedAndTheNextPlaceIsPicked() {
+        showEditor()
+        shot("key-bar-editor")
+        assertTrue(isPicked(0), "the first place is picked to start with")
+        offered("F5").performClick()
+        offered("~").performClick()
+        assertEquals(listOf("F5", "~"), arranged().take(2))
+        assertTrue(isPicked(2) && !isPicked(0))
+
+        place(12).performScrollTo().performClick()
+        offered("ENTER").performClick()
+        assertEquals("ENTER", arranged()[12])
+        assertTrue(isPicked(13))
+        assertEquals(listOf("F5", "~") + KeyBarLayout.DEFAULT.subList(2, 12) + "ENTER" + KeyBarLayout.DEFAULT.drop(13), arranged(), "nothing else moved")
+        // The bar on the screen is the bar that was arranged.
+        place(0).performScrollTo().assertTextEquals("F5")
+        place(12).assertTextEquals("ENTER")
+        shot("key-bar-editor-changed")
+
+        // After the last place comes the first again.
+        place(15).performClick()
+        offered("INS").performClick()
+        assertEquals("INS", arranged()[15])
+        assertTrue(isPicked(0))
+    }
+
+    @Test
+    fun textOfOnesOwnBecomesAKeyOfAtMostFourCharacters() {
+        showEditor()
+        val field = compose.onNode(hasSetTextAction())
+        compose.onNodeWithText("Use").performScrollTo().assertIsNotEnabled()
+        field.performScrollTo().performTextInput(":wq!!!")
+        compose.onNodeWithText("Use").performClick()
+        assertEquals(":wq!", arranged()[0])
+        field.assertTextContains("", substring = false)
+        compose.onNodeWithText("Use").assertIsNotEnabled()
+
+        field.performTextInput("ls")
+        compose.onNodeWithText("Use").performClick()
+        assertEquals(listOf(":wq!", "ls"), arranged().take(2))
+    }
+
+    @Test
+    fun resetBringsTheStandardKeysBack() {
+        layout = own
+        showEditor()
+        place(6).assertTextEquals(":wq!")
+        compose.onNodeWithText("Reset").performClick()
+        assertEquals(emptyList(), layout)
+        place(6).assertTextEquals("END")
+        compose.onNodeWithText("Reset").assertIsNotEnabled()
+
+        // Putting the standard keys back by hand is the same as a reset.
+        offered("F5").performClick()
+        assertTrue(layout.isNotEmpty())
+        place(0).performScrollTo().performClick()
+        offered("ESC").performClick()
+        assertEquals(emptyList(), layout)
+    }
+
+    @Test
+    fun takingThePanelKeyOffTheBarIsPointedOut() {
+        showEditor()
+        assertTrue(compose.onAllNodes(hasText("no key for the panel", substring = true)).fetchSemanticsNodes().isEmpty())
+        place(KeyBarLayout.DEFAULT.indexOf("MORE")).performClick()
+        offered("F1").performClick()
+        compose.onNode(hasText("no key for the panel", substring = true)).assertIsDisplayed()
+        // And putting it back takes the remark away.
+        place(0).performScrollTo().performClick()
+        offered("MORE").performClick()
+        assertTrue(compose.onAllNodes(hasText("no key for the panel", substring = true)).fetchSemanticsNodes().isEmpty())
+    }
+
+    @Test
+    @Config(qualifiers = "+keysexposed-qwerty")
+    fun withAHardwareKeyboardTheBarStepsAsideIfAsked() {
+        var shown = emptyList<Boolean>()
+        compose.setContent {
+            shown = listOf(keyBarShown(Settings()), keyBarShown(Settings(hideKeysWithKeyboard = true)), keyBarShown(Settings(showExtraKeys = false)))
+        }
+        compose.waitForIdle()
+        assertEquals(listOf(true, false, false), shown)
+    }
+
+    @Test
+    fun withoutAHardwareKeyboardTheBarStays() {
+        var shown = emptyList<Boolean>()
+        compose.setContent {
+            shown = listOf(keyBarShown(Settings(hideKeysWithKeyboard = true)), keyBarShown(Settings(showExtraKeys = false, hideKeysWithKeyboard = true)))
+        }
+        compose.waitForIdle()
+        assertEquals(listOf(true, false), shown)
+    }
+
+    // ----- the modifiers -----
 
     @Test
     fun ctrlAppliesOnceAndATapPutsItBack() {

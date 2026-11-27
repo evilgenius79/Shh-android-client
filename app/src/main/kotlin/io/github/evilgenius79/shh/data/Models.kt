@@ -130,6 +130,10 @@ data class Settings(
     val cursorStyle: CursorStyle = CursorStyle.BLOCK,
     val cursorBlink: Boolean = true,
     val showExtraKeys: Boolean = true,
+    /** The sixteen keys of the bar, upper row first. Empty means the standard keys. */
+    val keyBar: List<String> = emptyList(),
+    /** Leave the bar out while a hardware keyboard is connected. */
+    val hideKeysWithKeyboard: Boolean = false,
     /** Get a connection that broke back without being asked. */
     val autoReconnect: Boolean = true,
     /** Present the terminal to the keyboard as ordinary text: voice, swipe and CJK input work. */

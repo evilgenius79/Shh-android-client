@@ -243,7 +243,7 @@ fun TerminalScreen(
             (state as? SessionState.Reconnecting)?.let {
                 ReconnectingBar(it, onTryNow = { active.retryNow() }, onStop = { active.stopReconnecting() })
             }
-            if (settings.showExtraKeys) {
+            if (keyBarShown(settings)) {
                 ExtraKeys(
                     ctrl = ctrl,
                     alt = alt,
@@ -251,6 +251,7 @@ fun TerminalScreen(
                     onAlt = { alt = it },
                     onKey = { key -> terminalView?.sendKey(key, 0) },
                     onText = { text -> terminalView?.typed(text) },
+                    layout = settings.keyBar,
                 )
             }
         }

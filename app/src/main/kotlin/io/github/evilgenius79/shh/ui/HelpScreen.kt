@@ -58,7 +58,11 @@ internal val HelpSections: List<HelpSection> = listOf(
             ),
             item("ESC", text = "Leaves insert mode in vi and closes menus in many programs."),
             item("TAB", text = "Completes the command or file name you have started typing."),
-            note("The bar can be switched off in Settings, under Extra keys."),
+            note(
+                "Which keys the bar shows, and where, is yours to choose: Settings, Keys of the bar. " +
+                    "A key can also type a few characters of your own.",
+            ),
+            note("The bar can be switched off in Settings, under Extra keys, or set to hide while a hardware keyboard is connected."),
         ),
     ),
     HelpSection(

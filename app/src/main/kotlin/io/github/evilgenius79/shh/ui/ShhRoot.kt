@@ -155,7 +155,12 @@ fun ShhRoot(container: AppContainer, model: AppViewModel = viewModel()) {
                 onDelete = { container.store.deleteSnippet(it.id) },
                 onBack = model::back,
             )
-            Screen.Settings -> SettingsScreen(container = container, data = data, onBack = model::back)
+            Screen.Settings -> SettingsScreen(container = container, data = data, onEditKeys = { model.open(Screen.KeyBar) }, onBack = model::back)
+            Screen.KeyBar -> KeyBarScreen(
+                layout = data.settings.keyBar,
+                onChange = { keys -> container.store.updateSettings { it.copy(keyBar = keys) } },
+                onBack = model::back,
+            )
             Screen.Help -> HelpScreen(onBack = model::back)
             Screen.About -> AboutScreen(onBack = model::back)
         }

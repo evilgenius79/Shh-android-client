@@ -344,11 +344,41 @@ class ScreensTest {
     fun settingsChangesArePersisted() {
         val data = sampleData()
         val container = container(data)
-        show { SettingsScreen(container, data, onBack = {}) }
+        var editKeys = 0
+        show { SettingsScreen(container, data, onBack = {}, onEditKeys = { editKeys++ }) }
         shot("settings-dark")
         assertTrue(container.store.data.value.settings.vibrateOnBell)
         compose.onNodeWithText("Vibrate on bell").performScrollTo().performClick()
         assertTrue(!container.store.data.value.settings.vibrateOnBell)
+
+        compose.onNodeWithText("Keys of the bar").performScrollTo().performClick()
+        assertEquals(1, editKeys, "the key bar is arranged on a screen of its own")
+        compose.onNodeWithText("Hide the keys with a hardware keyboard").performScrollTo().performClick()
+        assertTrue(container.store.data.value.settings.hideKeysWithKeyboard)
+    }
+
+    @Test
+    @Config(qualifiers = "+keysexposed-qwerty")
+    fun theTerminalLeavesTheKeyBarOutWhileAKeyboardIsConnectedIfAskedTo() {
+        val data = sampleData()
+        val session = TerminalSession("s", data.hosts[0], SessionEnvironment({ data }, secrets, InMemoryHostKeyStore()))
+        session.close()
+        var settings by androidx.compose.runtime.mutableStateOf(data.settings)
+        show {
+            TerminalScreen(
+                sessions = listOf(session), active = session, settings = settings, snippets = data.snippets,
+                identities = data.identities, onSelect = {}, onClose = {}, onNewSession = {}, onOpenFiles = {},
+                onFontSize = {}, onHelp = {}, onBack = {},
+            )
+        }
+        compose.onNodeWithText("CTRL").assertIsDisplayed()
+        settings = settings.copy(hideKeysWithKeyboard = true)
+        compose.onNodeWithText("CTRL").assertDoesNotExist()
+        compose.onNodeWithText("Reconnect").assertIsDisplayed()
+        // An arrangement of one's own reaches the terminal as well.
+        settings = settings.copy(hideKeysWithKeyboard = false, keyBar = listOf("F5"))
+        compose.onNodeWithText("F5").assertIsDisplayed()
+        compose.onNodeWithText("ESC").assertDoesNotExist()
     }
 
     @Test

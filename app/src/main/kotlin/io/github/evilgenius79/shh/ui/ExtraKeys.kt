@@ -1,5 +1,6 @@
 package io.github.evilgenius79.shh.ui
 
+import android.content.res.Configuration
 import android.os.SystemClock
 import android.view.HapticFeedbackConstants
 import androidx.annotation.DrawableRes
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,9 +46,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -59,10 +63,13 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.evilgenius79.shh.R
+import io.github.evilgenius79.shh.data.Settings
 import io.github.evilgenius79.shh.terminal.ModifierState
 import io.github.evilgenius79.shh.terminal.TerminalKey
 import kotlinx.coroutines.delay
@@ -103,10 +110,78 @@ private val Down = BarKey.Send(TerminalKey.DOWN, "↓", "Down", R.drawable.ic_ar
 private val Left = BarKey.Send(TerminalKey.LEFT, "←", "Left", R.drawable.ic_arrow_back, repeats = true)
 private val Right = BarKey.Send(TerminalKey.RIGHT, "→", "Right", R.drawable.ic_arrow_forward, repeats = true)
 
+private val Insert = BarKey.Send(TerminalKey.INSERT, "INS", "Insert")
+private val Enter = BarKey.Send(TerminalKey.ENTER, "ENTER", "Enter")
+
 private val FunctionKeys: List<BarKey> = listOf(
     TerminalKey.F1, TerminalKey.F2, TerminalKey.F3, TerminalKey.F4, TerminalKey.F5, TerminalKey.F6,
     TerminalKey.F7, TerminalKey.F8, TerminalKey.F9, TerminalKey.F10, TerminalKey.F11, TerminalKey.F12,
 ).mapIndexed { index, key -> BarKey.Send(key, "F${index + 1}", "F${index + 1}") }
+
+/**
+ * Which keys the bar shows, as the user can arrange it: sixteen names, the upper row of eight
+ * followed by the lower one. A name from [NAMED] is that key; anything else is a key that types
+ * exactly that text.
+ */
+object KeyBarLayout {
+    const val SLOTS = 16
+
+    /** The longest text a key of its own can type. Longer things belong in snippets. */
+    const val MAX_TEXT = 4
+
+    /** The name of the key that opens the panel with the function keys. */
+    const val MORE = "MORE"
+
+    val DEFAULT: List<String> = listOf("ESC", "/", "|", "-", "HOME", "UP", "END", "PGUP", "TAB", "CTRL", "ALT", MORE, "LEFT", "DOWN", "RIGHT", "PGDN")
+
+    /** The keys that do something other than type their name, in the order they are offered. */
+    val NAMED: List<String> = listOf("ESC", "TAB", "CTRL", "ALT", MORE, "UP", "DOWN", "LEFT", "RIGHT", "HOME", "END", "PGUP", "PGDN", "ENTER", "DEL", "INS") +
+        (1..12).map { "F$it" }
+
+    /** Characters worth a key of their own: awkward on a phone keyboard, common in a shell. */
+    val CHARACTERS: List<String> = listOf("/", "|", "-", "~", "\\", "_", ":", ";", "*", "=", "&", "$", "#", "<", ">", "[", "]", "{", "}", "`", "^", "'", "\"", "!", "?", "@", "%", "+")
+
+    /**
+     * [stored] as a layout that can be shown: exactly [SLOTS] keys, none of them empty or too
+     * long. An empty list, which is what a fresh installation has, is the standard layout.
+     */
+    fun of(stored: List<String>): List<String> {
+        if (stored.isEmpty()) return DEFAULT
+        return List(SLOTS) { index ->
+            val wanted = stored.getOrNull(index)?.trim().orEmpty()
+            if (wanted.isEmpty()) DEFAULT[index] else if (wanted in NAMED) wanted else wanted.take(MAX_TEXT)
+        }
+    }
+
+    /** [layout] with [name] at [index], as it is stored: nothing at all when that is the standard layout. */
+    fun with(layout: List<String>, index: Int, name: String): List<String> {
+        val changed = of(layout).toMutableList().also { it[index] = name }
+        return if (of(changed) == DEFAULT) emptyList() else of(changed)
+    }
+
+    /** Whether a hardware keyboard is there to type on. */
+    fun hasHardwareKeyboard(configuration: Configuration): Boolean =
+        configuration.keyboard == Configuration.KEYBOARD_QWERTY && configuration.hardKeyboardHidden != Configuration.HARDKEYBOARDHIDDEN_YES
+}
+
+private val NamedKeys: Map<String, BarKey> = mapOf(
+    "ESC" to Esc, "TAB" to Tab, "CTRL" to BarKey.Ctrl, "ALT" to BarKey.Alt, KeyBarLayout.MORE to BarKey.More,
+    "UP" to Up, "DOWN" to Down, "LEFT" to Left, "RIGHT" to Right, "HOME" to Home, "END" to End,
+    "PGUP" to PageUp, "PGDN" to PageDown, "ENTER" to Enter, "DEL" to Delete, "INS" to Insert,
+) + FunctionKeys.associateBy { (it as BarKey.Send).label }
+
+private fun barKey(name: String): BarKey = NamedKeys[name] ?: BarKey.Type(name)
+
+/** What a key shows. */
+private class Face(val label: String, val description: String, @DrawableRes val icon: Int? = null, val character: Boolean = false)
+
+private fun BarKey.face(panelOpen: Boolean = false): Face = when (this) {
+    is BarKey.Send -> Face(label, description, icon)
+    is BarKey.Type -> Face(text, text, character = true)
+    BarKey.Ctrl -> Face(CTRL_LABEL, "Control")
+    BarKey.Alt -> Face(ALT_LABEL, "Alt")
+    BarKey.More -> Face("", "More keys", if (panelOpen) R.drawable.ic_expand_more else R.drawable.ic_more_horiz)
+}
 
 private fun characters(vararg text: String): List<BarKey> = text.map { BarKey.Type(it) }
 
@@ -144,9 +219,15 @@ private val WideMore: List<List<BarKey>> = listOf(
 private const val CTRL_LABEL = "CTRL"
 private const val ALT_LABEL = "ALT"
 
-/** Every label that is a word rather than a character or an icon. */
-private val WordLabels: List<String> =
-    (NarrowBase + NarrowMore).flatten().filterIsInstance<BarKey.Send>().filter { it.icon == null }.map { it.label } + CTRL_LABEL + ALT_LABEL
+/** The labels among [keys] that are words rather than characters or icons. */
+private fun wordLabels(keys: List<BarKey>): List<String> = keys.mapNotNull { key ->
+    when (key) {
+        is BarKey.Send -> key.label.takeIf { key.icon == null }
+        BarKey.Ctrl -> CTRL_LABEL
+        BarKey.Alt -> ALT_LABEL
+        else -> null
+    }
+}
 
 private val WideFrom = 640.dp
 private val BarPadding = 6.dp
@@ -171,6 +252,12 @@ private val HighlightChange = tween<Color>(durationMillis = 120)
 
 /** Characters are shown in the terminal's own typeface: what the key shows is what it types. */
 private val CharacterFont = FontFamily(Font(R.font.jetbrains_mono_regular))
+private val CharacterStyle = TextStyle(fontFamily = CharacterFont, fontSize = 16.sp)
+
+/** Whether the bar is shown: it is switched on, and no hardware keyboard has made it unnecessary. */
+@Composable
+fun keyBarShown(settings: Settings): Boolean =
+    settings.showExtraKeys && !(settings.hideKeysWithKeyboard && KeyBarLayout.hasHardwareKeyboard(LocalConfiguration.current))
 
 /**
  * The keys a phone keyboard lacks, as a grid that fills the width of the screen.
@@ -187,6 +274,8 @@ fun ExtraKeys(
     onKey: (TerminalKey) -> Unit,
     onText: (String) -> Unit,
     modifier: Modifier = Modifier,
+    /** The sixteen keys of the bar as stored in the settings, see [KeyBarLayout]. */
+    layout: List<String> = emptyList(),
     uptimeMillis: () -> Long = SystemClock::uptimeMillis,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
@@ -199,58 +288,125 @@ fun ExtraKeys(
         return state.tapped(again)
     }
 
+    KeyBarFrame(modifier) { maxWidth ->
+        val wide = maxWidth >= WideFrom
+        val base = remember(layout, wide) {
+            val keys = KeyBarLayout.of(layout)
+            when {
+                !wide -> keys.chunked(KeyBarLayout.SLOTS / 2).map { row -> row.map(::barKey) }
+                // The standard keys have an order of their own for a single row.
+                keys == KeyBarLayout.DEFAULT -> WideBase
+                else -> listOf(keys.map(::barKey))
+            }
+        }
+        val more = if (wide) WideMore else NarrowMore
+        // Without its key on the bar the panel could never be closed again.
+        val panelOpen = expanded && base.any { BarKey.More in it }
+        // Measured over the panel's keys as well, so that opening it changes nothing.
+        val fit = rememberFit(remember(base, more) { (base + more).flatten() }, keyWidth(maxWidth, base[0].size))
+        KeyRows((if (panelOpen) more else emptyList()) + base) { key, _ ->
+            val cell = Modifier.weight(1f)
+            when (key) {
+                is BarKey.Send -> KeyCap(cell, key.face(), fit, repeats = key.repeats) { onKey(key.key) }
+                is BarKey.Type -> KeyCap(cell, key.face(), fit) { onText(key.text) }
+                BarKey.Ctrl -> KeyCap(cell, key.face(), fit, state = ctrl, stateDescription = describe(ctrl)) { onCtrl(tapped(key, ctrl)) }
+                BarKey.Alt -> KeyCap(cell, key.face(), fit, state = alt, stateDescription = describe(alt)) { onAlt(tapped(key, alt)) }
+                BarKey.More -> KeyCap(
+                    cell,
+                    key.face(panelOpen),
+                    fit,
+                    state = if (panelOpen) ModifierState.ONCE else ModifierState.OFF,
+                    stateDescription = if (panelOpen) "Shown" else "Hidden",
+                ) { expanded = !panelOpen }
+            }
+        }
+    }
+}
+
+/**
+ * The bar as the screen that arranges it shows it: always in two rows, and a tap on a key picks
+ * its place, number [selected] being the one picked now, instead of pressing it.
+ */
+@Composable
+internal fun KeyBarPreview(layout: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+    KeyBarFrame(modifier) { maxWidth ->
+        val columns = KeyBarLayout.SLOTS / 2
+        val rows = remember(layout) { KeyBarLayout.of(layout).map(::barKey).chunked(columns) }
+        // The same sizes as on the real bar, which allows for the keys of its panel.
+        val fit = rememberFit(remember(rows) { (rows + NarrowMore).flatten() }, keyWidth(maxWidth, columns))
+        KeyRows(rows) { key, index ->
+            KeyCap(
+                Modifier.weight(1f).testTag("place:$index"),
+                key.face(),
+                fit,
+                state = if (index == selected) ModifierState.ONCE else ModifierState.OFF,
+                stateDescription = "Place ${index + 1} of ${KeyBarLayout.SLOTS}" + if (index == selected) ", selected" else "",
+                feedback = false,
+            ) { onSelect(index) }
+        }
+    }
+}
+
+/** The strip the keys sit on, as wide as the screen. [content] is told how wide that is. */
+@Composable
+private fun KeyBarFrame(modifier: Modifier, content: @Composable (maxWidth: Dp) -> Unit) {
     val colors = MaterialTheme.colorScheme
     // The arrows and their places are physical. They do not swap sides in right-to-left languages.
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         BoxWithConstraints(modifier.fillMaxWidth().background(lerp(colors.surface, colors.onSurface, BAR_TINT))) {
-            val wide = maxWidth >= WideFrom
-            val rows = (if (!expanded) emptyList() else if (wide) WideMore else NarrowMore) + (if (wide) WideBase else NarrowBase)
-
-            // Every word is set in the same size: the largest at which the widest of them still
-            // fits the narrowest key. Shrinking each label on its own would look uneven.
-            val wordStyle = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.5.sp)
-            val measurer = rememberTextMeasurer()
-            val density = LocalDensity.current
-            val columns = if (wide) WideBase[0].size else NarrowBase[0].size
-            val keyWidth = (maxWidth - BarPadding * 2 - KeyGap * (columns - 1)) / columns
-            val wordSize = remember(keyWidth, density, wordStyle) {
-                val room = with(density) { (keyWidth - LabelPadding * 2 - 2.dp).toPx() }
-                val widest = WordLabels.maxOf { measurer.measure(it, wordStyle, softWrap = false, maxLines = 1).size.width }
-                if (widest <= room) wordStyle.fontSize else wordStyle.fontSize * (room / widest)
-            }
-            val words = wordStyle.copy(fontSize = wordSize)
+            val width = maxWidth
             Column {
                 HorizontalDivider(color = colors.outlineVariant.copy(alpha = 0.5f))
-                Column(Modifier.padding(BarPadding), verticalArrangement = Arrangement.spacedBy(KeyGap)) {
-                    for (row in rows) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(KeyGap)) {
-                            for (key in row) {
-                                val cell = Modifier.weight(1f)
-                                when (key) {
-                                    is BarKey.Send -> KeyCap(cell, key.label, key.description, words, key.icon, repeats = key.repeats) { onKey(key.key) }
-                                    is BarKey.Type -> KeyCap(cell, key.text, key.text, words, character = true) { onText(key.text) }
-                                    BarKey.Ctrl -> KeyCap(cell, CTRL_LABEL, "Control", words, state = ctrl, stateDescription = describe(ctrl)) {
-                                        onCtrl(tapped(key, ctrl))
-                                    }
-                                    BarKey.Alt -> KeyCap(cell, ALT_LABEL, "Alt", words, state = alt, stateDescription = describe(alt)) {
-                                        onAlt(tapped(key, alt))
-                                    }
-                                    BarKey.More -> KeyCap(
-                                        cell,
-                                        label = "",
-                                        description = "More keys",
-                                        words = words,
-                                        icon = if (expanded) R.drawable.ic_expand_more else R.drawable.ic_more_horiz,
-                                        state = if (expanded) ModifierState.ONCE else ModifierState.OFF,
-                                        stateDescription = if (expanded) "Shown" else "Hidden",
-                                    ) { expanded = !expanded }
-                                }
-                            }
-                        }
-                    }
-                }
+                content(width)
             }
         }
+    }
+}
+
+/** [rows] of equally wide keys. [key] draws one, and is told its number counted along the rows. */
+@Composable
+private fun KeyRows(rows: List<List<BarKey>>, key: @Composable RowScope.(BarKey, Int) -> Unit) {
+    Column(Modifier.padding(BarPadding), verticalArrangement = Arrangement.spacedBy(KeyGap)) {
+        var index = 0
+        for (row in rows) {
+            Row(horizontalArrangement = Arrangement.spacedBy(KeyGap)) {
+                for (entry in row) key(entry, index++)
+            }
+        }
+    }
+}
+
+private fun keyWidth(barWidth: Dp, columns: Int): Dp = (barWidth - BarPadding * 2 - KeyGap * (columns - 1)) / columns
+
+/** The sizes at which the labels fit their keys. */
+private class Fit(
+    /** For every word: the largest size at which the widest of them still fits. */
+    val words: TextStyle,
+    /** For a key that types more than one character, by its text. */
+    val texts: Map<String, TextUnit>,
+)
+
+/**
+ * How to set the labels of [keys] on keys [keyWidth] wide. Every word gets the same size, since
+ * shrinking each on its own would look uneven; a key that types several characters gets the
+ * largest size at which they fit.
+ */
+@Composable
+private fun rememberFit(keys: List<BarKey>, keyWidth: Dp): Fit {
+    val wordStyle = MaterialTheme.typography.labelMedium.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.5.sp)
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    return remember(keys, keyWidth, density, wordStyle) {
+        val room = with(density) { (keyWidth - LabelPadding * 2 - 2.dp).toPx() }
+        fun fitted(text: String, style: TextStyle): TextUnit {
+            val width = measurer.measure(text, style, softWrap = false, maxLines = 1).size.width
+            return if (width <= room) style.fontSize else style.fontSize * (room / width)
+        }
+        val widestWord = wordLabels(keys).distinct().maxByOrNull { measurer.measure(it, wordStyle, softWrap = false, maxLines = 1).size.width }
+        Fit(
+            words = wordStyle.copy(fontSize = widestWord?.let { fitted(it, wordStyle) } ?: wordStyle.fontSize),
+            texts = keys.filterIsInstance<BarKey.Type>().map { it.text }.filter { it.length > 1 }.distinct().associateWith { fitted(it, CharacterStyle) },
+        )
     }
 }
 
@@ -263,7 +419,8 @@ fun ExtraKeys(
 fun KeyLegend(label: String, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
     val icon = LegendIcons[label]
-    val character = icon == null && label.length == 1 && label[0].code < 0x80
+    val character = icon == null && label !in KeyBarLayout.NAMED && label.length <= KeyBarLayout.MAX_TEXT && label.all { it.code in 0x21..0x7e } &&
+        !(label.length > 1 && label.all { it.isLetter() })
     Box(
         modifier
             .height(24.dp)
@@ -294,6 +451,12 @@ private val LegendIcons: Map<String, Int> = mapOf(
     "←" to R.drawable.ic_arrow_back,
     "→" to R.drawable.ic_arrow_forward,
     "⋯" to R.drawable.ic_more_horiz,
+    // The same keys by the names a layout stores them under.
+    "UP" to R.drawable.ic_arrow_upward,
+    "DOWN" to R.drawable.ic_arrow_downward,
+    "LEFT" to R.drawable.ic_arrow_back,
+    "RIGHT" to R.drawable.ic_arrow_forward,
+    KeyBarLayout.MORE to R.drawable.ic_more_horiz,
 )
 
 private fun describe(state: ModifierState): String = when (state) {
@@ -309,16 +472,18 @@ private fun describe(state: ModifierState): String = when (state) {
 @Composable
 private fun KeyCap(
     modifier: Modifier,
-    label: String,
-    description: String,
-    words: TextStyle,
-    @DrawableRes icon: Int? = null,
-    character: Boolean = false,
+    face: Face,
+    fit: Fit,
     state: ModifierState = ModifierState.OFF,
     stateDescription: String? = null,
     repeats: Boolean = false,
+    /** Answer a touch the way a keyboard key does, with the system's key click. */
+    feedback: Boolean = true,
     onPress: () -> Unit,
 ) {
+    val label = face.label
+    val icon = face.icon
+    val character = face.character
     val colors = MaterialTheme.colorScheme
     val background by animateColorAsState(
         when (state) {
@@ -354,7 +519,7 @@ private fun KeyCap(
                     val pressed = PressInteraction.Press(down.position)
                     scope.launch { interaction.emit(pressed) }
                     // Follows the system's "touch feedback" setting, like the keyboard does.
-                    view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    if (feedback) view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     var repeated = false
                     val repeating = if (!repeats) null else scope.launch {
                         delay(REPEAT_AFTER_MS)
@@ -376,7 +541,7 @@ private fun KeyCap(
             }
             .semantics(mergeDescendants = true) {
                 role = Role.Button
-                if (icon != null) contentDescription = description
+                if (icon != null) contentDescription = face.description
                 if (stateDescription != null) this.stateDescription = stateDescription
                 onClick {
                     press()
@@ -387,8 +552,8 @@ private fun KeyCap(
     ) {
         when {
             icon != null -> Icon(painterResource(icon), null, Modifier.size(18.dp), tint = content)
-            character -> Text(label, color = content, fontFamily = CharacterFont, fontSize = 16.sp, maxLines = 1, softWrap = false)
-            else -> Text(label, Modifier.padding(horizontal = LabelPadding), color = content, style = words, maxLines = 1, softWrap = false)
+            character -> Text(label, color = content, style = CharacterStyle, fontSize = fit.texts[label] ?: CharacterStyle.fontSize, maxLines = 1, softWrap = false)
+            else -> Text(label, Modifier.padding(horizontal = LabelPadding), color = content, style = fit.words, maxLines = 1, softWrap = false)
         }
         if (state == ModifierState.LOCKED) {
             Box(Modifier.align(Alignment.TopEnd).padding(5.dp).size(4.dp).background(content, CircleShape))

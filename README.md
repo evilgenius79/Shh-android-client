@@ -23,6 +23,8 @@ output of `vim`, produced by the test suite.
 - A bar with the keys a phone keyboard lacks: Esc, Tab, Ctrl and Alt (tap twice to lock), arrows
   that repeat while held, Home/End and Page Up/Down, plus a panel with F1–F12 and the characters
   a shell needs but a phone hides, such as `~ \ { } [ ]`.
+- The bar is yours to arrange: choose which key sits where, including keys that type a few
+  characters of your own, and let it step aside while a hardware keyboard is connected.
 - Hardware keyboard support, pinch to zoom, long-press to select and copy or to open a web
   address, Ctrl+Shift+C / Ctrl+Shift+V.
 - Keyboards are asked for plain characters by default (no autocorrect); a setting turns on
