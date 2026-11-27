@@ -1,5 +1,6 @@
 package io.github.evilgenius79.shh.ssh
 
+import com.hierynomus.sshj.key.KeyAlgorithms
 import net.schmizz.keepalive.KeepAliveProvider
 import net.schmizz.sshj.DefaultConfig
 import net.schmizz.sshj.common.Factory
@@ -71,7 +72,10 @@ internal object SshAlgorithms {
         SshSecurity.install()
         val config = DefaultConfig()
         config.keyExchangeFactories = pick(config.keyExchangeFactories, KEX + (if (allowLegacy) KEX_LEGACY else emptyList()) + EXT_INFO)
-        config.keyAlgorithms = pick(config.keyAlgorithms, HOST_KEYS + if (allowLegacy) HOST_KEYS_LEGACY else emptyList())
+        // The key types of security keys are not among the library's defaults. They are needed
+        // for logging in with such a key, and go last, as few servers have one as their own key.
+        config.keyAlgorithms = pick(config.keyAlgorithms, HOST_KEYS + if (allowLegacy) HOST_KEYS_LEGACY else emptyList()) +
+            listOf(KeyAlgorithms.SkSSHEd25519(), KeyAlgorithms.SkECDSANistp256())
         config.cipherFactories = pick(config.cipherFactories, CIPHERS + if (allowLegacy) CIPHERS_LEGACY else emptyList())
         config.macFactories = pick(config.macFactories, MACS + if (allowLegacy) MACS_LEGACY else emptyList())
         config.compressionFactories = if (compression) {

@@ -25,6 +25,7 @@ import java.net.InetSocketAddress
 import java.net.NoRouteToHostException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.security.KeyPair
 import java.util.concurrent.TimeoutException
 
 /** Opens SSH connections. */
@@ -184,7 +185,7 @@ object SshConnector {
             for (key in hop.keys) {
                 // A certificate first: where it is accepted the key needs no entry on the server.
                 key.certificate?.let { candidates.add(AuthPublickey(CertificateKeyProvider(key, it))) }
-                candidates.add(AuthPublickey(KeyPairWrapper(key.keyPair)))
+                candidates.add(AuthPublickey(KeyPairWrapper(if (key.securityKey != null) withSecurityKey(key) else key.keyPair)))
             }
             candidates.add(AuthKeyboardInteractive(InteractiveProvider()))
             candidates.add(AuthPassword(PasswordProvider()))
@@ -199,6 +200,19 @@ object SshConnector {
                 if (cancelled) throw PromptCancelledException()
             }
             throw UserAuthException("No authentication method succeeded")
+        }
+
+        /** The key pair of [key] with this login's user as the way to the hardware. */
+        private fun withSecurityKey(key: LoadedKey): KeyPair = SecurityKeys.withSigner(key.keyPair) { request ->
+            if (cancelled) return@withSigner null
+            when (val answer = prompts.signWithSecurityKey(hop, key.publicKey, request)) {
+                is SecurityKeyAnswer.Signed -> answer.assertion
+                SecurityKeyAnswer.Skip -> null
+                SecurityKeyAnswer.Cancel -> {
+                    cancelled = true
+                    null
+                }
+            }
         }
 
         private fun attempt(client: SSHClient, method: AuthMethod): Boolean = try {

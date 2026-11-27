@@ -81,6 +81,15 @@ interface SshPrompts {
      */
     fun confirmAgentUse(target: SshTarget, key: SshPublicKey): Boolean = false
 
+    /**
+     * [target] would accept [key], which lives on a security key, and wants the signature that
+     * proves it is at hand. Called once per login and may block for as long as it takes the
+     * user to find the key and touch it.
+     *
+     * The default passes the key over, for callers that cannot reach such hardware.
+     */
+    fun signWithSecurityKey(target: SshTarget, key: SshPublicKey, request: SecurityKeyRequest): SecurityKeyAnswer = SecurityKeyAnswer.Skip
+
     /** The server sent a banner to show before logging in. */
     fun onBanner(target: SshTarget, banner: String) {}
 

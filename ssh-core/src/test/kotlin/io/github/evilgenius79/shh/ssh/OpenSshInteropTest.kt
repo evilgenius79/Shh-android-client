@@ -12,6 +12,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -94,6 +95,116 @@ class OpenSshInteropTest {
         file.setWritable(false, false)
         file.setWritable(true, true)
         return file
+    }
+
+    // ----- keys on a security key (FIDO2) -----
+
+    @Test
+    fun aSecurityKeyLogsInWhenItSignsAndOnlyThen() {
+        val s = servers()
+        for (ecdsa in listOf(false, true)) {
+            val device = SoftwareSecurityKey(ecdsa)
+            s.authorizedKeys.writeText(device.key.publicKey.toAuthorizedKey("security-key") + "\n")
+
+            // The hardware signs: that is the login, and no password is asked for.
+            prompts.securityKey = { request -> SecurityKeyAnswer.Signed(device.sign(request)) }
+            connect(keys = listOf(device.key), password = null).use { connection ->
+                assertEquals("via-security-key", connection.execute("echo via-security-key").stdout.trim())
+            }
+            assertEquals(1L, device.counter, "the key is asked once, and only after the server said it would accept it")
+            val request = device.requests.single()
+            assertEquals(device.keyType, request.keyType)
+            assertEquals("ssh:", request.application)
+            assertEquals(32, request.challenge.size, "what is signed is a SHA-256")
+            assertTrue(request.touchRequired && !request.verificationRequired)
+            assertEquals(listOf(device.key.publicKey), prompts.securityKeyRequests.toList())
+
+            // A signature that says nobody touched the key is not good enough for the server:
+            // it refuses the key, and the login goes on to ask for a password (which this test
+            // does not give).
+            prompts.securityKey = { SecurityKeyAnswer.Signed(device.sign(it, touched = false)) }
+            val askedBefore = prompts.passwordRequests.size
+            assertFailsWith<SshConnectException> { connect(keys = listOf(device.key), password = null) }
+            assertEquals(2L, device.counter, "the key did sign")
+            assertTrue(prompts.passwordRequests.size > askedBefore, "and the server did not take that signature")
+
+            // The key is not at hand: the login goes on with the password.
+            prompts.securityKey = { SecurityKeyAnswer.Skip }
+            connect(keys = listOf(device.key)).use { connection ->
+                assertEquals("via-password", connection.execute("echo via-password").stdout.trim())
+            }
+
+            // The user gives up at the key: nothing else is tried, although the password would work.
+            prompts.securityKey = { SecurityKeyAnswer.Cancel }
+            val cancelled = assertFailsWith<SshConnectException> { connect(keys = listOf(device.key)) }
+            assertEquals(SshFailure.CANCELLED, cancelled.failure)
+
+            // Whatever goes wrong while talking to the hardware must not take the connection down.
+            prompts.securityKey = { throw IllegalStateException("the key was pulled out") }
+            connect(keys = listOf(device.key)).use { connection ->
+                assertEquals("still-here", connection.execute("echo still-here").stdout.trim())
+            }
+            prompts.securityKeyRequests.clear()
+        }
+    }
+
+    @Test
+    fun aServerThatWantsThePinGetsASignatureThatSaysItWasChecked() {
+        val s = servers()
+        // "verify-required" in authorized_keys: the server insists that the key checked its PIN.
+        val device = SoftwareSecurityKey(ecdsa = false, flags = 1 or 4)
+        s.authorizedKeys.writeText("verify-required " + device.key.publicKey.toAuthorizedKey("security-key") + "\n")
+        assertTrue(device.key.securityKey!!.verificationRequired)
+
+        prompts.securityKey = { request ->
+            assertTrue(request.verificationRequired, "the key file says the PIN is needed, and the request passes that on")
+            SecurityKeyAnswer.Signed(device.sign(request, verified = false))
+        }
+        assertFailsWith<SshConnectException> { connect(keys = listOf(device.key), password = null) }
+        assertEquals(1L, device.counter, "the key signed, saying that it was touched but that no PIN was checked")
+        assertEquals(1, prompts.passwordRequests.size, "which the server refused, so a password was asked for")
+
+        prompts.securityKey = { SecurityKeyAnswer.Signed(device.sign(it, verified = true)) }
+        connect(keys = listOf(device.key), password = null).use { connection ->
+            assertEquals("verified", connection.execute("echo verified").stdout.trim())
+        }
+    }
+
+    @Test
+    fun aSecurityKeyFileIsReadAndWrittenTheWayOpenSshDoes() {
+        assumeTrue(haveSshKeygen())
+        for (ecdsa in listOf(false, true)) {
+            val device = SoftwareSecurityKey(ecdsa, application = "ssh:work", flags = 1 or 4)
+            val text = SshKeys.toOpenSshPrivateKey(device.key, "sk-test")
+            val file = privateKeyFile(text)
+
+            // OpenSSH reads what was written and finds the same public key in it.
+            assertEquals(device.key.publicKey.toAuthorizedKey("sk-test"), run("ssh-keygen", "-y", "-f", file.path).trim())
+            assertTrue(run("ssh-keygen", "-l", "-f", file.path).contains(if (ecdsa) "(ECDSA-SK)" else "(ED25519-SK)"))
+
+            // And what OpenSSH writes is read: here it encrypts the file with a passphrase.
+            run("ssh-keygen", "-q", "-p", "-N", "sk-passphrase", "-f", file.path)
+            val theirs = file.readText()
+            assertTrue(SshKeys.isEncrypted(theirs))
+            for (loaded in listOf(SshKeys.load(text), SshKeys.load(theirs, "sk-passphrase".toCharArray()))) {
+                assertEquals(device.key.publicKey, loaded.publicKey)
+                val info = assertNotNull(loaded.securityKey)
+                assertEquals("ssh:work", info.application)
+                assertTrue(info.touchRequired && info.verificationRequired)
+                assertEquals(if (ecdsa) "ECDSA P-256 on a security key" else "Ed25519 on a security key", loaded.description)
+                // The handle survived: the device recognises requests made with the loaded key.
+                var seen: SecurityKeyRequest? = null
+                val pair = SecurityKeys.withSigner(loaded.keyPair) { request ->
+                    seen = request
+                    device.sign(request)
+                }
+                val signer = (pair.private as com.hierynomus.sshj.userauth.fido.SecurityKeyPrivateKey).signer
+                signer.sign(com.hierynomus.sshj.userauth.fido.SecurityKeySigningRequest(device.keyType, "ssh:work", device.keyHandle, ByteArray(32), 5))
+                assertTrue(assertNotNull(seen).keyHandle.contentEquals(device.keyHandle))
+            }
+            assertFailsWith<WrongPassphraseException> { SshKeys.load(theirs, "wrong".toCharArray()) }
+        }
+        assertNull(SshKeys.generate(KeyAlgorithm.ED25519).securityKey, "an ordinary key is not a security key")
     }
 
     // ----- certificates -----

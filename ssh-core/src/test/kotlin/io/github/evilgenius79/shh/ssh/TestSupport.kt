@@ -252,6 +252,15 @@ class TestPrompts(
         agentRequests.add(key)
         return allowAgent
     }
+    /** What to do when a login needs a security key. Without it, the key is passed over. */
+    var securityKey: ((SecurityKeyRequest) -> SecurityKeyAnswer)? = null
+    val securityKeyRequests = CopyOnWriteArrayList<SshPublicKey>()
+
+    override fun signWithSecurityKey(target: SshTarget, key: SshPublicKey, request: SecurityKeyRequest): SecurityKeyAnswer {
+        securityKeyRequests.add(key)
+        return securityKey?.invoke(request) ?: SecurityKeyAnswer.Skip
+    }
+
     val passwordRequests = CopyOnWriteArrayList<Int>()
     val challenges = CopyOnWriteArrayList<InteractiveChallenge>()
     val banners = CopyOnWriteArrayList<String>()

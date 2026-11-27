@@ -25,7 +25,8 @@ internal class AgentForwarder(
     private val confirm: (SshPublicKey) -> Boolean,
 ) : AbstractForwardedChannelOpener(CHANNEL_TYPE, connection) {
     /** Loaded on first use: decrypting every stored key is wasted work if nothing asks. */
-    private val identities: List<LoadedKey> by lazy { keys() }
+    // A key on a security key cannot be lent: signing with it takes the hardware and its owner.
+    private val identities: List<LoadedKey> by lazy { keys().filter { it.securityKey == null } }
 
     private class AgentChannel(connection: Connection, recipient: Int, window: Long, maxPacket: Long) :
         AbstractForwardedChannel(connection, CHANNEL_TYPE, recipient, window, maxPacket, "", 0)

@@ -3,6 +3,7 @@ package io.github.evilgenius79.shh.ssh
 import com.hierynomus.sshj.common.KeyDecryptionFailedException
 import com.hierynomus.sshj.userauth.keyprovider.bcrypt.BCrypt
 import net.schmizz.sshj.DefaultConfig
+import com.hierynomus.sshj.userauth.fido.SecurityKeyPrivateKey
 import net.schmizz.sshj.common.Buffer
 import net.schmizz.sshj.common.Factory
 import net.schmizz.sshj.common.KeyType
@@ -131,11 +132,16 @@ class LoadedKey internal constructor(
         return LoadedKey(keyPair, publicKey, certificate)
     }
 
+    /** Set when the private key lives on a security key (FIDO2) and this is only the handle to it. */
+    val securityKey: SecurityKeyInfo? get() = SecurityKeys.info(keyPair)
+
     /** Human readable description such as "Ed25519" or "RSA 4096". */
     val description: String
         get() {
             val public = keyPair.public
             return when (publicKey.type) {
+                "sk-ssh-ed25519@openssh.com" -> "Ed25519 on a security key"
+                "sk-ecdsa-sha2-nistp256@openssh.com" -> "ECDSA P-256 on a security key"
                 "ssh-ed25519" -> "Ed25519"
                 "ssh-rsa" -> "RSA " + (public as java.security.interfaces.RSAPublicKey).modulus.bitLength()
                 "ssh-dss" -> "DSA"
@@ -312,8 +318,26 @@ object SshKeys {
                 out.putBytes(point)
                 out.putMPInt(d)
             }
+            "sk-ssh-ed25519@openssh.com" -> {
+                out.putBytes(blob.readBytes())
+                writeSecurityKeyFields(out, blob.readString(), private)
+            }
+            "sk-ecdsa-sha2-nistp256@openssh.com" -> {
+                out.putString(blob.readString()) // the name of the curve
+                out.putBytes(blob.readBytes()) // the point
+                writeSecurityKeyFields(out, blob.readString(), private)
+            }
             else -> throw UnsupportedKeyException("Cannot write ${key.publicKey.type} keys")
         }
+    }
+
+    /** What an sk key file holds in place of a private key: see "sshkey_private_serialize" in OpenSSH. */
+    private fun writeSecurityKeyFields(out: Buffer.PlainBuffer, application: String, private: java.security.PrivateKey) {
+        val handle = private as? SecurityKeyPrivateKey ?: throw UnsupportedKeyException("The key lacks the handle of its security key")
+        out.putString(application)
+        out.putByte(handle.flags)
+        out.putBytes(handle.keyHandle)
+        out.putBytes(ByteArray(0)) // reserved
     }
 
     private val OPENSSH_MAGIC = "openssh-key-v1\u0000".toByteArray(StandardCharsets.US_ASCII)
