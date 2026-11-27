@@ -17,6 +17,7 @@ import io.github.evilgenius79.shh.ssh.HostKeyDecision
 import io.github.evilgenius79.shh.ssh.HostKeyStatus
 import io.github.evilgenius79.shh.ssh.InMemoryHostKeyStore
 import io.github.evilgenius79.shh.ssh.SshFailure
+import io.github.evilgenius79.shh.terminal.ModifierState
 import io.github.evilgenius79.shh.terminal.TerminalKey
 import io.github.evilgenius79.shh.terminal.TerminalView
 import org.junit.After
@@ -193,15 +194,29 @@ class LiveSessionTest {
         // The Ctrl key from the extra key row applies to the next character: Ctrl+C aborts the
         // half typed command, and the latch is used up.
         ime.commitText("echo never-run", 1)
-        view.ctrlLatched = true
+        view.ctrl = ModifierState.ONCE
         var consumed = 0
         view.onModifiersConsumed = { consumed++ }
         ime.commitText("c", 1)
         assertEquals(1, consumed)
-        assertTrue(!view.ctrlLatched)
+        assertEquals(ModifierState.OFF, view.ctrl)
         // Wait for the shell to react before typing on: it throws away type-ahead when it is
         // interrupted, exactly as it would for a person typing implausibly fast.
         waitFor("the interrupt") { session.screen().contains("never-run^C") }
+
+        // Locked, Ctrl stays on: Ctrl+C twice in a row without tapping it again, and nothing
+        // reports it as used up.
+        fun interrupts() = session.screen().windowed(2).count { it == "^C" }
+        ime.commitText("echo locked", 1)
+        view.ctrl = ModifierState.LOCKED
+        ime.commitText("c", 1)
+        waitFor("the first Ctrl+C with Ctrl locked") { session.screen().contains("locked^C") }
+        val before = interrupts()
+        ime.commitText("c", 1)
+        waitFor("the second Ctrl+C with Ctrl locked") { interrupts() == before + 1 }
+        assertEquals(ModifierState.LOCKED, view.ctrl)
+        assertEquals(1, consumed)
+        view.ctrl = ModifierState.OFF
         ime.commitText("echo after-\$((7+1))\n", 1)
         waitFor("output after Ctrl+C") { session.screen().contains("after-8") }
 

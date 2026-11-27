@@ -11,20 +11,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
@@ -57,9 +53,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,7 +73,7 @@ import io.github.evilgenius79.shh.ssh.HostKeyStatus
 import io.github.evilgenius79.shh.ssh.SshFailure
 import io.github.evilgenius79.shh.terminal.ColorScheme
 import io.github.evilgenius79.shh.terminal.CursorShape
-import io.github.evilgenius79.shh.terminal.TerminalKey
+import io.github.evilgenius79.shh.terminal.ModifierState
 import io.github.evilgenius79.shh.terminal.TerminalView
 
 @Composable
@@ -104,8 +98,8 @@ fun TerminalScreen(
     var showForwards by remember { mutableStateOf(false) }
     var showColors by remember { mutableStateOf(false) }
     var showInstallKey by remember { mutableStateOf(false) }
-    var ctrl by remember { mutableStateOf(false) }
-    var alt by remember { mutableStateOf(false) }
+    var ctrl by remember { mutableStateOf(ModifierState.OFF) }
+    var alt by remember { mutableStateOf(ModifierState.OFF) }
     var terminalView by remember { mutableStateOf<TerminalView?>(null) }
     // Bumped when the colour scheme changes so the view redraws.
     var colorVersion by remember { mutableIntStateOf(0) }
@@ -164,6 +158,7 @@ fun TerminalScreen(
                             entry("Colours", R.drawable.ic_palette) { showColors = true }
                             entry("Larger text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp + 1).coerceAtMost(TerminalView.MAX_FONT_SP.toInt())) }
                             entry("Smaller text", R.drawable.ic_text_fields) { onFontSize((settings.fontSizeSp - 1).coerceAtLeast(TerminalView.MIN_FONT_SP.toInt())) }
+                            entry("Show keyboard", R.drawable.ic_keyboard) { terminalView?.showKeyboard() }
                             entry("Reset terminal", R.drawable.ic_restart_alt) {
                                 synchronized(active.emulator) { active.emulator.reset() }
                                 terminalView?.invalidate()
@@ -204,9 +199,10 @@ fun TerminalScreen(
                     factory = { context ->
                         TerminalView(context).also { view ->
                             terminalView = view
+                            // A one-shot Ctrl or Alt was used up by a key: show it as off again.
                             view.onModifiersConsumed = {
-                                ctrl = false
-                                alt = false
+                                ctrl = view.ctrl
+                                alt = view.alt
                             }
                         }
                     },
@@ -219,8 +215,8 @@ fun TerminalScreen(
                             CursorStyle.UNDERLINE -> CursorShape.UNDERLINE
                             CursorStyle.BAR -> CursorShape.BAR
                         }
-                        view.ctrlLatched = ctrl
-                        view.altLatched = alt
+                        view.ctrl = ctrl
+                        view.alt = alt
                         view.onFontSizeChanged = { onFontSize(it.toInt()) }
                         // Read so that a colour change triggers this block and repaints the view.
                         if (colorVersion >= 0) view.invalidate()
@@ -239,11 +235,10 @@ fun TerminalScreen(
                 ExtraKeys(
                     ctrl = ctrl,
                     alt = alt,
-                    onCtrl = { ctrl = !ctrl },
-                    onAlt = { alt = !alt },
+                    onCtrl = { ctrl = it },
+                    onAlt = { alt = it },
                     onKey = { key -> terminalView?.sendKey(key, 0) },
                     onText = { text -> terminalView?.typed(text) },
-                    onToggleKeyboard = { terminalView?.showKeyboard() },
                 )
             }
         }
@@ -426,77 +421,6 @@ private fun hintFor(failure: SshFailure?): String? = when (failure) {
     SshFailure.PROTOCOL -> "If this is an old device, try \"Allow legacy algorithms\" in the host settings."
     SshFailure.AUTH_FAILED -> "Check the user name, password or key for this host."
     else -> null
-}
-
-/** The row of keys a phone keyboard lacks. Ctrl and Alt latch and apply to the next key. */
-@Composable
-private fun ExtraKeys(
-    ctrl: Boolean,
-    alt: Boolean,
-    onCtrl: () -> Unit,
-    onAlt: () -> Unit,
-    onKey: (TerminalKey) -> Unit,
-    onText: (String) -> Unit,
-    onToggleKeyboard: () -> Unit,
-) {
-    Surface(tonalElevation = 3.dp) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 4.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            KeyCap("ESC") { onKey(TerminalKey.ESCAPE) }
-            KeyCap("TAB") { onKey(TerminalKey.TAB) }
-            KeyCap("CTRL", active = ctrl, onClick = onCtrl)
-            KeyCap("ALT", active = alt, onClick = onAlt)
-            KeyCap("←", description = "Left") { onKey(TerminalKey.LEFT) }
-            KeyCap("↓", description = "Down") { onKey(TerminalKey.DOWN) }
-            KeyCap("↑", description = "Up") { onKey(TerminalKey.UP) }
-            KeyCap("→", description = "Right") { onKey(TerminalKey.RIGHT) }
-            for (symbol in listOf("/", "|", "-", "~", "_", ":", "*")) {
-                KeyCap(symbol) { onText(symbol) }
-            }
-            KeyCap("HOME") { onKey(TerminalKey.HOME) }
-            KeyCap("END") { onKey(TerminalKey.END) }
-            KeyCap("PGUP") { onKey(TerminalKey.PAGE_UP) }
-            KeyCap("PGDN") { onKey(TerminalKey.PAGE_DOWN) }
-            KeyCap("DEL") { onKey(TerminalKey.DELETE) }
-            for ((label, key) in listOf(
-                "F1" to TerminalKey.F1, "F2" to TerminalKey.F2, "F3" to TerminalKey.F3, "F4" to TerminalKey.F4,
-                "F5" to TerminalKey.F5, "F6" to TerminalKey.F6, "F7" to TerminalKey.F7, "F8" to TerminalKey.F8,
-                "F9" to TerminalKey.F9, "F10" to TerminalKey.F10, "F11" to TerminalKey.F11, "F12" to TerminalKey.F12,
-            )) {
-                KeyCap(label) { onKey(key) }
-            }
-            IconButton(onClick = onToggleKeyboard) { AppIcon(R.drawable.ic_keyboard, "Show keyboard") }
-        }
-    }
-}
-
-@Composable
-private fun KeyCap(label: String, active: Boolean = false, description: String? = null, onClick: () -> Unit) {
-    val colors = MaterialTheme.colorScheme
-    Box(
-        Modifier
-            .defaultMinSize(minWidth = 44.dp)
-            .height(40.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (active) colors.primary else colors.surfaceVariant)
-            .clickable(role = Role.Button, onClickLabel = description ?: label, onClick = onClick)
-            .padding(horizontal = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label,
-            color = if (active) colors.onPrimary else colors.onSurfaceVariant,
-            fontWeight = FontWeight.Medium,
-            fontSize = 13.sp,
-            fontFamily = FontFamily.Monospace,
-        )
-    }
 }
 
 @Composable

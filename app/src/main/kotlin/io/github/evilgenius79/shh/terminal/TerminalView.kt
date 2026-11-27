@@ -80,13 +80,13 @@ class TerminalView(context: Context) : View(context) {
             restartBlink()
         }
 
-    /** Ctrl is latched from the on-screen key row and applies to the next key. */
-    var ctrlLatched: Boolean = false
+    /** Ctrl from the on-screen key bar: for the next key only, or locked on. */
+    var ctrl: ModifierState = ModifierState.OFF
 
-    /** Alt is latched from the on-screen key row and applies to the next key. */
-    var altLatched: Boolean = false
+    /** Alt from the on-screen key bar: for the next key only, or locked on. */
+    var alt: ModifierState = ModifierState.OFF
 
-    /** Called after a latched modifier was used up, so the key row can un-highlight it. */
+    /** Called after a one-shot modifier was used up, so the key bar can show it as off again. */
     var onModifiersConsumed: (() -> Unit)? = null
 
     /** Called when pinch zooming settled on a new font size, so it can be saved. */
@@ -265,15 +265,15 @@ class TerminalView(context: Context) : View(context) {
         afterInput()
     }
 
+    /** The key bar's modifiers for the key being sent. One-shot ones are used up by it. */
     private fun takeLatchedModifiers(): Int {
         var modifiers = 0
-        if (ctrlLatched) modifiers = modifiers or KeyModifiers.CTRL
-        if (altLatched) modifiers = modifiers or KeyModifiers.ALT
-        if (modifiers != 0) {
-            ctrlLatched = false
-            altLatched = false
-            onModifiersConsumed?.invoke()
-        }
+        if (ctrl.isOn) modifiers = modifiers or KeyModifiers.CTRL
+        if (alt.isOn) modifiers = modifiers or KeyModifiers.ALT
+        val usedUp = ctrl == ModifierState.ONCE || alt == ModifierState.ONCE
+        if (ctrl == ModifierState.ONCE) ctrl = ModifierState.OFF
+        if (alt == ModifierState.ONCE) alt = ModifierState.OFF
+        if (usedUp) onModifiersConsumed?.invoke()
         return modifiers
     }
 

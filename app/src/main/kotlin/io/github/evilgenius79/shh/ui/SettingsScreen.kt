@@ -144,7 +144,7 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
-            SwitchRow("Extra key row", "Esc, Tab, Ctrl, Alt, arrows and function keys above the keyboard", settings.showExtraKeys, { on -> update { it.copy(showExtraKeys = on) } })
+            SwitchRow("Extra keys", "Esc, Tab, Ctrl, Alt, arrows and more, above the keyboard", settings.showExtraKeys, { on -> update { it.copy(showExtraKeys = on) } })
             SwitchRow("Vibrate on bell", null, settings.vibrateOnBell, { on -> update { it.copy(vibrateOnBell = on) } })
             SwitchRow(
                 "Let servers set the clipboard",

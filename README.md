@@ -20,8 +20,11 @@ output of `vim`, produced by the test suite.
   title, OSC colour queries.
 - Scrollback with text re-wrapped when the screen size changes.
 - Several sessions at once in tabs; they stay connected in the background.
-- Extra key row (Esc, Tab, Ctrl, Alt, arrows, Home/End, Page Up/Down, F1–F12), hardware keyboard
-  support, pinch to zoom, long-press to select and copy, Ctrl+Shift+C / Ctrl+Shift+V.
+- A bar with the keys a phone keyboard lacks: Esc, Tab, Ctrl and Alt (tap twice to lock), arrows
+  that repeat while held, Home/End and Page Up/Down, plus a panel with F1–F12 and the characters
+  a shell needs but a phone hides, such as `~ \ { } [ ]`.
+- Hardware keyboard support, pinch to zoom, long-press to select and copy, Ctrl+Shift+C /
+  Ctrl+Shift+V.
 - Eleven colour schemes (Dracula, Solarized, Gruvbox, Nord, One Dark, Tokyo Night, Monokai, …),
   per host if you like. JetBrains Mono is bundled.
 - Scrolling inside `less`, `man` or `vim` works with a swipe.
