@@ -47,10 +47,10 @@ class SessionManager(
         secrets = secrets,
         hostKeys = hostKeys,
         onBell = { session -> main.post { bell(session) } },
-        onShellExited = { session, status ->
+        onShellExited = { session, byUser ->
             // Leaving the shell with "exit" or Ctrl+D is how a session is closed from the inside.
-            // After an error the tab stays, so that what led to it can still be read.
-            if (status == 0 && store.data.value.settings.closeOnExit) main.post { close(session) }
+            // A shell that ends on its own stays, so that the reason can still be read.
+            if (byUser && store.data.value.settings.closeOnExit) main.post { close(session) }
         },
         onClipboard = { text -> main.post { copyToClipboard(text) } },
         onConnected = { host ->

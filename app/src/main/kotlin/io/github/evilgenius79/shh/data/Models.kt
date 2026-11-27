@@ -125,7 +125,7 @@ data class Settings(
     val autoReconnect: Boolean = true,
     /** Present the terminal to the keyboard as ordinary text: voice, swipe and CJK input work. */
     val fullKeyboard: Boolean = false,
-    /** Close a session's tab when its shell ends by itself without an error. */
+    /** Close a session's tab when the user leaves its shell ("exit", Ctrl+D). */
     val closeOnExit: Boolean = true,
     /** Post a notification when a session that is not on screen rings the bell. */
     val notifyOnBell: Boolean = true,

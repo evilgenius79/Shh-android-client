@@ -206,7 +206,8 @@ class ReconnectTest {
         val session = connect(relay, delays = listOf(50, 50, 50))
         session.sendText("exit\n")
         waitFor("the session to end") { session.state.value is SessionState.Disconnected }
-        assertEquals("Session ended (exit status 0)", (session.state.value as SessionState.Disconnected).message)
+        // Whatever the status: a shell passes on that of its last command.
+        assertTrue((session.state.value as SessionState.Disconnected).message.startsWith("Session ended (exit status "))
         Thread.sleep(600)
         assertIs<SessionState.Disconnected>(session.state.value)
         assertEquals(1, relay.accepted.get(), "no attempt to connect again")

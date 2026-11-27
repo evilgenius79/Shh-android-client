@@ -168,7 +168,7 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
             )
             SwitchRow(
                 "Close a tab when its shell exits",
-                "After exit or Ctrl+D. A shell that ends with an error stays, so that it can be read.",
+                "After exit or Ctrl+D. A session that ends on its own stays, so that you can read why.",
                 settings.closeOnExit,
                 { on -> update { it.copy(closeOnExit = on) } },
             )

@@ -303,45 +303,63 @@ class LiveSessionTest {
     }
 
     @Test
-    fun leavingTheShellClosesItsTabUnlessItEndedWithAnError() {
+    fun leavingTheShellClosesItsTabButAShellThatEndsOnItsOwnStays() {
         assumeTrue(spec != null)
         val context: Context = ApplicationProvider.getApplicationContext()
         val store = io.github.evilgenius79.shh.data.AppStore(File.createTempFile("store", ".json"), java.util.concurrent.Executor { it.run() })
         val manager = io.github.evilgenius79.shh.session.SessionManager(context, store, secrets, hostKeys)
         val main = org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
 
-        fun login(): TerminalSession {
-            val session = manager.open(host())
+        fun login(startup: String = ""): TerminalSession {
+            val session = manager.open(host(startup = startup))
             sessions.add(session)
             if (hostKeys.find(host().host, host().port).isEmpty()) session.acceptHostKey()
-            waitFor("the login") { session.isConnected }
+            // Not "is connected": a shell that its startup command ends at once may already be
+            // over again by the time anybody looks.
+            waitFor("the login") { session.state.value !is SessionState.Connecting }
             return session
         }
 
-        // "exit" at the prompt: the tab goes away, as a terminal window would.
-        val first = login()
-        first.sendText("exit\n")
-        waitFor("the tab to close") {
+        fun waitForTheTabToClose() = waitFor("the tab to close") {
             main.idle()
             manager.sessions.value.isEmpty()
         }
 
-        // A shell that ends with an error stays, so that what happened can be read.
-        val second = login()
-        second.sendText("exit 3\n")
-        waitFor("the session to end") { second.state.value is SessionState.Disconnected }
-        main.idle()
-        assertEquals(listOf(second), manager.sessions.value)
-        assertEquals("Session ended (exit status 3)", (second.state.value as SessionState.Disconnected).message)
-        manager.close(second)
+        // "exit" at the prompt: the tab goes away, as a terminal window would.
+        login().sendText("exit\n")
+        waitForTheTabToClose()
 
-        // And with the setting off, a clean exit stays too.
-        store.updateSettings { it.copy(closeOnExit = false) }
-        val third = login()
-        third.sendText("exit\n")
-        waitFor("the session to end") { third.state.value is SessionState.Disconnected }
+        // The same after a command that failed. The shell then ends with that command's status,
+        // which says nothing about whether the user meant to leave.
+        val afterFailure = login()
+        afterFailure.sendText("false\n")
+        afterFailure.sendText("exit\n")
+        waitForTheTabToClose()
+
+        // Ctrl+D is the other way out.
+        val withControlD = login()
+        withControlD.sendText("echo ready-\$((6+1))\n")
+        waitFor("the prompt") { withControlD.screen().contains("ready-7") }
+        withControlD.sendText("d", io.github.evilgenius79.shh.terminal.KeyModifiers.CTRL)
+        waitForTheTabToClose()
+
+        // A shell that ends without the user having typed anything stays, so that what it
+        // printed can be read. Here the host's startup command ends it.
+        val onItsOwn = login(startup = "echo bye-\$((8+1)); exit 3")
+        waitFor("the session to end") { onItsOwn.state.value is SessionState.Disconnected }
         main.idle()
-        assertEquals(listOf(third), manager.sessions.value)
+        assertEquals(listOf(onItsOwn), manager.sessions.value)
+        assertEquals("Session ended (exit status 3)", (onItsOwn.state.value as SessionState.Disconnected).message)
+        assertTrue(onItsOwn.screen().contains("bye-9"))
+        manager.close(onItsOwn)
+
+        // And with the setting off, leaving the shell keeps the tab too.
+        store.updateSettings { it.copy(closeOnExit = false) }
+        val kept = login()
+        kept.sendText("exit\n")
+        waitFor("the session to end") { kept.state.value is SessionState.Disconnected }
+        main.idle()
+        assertEquals(listOf(kept), manager.sessions.value)
         manager.closeAll()
     }
 

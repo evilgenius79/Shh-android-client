@@ -34,6 +34,9 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
+/** A shell that ends this soon after the user typed was ended by the user. */
+private const val EXIT_FOLLOWS_INPUT_MS = 10_000L
+
 /** Where a session is in its life. */
 sealed interface SessionState {
     /** Still setting up; [messages] is the progress so far. */
@@ -79,8 +82,11 @@ class SessionEnvironment(
     val hostKeys: HostKeyStore,
     /** Called when the remote program rings the bell. */
     val onBell: (TerminalSession) -> Unit = {},
-    /** Called when a session's shell ended by itself, with its exit status. */
-    val onShellExited: (TerminalSession, Int) -> Unit = { _, _ -> },
+    /**
+     * Called when a session's shell ended by itself. The flag says whether the user brought that
+     * about, by typing "exit" or Ctrl+D, as opposed to a shell that gave up on its own.
+     */
+    val onShellExited: (TerminalSession, Boolean) -> Unit = { _, _ -> },
     /** Called when the remote program asks to copy text (only when the setting allows it). */
     val onClipboard: (String) -> Unit = {},
     /** Called after a session connected, to record the time on the host. */
@@ -364,7 +370,10 @@ class TerminalSession(
         if (attempt != generation || closed.get() || stateFlow.value !is SessionState.Connected) return
         if (status != null) {
             finish("Session ended (exit status $status)", null)
-            environment.onShellExited(this, status)
+            // The status does not say whether the user meant to leave: a shell passes on that of
+            // its last command, so "exit" after a failed grep ends with 1. What tells is that
+            // the user typed something just before.
+            environment.onShellExited(this, System.currentTimeMillis() - lastUserInputAt <= EXIT_FOLLOWS_INPUT_MS)
             return
         }
         // The transport says so through its listener, but not always before this point.
@@ -459,14 +468,23 @@ class TerminalSession(
         }
     }
 
-    fun sendText(text: String, modifiers: Int = 0) = write(KeyEncoder.encodeText(text, modifiers))
+    /** When the user last typed, pressed a key or pasted. The terminal's own answers do not count. */
+    @Volatile
+    private var lastUserInputAt = 0L
+
+    fun sendText(text: String, modifiers: Int = 0) {
+        lastUserInputAt = System.currentTimeMillis()
+        write(KeyEncoder.encodeText(text, modifiers))
+    }
 
     fun sendKey(key: TerminalKey, modifiers: Int = 0) {
+        lastUserInputAt = System.currentTimeMillis()
         val bytes = synchronized(emulator) { KeyEncoder.encode(key, modifiers, emulator) }
         write(bytes)
     }
 
     fun paste(text: String) {
+        lastUserInputAt = System.currentTimeMillis()
         synchronized(emulator) { emulator.paste(text) }
     }
 
