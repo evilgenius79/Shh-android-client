@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +49,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -104,20 +108,20 @@ fun KeysScreen(
     var selected by remember { mutableStateOf<Identity?>(null) }
 
     Scaffold(
-        topBar = { BackTopBar("Keys", onBack) },
+        topBar = { BackTopBar(stringResource(R.string.keys_title), onBack) },
         floatingActionButton = {
             Box {
-                FloatingActionButton(onClick = { fabMenu = true }) { AppIcon(R.drawable.ic_add, "Add key") }
+                FloatingActionButton(onClick = { fabMenu = true }) { AppIcon(R.drawable.ic_add, stringResource(R.string.keys_add)) }
                 DropdownMenu(expanded = fabMenu, onDismissRequest = { fabMenu = false }) {
-                    DropdownMenuItem(text = { Text("Generate a new key") }, leadingIcon = { AppIcon(R.drawable.ic_key, null) }, onClick = {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.keys_add_generate)) }, leadingIcon = { AppIcon(R.drawable.ic_key, null) }, onClick = {
                         fabMenu = false
                         generating = true
                     })
-                    DropdownMenuItem(text = { Text("Import an existing key") }, leadingIcon = { AppIcon(R.drawable.ic_upload, null) }, onClick = {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.keys_add_import)) }, leadingIcon = { AppIcon(R.drawable.ic_upload, null) }, onClick = {
                         fabMenu = false
                         importing = true
                     })
-                    DropdownMenuItem(text = { Text("New key on a security key") }, leadingIcon = { AppIcon(R.drawable.ic_lock, null) }, onClick = {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.keys_add_on_security_key)) }, leadingIcon = { AppIcon(R.drawable.ic_lock, null) }, onClick = {
                         fabMenu = false
                         onSecurityKey = true
                     })
@@ -128,8 +132,8 @@ fun KeysScreen(
         if (data.identities.isEmpty()) {
             EmptyState(
                 R.drawable.ic_key,
-                "No keys yet",
-                "Generate a key pair or import one, then put its public key on your servers to log in without a password.",
+                stringResource(R.string.keys_empty_title),
+                stringResource(R.string.keys_empty_text),
                 Modifier.padding(padding),
             )
         } else {
@@ -140,7 +144,7 @@ fun KeysScreen(
                         headline = identity.name,
                         supporting = {
                             Column {
-                                Text(identity.algorithm + if (users > 0) " · used by $users host" + (if (users > 1) "s" else "") else "")
+                                Text(if (users > 0) pluralStringResource(R.plurals.keys_kind_used_by, users, identity.algorithm, users) else identity.algorithm)
                                 Text(identity.fingerprint, maxLines = 1, overflow = TextOverflow.Ellipsis, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
                             }
                         },
@@ -174,21 +178,27 @@ private fun GenerateKeyDialog(container: AppContainer, onDone: () -> Unit) {
     var working by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = { if (!working) onDone() },
-        title = { Text("Generate key") },
+        title = { Text(stringResource(R.string.keys_generate_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(name, { name = it }, label = { Text("Name") }, singleLine = true, enabled = !working, modifier = Modifier.fillMaxWidth())
-                SelectField("Type", algorithm, KeyAlgorithm.entries, { it.displayName }, { algorithm = it })
+                OutlinedTextField(
+                    name,
+                    { name = it },
+                    label = { Text(stringResource(R.string.label_name)) },
+                    singleLine = true,
+                    enabled = !working,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                SelectField(stringResource(R.string.keys_type_label), algorithm, KeyAlgorithm.entries, { it.displayName }, { algorithm = it })
                 Text(
-                    if (algorithm == KeyAlgorithm.ED25519) "Ed25519 is the recommended choice: small, fast and supported by every current server."
-                    else "Use this only if a server does not accept Ed25519 keys.",
+                    stringResource(if (algorithm == KeyAlgorithm.ED25519) R.string.keys_generate_ed25519_hint else R.string.keys_generate_other_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (working) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                        Text("Generating…")
+                        Text(stringResource(R.string.keys_generating))
                     }
                 }
             }
@@ -206,9 +216,9 @@ private fun GenerateKeyDialog(container: AppContainer, onDone: () -> Unit) {
                         onDone()
                     }
                 },
-            ) { Text("Generate") }
+            ) { Text(stringResource(R.string.keys_generate)) }
         },
-        dismissButton = { TextButton(enabled = !working, onClick = onDone) { Text("Cancel") } },
+        dismissButton = { TextButton(enabled = !working, onClick = onDone) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -228,47 +238,47 @@ private fun NewSecurityKeyDialog(container: AppContainer, finder: SecurityKeyFin
     if (!decided) {
         AlertDialog(
             onDismissRequest = onDone,
-            title = { Text("New key on a security key") },
+            title = { Text(stringResource(R.string.keys_security_key_title)) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        "The private key is made on the security key and never leaves it. Logging in then takes the key in your hand: " +
-                            "a phone that is lost or broken into gives nothing away.",
-                        style = MaterialTheme.typography.bodyMedium,
+                    Text(stringResource(R.string.keys_security_key_intro), style = MaterialTheme.typography.bodyMedium)
+                    OutlinedTextField(
+                        state = nameState,
+                        label = { Text(stringResource(R.string.label_name)) },
+                        lineLimits = TextFieldLineLimits.SingleLine,
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                    OutlinedTextField(state = nameState, label = { Text("Name") }, lineLimits = TextFieldLineLimits.SingleLine, modifier = Modifier.fillMaxWidth())
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(selected = ed25519, onClick = { ed25519 = true }, label = { Text("Ed25519") })
                         FilterChip(selected = !ed25519, onClick = { ed25519 = false }, label = { Text("ECDSA P-256") })
                     }
                     Text(
-                        if (ed25519) "Ed25519 is the usual choice. Some older security keys cannot make it: choose ECDSA for those."
-                        else "Every FIDO2 security key can make this kind.",
+                        stringResource(if (ed25519) R.string.keys_security_key_ed25519_hint else R.string.keys_security_key_ecdsa_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     SwitchRow(
-                        "Ask for the PIN at every login",
-                        "Besides the touch. The security key needs to have a PIN set.",
+                        stringResource(R.string.keys_security_key_pin_title),
+                        stringResource(R.string.keys_security_key_pin_summary),
                         verify,
                         { verify = it },
                         Modifier.padding(horizontal = 0.dp),
                     )
                     Text(
-                        "Servers need OpenSSH 8.2 or later to accept such a key.",
+                        stringResource(R.string.keys_security_key_server_note),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },
-            confirmButton = { TextButton(enabled = name.isNotEmpty(), onClick = { decided = true }) { Text("Continue") } },
-            dismissButton = { TextButton(onClick = onDone) { Text("Cancel") } },
+            confirmButton = { TextButton(enabled = name.isNotEmpty(), onClick = { decided = true }) { Text(stringResource(R.string.action_continue)) } },
+            dismissButton = { TextButton(onClick = onDone) { Text(stringResource(R.string.action_cancel)) } },
         )
     } else {
         SecurityKeyDialog(
             key = Triple(name, ed25519, verify),
             task = remember(ed25519, verify) { SecurityKeyClient.creating(ed25519, verificationRequired = verify) },
-            why = "The new key \u201c$name\u201d will be made on your security key.",
+            why = stringResource(R.string.keys_security_key_why, name),
             skipLabel = null,
             finder = finder,
             onDone = { outcome ->
@@ -282,6 +292,7 @@ private fun NewSecurityKeyDialog(container: AppContainer, finder: SecurityKeyFin
 @Composable
 private fun ImportKeyDialog(container: AppContainer, onDone: () -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     var name by remember { mutableStateOf("") }
     var text by remember { mutableStateOf("") }
     val passphrase = rememberTextFieldState()
@@ -294,24 +305,24 @@ private fun ImportKeyDialog(container: AppContainer, onDone: () -> Unit) {
                 context.contentResolver.openInputStream(uri)?.use { stream ->
                     val bytes = stream.readBytes()
                     if (bytes.size > MAX_KEY_FILE_BYTES) {
-                        error = "That file is too large to be a private key."
+                        error = resources.getString(R.string.keys_import_too_large)
                     } else {
                         text = String(bytes, Charsets.UTF_8)
                         error = null
                     }
                 }
             } catch (e: IOException) {
-                error = "The file could not be read: ${e.message}"
+                error = resources.getString(R.string.keys_error_file_not_read, e.message)
             }
         }
     }
 
     AlertDialog(
         onDismissRequest = onDone,
-        title = { Text("Import key") },
+        title = { Text(stringResource(R.string.keys_import_title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(name, { name = it }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.label_name)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(
                     text,
                     {
@@ -319,17 +330,17 @@ private fun ImportKeyDialog(container: AppContainer, onDone: () -> Unit) {
                         needsPassphrase = false
                         error = null
                     },
-                    label = { Text("Private key") },
+                    label = { Text(stringResource(R.string.keys_import_private_key_label)) },
                     placeholder = { Text("-----BEGIN OPENSSH PRIVATE KEY-----") },
                     minLines = 3,
                     maxLines = 6,
                     textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                TextButton(onClick = { picker.launch("*/*") }) { Text("Choose a file…") }
-                if (needsPassphrase) SecretField(passphrase, "Passphrase of this key", Modifier.fillMaxWidth())
+                TextButton(onClick = { picker.launch("*/*") }) { Text(stringResource(R.string.keys_choose_file)) }
+                if (needsPassphrase) SecretField(passphrase, stringResource(R.string.keys_import_passphrase_label), Modifier.fillMaxWidth())
                 Text(
-                    "OpenSSH, PEM, PKCS#8 and PuTTY (.ppk) keys are supported. The key is stored encrypted on this device.",
+                    stringResource(R.string.keys_import_formats),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -346,46 +357,56 @@ private fun ImportKeyDialog(container: AppContainer, onDone: () -> Unit) {
                         onDone()
                     } catch (_: PassphraseRequiredException) {
                         needsPassphrase = true
-                        error = "This key is protected by a passphrase."
+                        error = resources.getString(R.string.keys_import_needs_passphrase)
                     } catch (_: WrongPassphraseException) {
                         needsPassphrase = true
-                        error = "That passphrase is not correct."
+                        error = resources.getString(R.string.keys_import_wrong_passphrase)
                     } catch (e: IOException) {
-                        error = e.message ?: "This is not a private key that can be read."
+                        error = e.message ?: resources.getString(R.string.keys_import_not_a_key)
                     }
                 },
-            ) { Text("Import") }
+            ) { Text(stringResource(R.string.keys_import)) }
         },
-        dismissButton = { TextButton(onClick = onDone) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDone) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
 /**
  * The certificate in [text], provided it is one for logging in with [identity]'s key.
  *
- * @throws IOException saying what is wrong with it otherwise.
+ * @throws IOException saying what is wrong with it otherwise, in a text from [resources] where the objection is the app's own.
  */
 @Throws(IOException::class)
-fun certificateFor(identity: Identity, text: String): SshCertificate {
+fun certificateFor(resources: Resources, identity: Identity, text: String): SshCertificate {
     val certificate = SshCertificate.parse(text)
-    if (certificate.publicKey.toAuthorizedKey() != identity.publicKey) throw IOException("This certificate was issued for a different key")
-    if (certificate.isHostCertificate) throw IOException("This certificate identifies a server; it cannot be used to log in")
+    if (certificate.publicKey.toAuthorizedKey() != identity.publicKey) throw IOException(resources.getString(R.string.keys_certificate_other_key))
+    if (certificate.isHostCertificate) throw IOException(resources.getString(R.string.keys_certificate_for_server))
     return certificate
 }
 
 /** One line about a certificate: what it is called, whom it is for and how long it lasts. */
-fun describeCertificate(certificate: SshCertificate, now: Date = Date()): String {
-    val accounts = if (certificate.principals.isEmpty()) "any account" else certificate.principals.joinToString(", ")
+fun describeCertificate(resources: Resources, certificate: SshCertificate, now: Date = Date()): String {
     // Certificates without an end carry the largest possible date.
     val endless = certificate.validBefore.time < 0 || certificate.validBefore.time > FAR_FUTURE_MS
     val until = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(certificate.validBefore)
-    val validity = when {
-        now.before(certificate.validAfter) -> "not valid yet"
-        endless -> "does not expire"
-        certificate.isValidAt(now) -> "valid until $until"
-        else -> "expired on $until"
+    val name = certificate.keyId
+    // Each combination is a text of its own rather than one put together from parts, so that a
+    // translation can give every one of them the order of words its language wants.
+    if (certificate.principals.isEmpty()) {
+        return when {
+            now.before(certificate.validAfter) -> resources.getString(R.string.keys_certificate_any_account_not_valid_yet, name)
+            endless -> resources.getString(R.string.keys_certificate_any_account_endless, name)
+            certificate.isValidAt(now) -> resources.getString(R.string.keys_certificate_any_account_valid_until, name, until)
+            else -> resources.getString(R.string.keys_certificate_any_account_expired, name, until)
+        }
     }
-    return "\"${certificate.keyId}\" for $accounts, $validity"
+    val accounts = certificate.principals.joinToString(", ")
+    return when {
+        now.before(certificate.validAfter) -> resources.getString(R.string.keys_certificate_not_valid_yet, name, accounts)
+        endless -> resources.getString(R.string.keys_certificate_endless, name, accounts)
+        certificate.isValidAt(now) -> resources.getString(R.string.keys_certificate_valid_until, name, accounts, until)
+        else -> resources.getString(R.string.keys_certificate_expired, name, accounts, until)
+    }
 }
 
 private const val FAR_FUTURE_MS = 7_000_000_000_000L // the year 2191
@@ -393,6 +414,7 @@ private const val FAR_FUTURE_MS = 7_000_000_000_000L // the year 2191
 @Composable
 private fun KeyDetailsDialog(container: AppContainer, identity: Identity, usedBy: Int, onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     var exporting by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     var addingCertificate by remember { mutableStateOf(false) }
@@ -408,54 +430,57 @@ private fun KeyDetailsDialog(container: AppContainer, identity: Identity, usedBy
                 Text(identity.fingerprint, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
                 if (identity.publicKey.startsWith("sk-")) {
                     Text(
-                        "The private key is on the security key. The app holds only what the security key needs to find it, " +
-                            "so logging in takes the security key itself.",
+                        stringResource(R.string.keys_details_on_security_key),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Text("Public key", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.keys_public_key_heading), style = MaterialTheme.typography.labelLarge)
                 SelectionContainer {
                     Text(publicLine, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
                 }
                 Text(
-                    "Add the public key as a line to ~/.ssh/authorized_keys on a server to log in with this key.",
+                    stringResource(R.string.keys_public_key_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TextButton(onClick = { copyToClipboard(context, "Public key", publicLine) }) { Text("Copy") }
+                    TextButton(onClick = { copyToClipboard(context, resources.getString(R.string.keys_public_key_clip_label), publicLine) }) {
+                        Text(stringResource(R.string.action_copy))
+                    }
                     TextButton(onClick = {
                         val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, publicLine)
-                        context.startActivity(Intent.createChooser(send, "Share public key"))
-                    }) { Text("Share") }
-                    TextButton(onClick = { exporting = true }) { Text("Export private key") }
+                        context.startActivity(Intent.createChooser(send, resources.getString(R.string.keys_share_public_key)))
+                    }) { Text(stringResource(R.string.action_share)) }
+                    TextButton(onClick = { exporting = true }) { Text(stringResource(R.string.keys_export_private_key)) }
                 }
-                Text("Certificate", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.keys_certificate_heading), style = MaterialTheme.typography.labelLarge)
                 if (certificate != null) {
-                    Text(describeCertificate(certificate), style = MaterialTheme.typography.bodySmall)
-                    TextButton(onClick = { container.store.saveIdentity(identity.copy(certificate = null)) }) { Text("Remove certificate") }
+                    Text(describeCertificate(resources, certificate), style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { container.store.saveIdentity(identity.copy(certificate = null)) }) {
+                        Text(stringResource(R.string.keys_certificate_remove))
+                    }
                 } else {
                     Text(
-                        "If a certificate authority signed this key, add the certificate it gave you. " +
-                            "Servers that trust the authority then accept the key without knowing it.",
+                        stringResource(R.string.keys_certificate_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    TextButton(onClick = { addingCertificate = true }) { Text("Add a certificate…") }
+                    TextButton(onClick = { addingCertificate = true }) { Text(stringResource(R.string.keys_certificate_add)) }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
-        dismissButton = { TextButton(onClick = { deleting = true }) { Text("Delete", color = MaterialTheme.colorScheme.error) } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_close)) } },
+        dismissButton = {
+            TextButton(onClick = { deleting = true }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
+        },
     )
 
     if (deleting) {
         ConfirmDialog(
-            title = "Delete ${identity.name}?",
-            text = if (usedBy > 0) "$usedBy host(s) use this key and will fall back to password login. This cannot be undone."
-            else "The private key is removed from this device. This cannot be undone.",
-            confirmLabel = "Delete",
+            title = stringResource(R.string.keys_delete_title, identity.name),
+            text = if (usedBy > 0) pluralStringResource(R.plurals.keys_delete_text_in_use, usedBy, usedBy) else stringResource(R.string.keys_delete_text),
+            confirmLabel = stringResource(R.string.action_delete),
             destructive = true,
             onConfirm = {
                 container.store.deleteIdentity(identity.id)
@@ -472,6 +497,7 @@ private fun KeyDetailsDialog(container: AppContainer, identity: Identity, usedBy
 @Composable
 private fun AddCertificateDialog(container: AppContainer, identity: Identity, onDone: () -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val text = rememberTextFieldState()
     var error by remember { mutableStateOf<String?>(null) }
     // A complaint about the text is out of date as soon as the text changes.
@@ -483,21 +509,18 @@ private fun AddCertificateDialog(container: AppContainer, identity: Identity, on
             val content = context.contentResolver.openInputStream(uri)?.use { it.readBytes().take(64 * 1024).toByteArray().decodeToString() }.orEmpty()
             text.setTextAndPlaceCursorAtEnd(content)
         } catch (e: IOException) {
-            error = "The file could not be read: ${e.message}"
+            error = resources.getString(R.string.keys_error_file_not_read, e.message)
         }
     }
     AlertDialog(
         onDismissRequest = onDone,
-        title = { Text("Add a certificate") },
+        title = { Text(stringResource(R.string.keys_certificate_add_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    "Paste the contents of the -cert.pub file made for this key, or choose the file.",
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                Text(stringResource(R.string.keys_certificate_add_text), style = MaterialTheme.typography.bodySmall)
                 OutlinedTextField(
                     state = text,
-                    label = { Text("Certificate") },
+                    label = { Text(stringResource(R.string.keys_certificate_label)) },
                     placeholder = { Text("ssh-ed25519-cert-v01@openssh.com AAAA…") },
                     lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = 3, maxHeightInLines = 6),
                     isError = error != null,
@@ -505,7 +528,7 @@ private fun AddCertificateDialog(container: AppContainer, identity: Identity, on
                     textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                TextButton(onClick = { picker.launch("*/*") }) { Text("Choose a file…") }
+                TextButton(onClick = { picker.launch("*/*") }) { Text(stringResource(R.string.keys_choose_file)) }
             }
         },
         confirmButton = {
@@ -513,22 +536,23 @@ private fun AddCertificateDialog(container: AppContainer, identity: Identity, on
                 enabled = text.text.isNotBlank(),
                 onClick = {
                     try {
-                        val certificate = certificateFor(identity, text.text.toString())
+                        val certificate = certificateFor(resources, identity, text.text.toString())
                         container.store.saveIdentity(identity.copy(certificate = certificate.toLine()))
                         onDone()
                     } catch (e: IOException) {
                         error = e.message
                     }
                 },
-            ) { Text("Add") }
+            ) { Text(stringResource(R.string.action_add)) }
         },
-        dismissButton = { TextButton(onClick = onDone) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDone) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
 @Composable
 private fun ExportKeyDialog(container: AppContainer, identity: Identity, onDone: () -> Unit) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val passphrase = rememberTextFieldState()
     var error by remember { mutableStateOf<String?>(null) }
 
@@ -538,30 +562,34 @@ private fun ExportKeyDialog(container: AppContainer, identity: Identity, onDone:
             val key = SshKeys.load(container.secrets.decryptText(identity.encryptedPrivateKey))
             val text = SshKeys.toOpenSshPrivateKey(key, identity.name, passphrase.text.toString().takeIf { it.isNotEmpty() }?.toCharArray())
             context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray(Charsets.UTF_8)) }
-                ?: throw IOException("The destination could not be opened")
+                ?: throw IOException(resources.getString(R.string.keys_reason_destination_not_opened))
             onDone()
         } catch (e: Exception) {
-            error = "Export failed: ${e.message}"
+            error = resources.getString(R.string.keys_export_failed, e.message)
         }
     }
 
     AlertDialog(
         onDismissRequest = onDone,
-        title = { Text("Export private key") },
+        title = { Text(stringResource(R.string.keys_export_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Writes the private key in OpenSSH format, as used by ssh and ssh-add. Anyone who gets this file can log in as you.")
+                Text(stringResource(R.string.keys_export_text))
                 SecretField(
                     passphrase,
-                    "Passphrase (recommended)",
+                    stringResource(R.string.keys_export_passphrase_label),
                     Modifier.fillMaxWidth(),
-                    supportingText = "Leave empty to write the key unencrypted.",
+                    supportingText = stringResource(R.string.keys_export_passphrase_hint),
                 )
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
             }
         },
-        confirmButton = { TextButton(onClick = { saver.launch(identity.name.replace(Regex("[^A-Za-z0-9._-]"), "_")) }) { Text("Choose where to save") } },
-        dismissButton = { TextButton(onClick = onDone) { Text("Cancel") } },
+        confirmButton = {
+            TextButton(onClick = { saver.launch(identity.name.replace(Regex("[^A-Za-z0-9._-]"), "_")) }) {
+                Text(stringResource(R.string.keys_export_choose_destination))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDone) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 

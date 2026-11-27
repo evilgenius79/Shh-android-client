@@ -14,10 +14,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.evilgenius79.shh.AppContainer
 import io.github.evilgenius79.shh.Launch
+import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.data.AppStore
 import io.github.evilgenius79.shh.data.Host
 import io.github.evilgenius79.shh.session.SessionManager
@@ -102,9 +104,10 @@ fun ShhRoot(container: AppContainer, model: AppViewModel = viewModel()) {
             is Screen.HostEdit -> {
                 val existing = data.host(screen.hostId)
                 val template = data.host(screen.templateId)
+                val resources = LocalResources.current
                 val original = remember(screen) {
                     existing
-                        ?: template?.copy(id = AppStore.newId(), name = template.title + " (copy)", lastConnectedAt = 0)
+                        ?: template?.copy(id = AppStore.newId(), name = resources.getString(R.string.terminal_host_copy_name, template.title), lastConnectedAt = 0)
                         ?: Host(id = AppStore.newId(), host = "")
                 }
                 HostEditScreen(
