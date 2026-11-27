@@ -359,6 +359,79 @@ class LiveSessionTest {
     }
 
     @Test
+    fun aSecurityKeyLogsInFromTheQuestionOnTheScreenToTheServersCheck() {
+        assumeTrue(spec != null)
+        val s = spec!!
+        val authorizedKeys = File(s[5])
+        val before = authorizedKeys.readText()
+        // A key made of software in place of the hardware, with a PIN set on it.
+        val device = SoftwareAuthenticator(pin = "246810")
+        val credential = device.addCredential(ed25519 = true)
+        val key = io.github.evilgenius79.shh.ssh.SshKeys.securityKey(true, credential.point, "ssh:", credential.id, verificationRequired = true)
+        val identity = io.github.evilgenius79.shh.ui.identityFrom(key, "Key on my security key", secrets)
+        assertEquals("Ed25519 on a security key", identity.algorithm)
+
+        fun login(): TerminalSession {
+            val host = host(savePassword = false).copy(identityId = identity.id)
+            val data = AppData(hosts = listOf(host), identities = listOf(identity))
+            return TerminalSession("s${sessions.size}", host, SessionEnvironment({ data }, secrets, hostKeys)).also {
+                sessions.add(it)
+                it.connect()
+            }
+        }
+
+        fun TerminalSession.securityKeyQuestion(): SessionPrompt.SecurityKey {
+            waitFor("the question for the security key") { prompt.value is SessionPrompt.SecurityKey }
+            return prompt.value as SessionPrompt.SecurityKey
+        }
+
+        try {
+            // "verify-required": the server lets the key in only if it checked its PIN.
+            authorizedKeys.writeText("verify-required " + key.publicKey.toAuthorizedKey("live-sk") + "\n")
+
+            val session = login()
+            session.acceptHostKey()
+            val question = session.securityKeyQuestion()
+            assertEquals("Key on my security key", question.keyName)
+            assertEquals(0, device.signatures, "the key is not asked before the user is")
+
+            // What the dialog does, with the software key where NFC would be.
+            val finder = TestKeyFinder()
+            val flow = io.github.evilgenius79.shh.security.SecurityKeyFlow(finder, io.github.evilgenius79.shh.security.SecurityKeyClient.signing(question.request)) { outcome ->
+                val done = outcome as io.github.evilgenius79.shh.security.SecurityKeyOutcome.Done
+                question.respond(io.github.evilgenius79.shh.ssh.SecurityKeyAnswer.Signed(done.value))
+            }.also { it.start() }
+            finder.tap(device)
+            waitFor("the PIN to be asked for") { flow.step.value is io.github.evilgenius79.shh.security.SecurityKeyStep.Pin }
+            flow.pinEntered("246810".toCharArray())
+            finder.tap(device)
+            waitFor("the login with the security key") { session.isConnected }
+            assertEquals(null, session.prompt.value, "no password was asked for")
+            assertEquals(1, device.signatures)
+            session.sendText("whoami\n")
+            waitFor("the shell") { session.screen().lines().any { it.trim() == s[3] } }
+
+            // Without the key at hand the login goes on to the password.
+            val other = login()
+            val again = other.securityKeyQuestion()
+            again.respond(io.github.evilgenius79.shh.ssh.SecurityKeyAnswer.Skip)
+            waitFor("the fallback to a password") { other.prompt.value is SessionPrompt.Password }
+            (other.prompt.value as SessionPrompt.Password).respond(s[4].toCharArray())
+            waitFor("the login with the password") { other.isConnected }
+            assertEquals(1, device.signatures, "the key was not involved")
+
+            // And giving up at the key ends the session without asking for anything else.
+            val third = login()
+            third.securityKeyQuestion().respond(io.github.evilgenius79.shh.ssh.SecurityKeyAnswer.Cancel)
+            waitFor("the end of the session") { third.state.value is SessionState.Disconnected }
+            assertEquals(SshFailure.CANCELLED, (third.state.value as SessionState.Disconnected).failure)
+            assertEquals(null, third.prompt.value)
+        } finally {
+            authorizedKeys.writeText(before)
+        }
+    }
+
+    @Test
     fun aLongPasteArrivesComplete() {
         val session = open(host())
         session.acceptHostKey()

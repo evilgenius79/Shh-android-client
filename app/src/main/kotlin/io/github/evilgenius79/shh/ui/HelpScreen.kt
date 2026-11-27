@@ -141,6 +141,11 @@ internal val HelpSections: List<HelpSection> = listOf(
                     "tap the key under Keys and choose Add a certificate.",
             ),
             note(
+                "With a FIDO2 security key, the + button under Keys can make a key on it. Logging in then takes the security key: " +
+                    "hold it against the back of the phone or plug it in, and touch it when it blinks. " +
+                    "This is new and has not been tried with real hardware yet.",
+            ),
+            note(
                 "To use your keys from a server, for ssh or git there, switch on Forward the SSH agent in that host's settings. " +
                     "The keys stay on the phone, and you are asked before one is used.",
             ),

@@ -41,6 +41,9 @@ output of `vim`, produced by the test suite.
 - Jump hosts (like `ssh -J`), chained as deep as you need.
 - Agent forwarding (`ssh -A`): programs on a server can use the keys stored in the app, and the
   app asks before a key is used.
+- Login with a key on a FIDO2 security key (OpenSSH's `sk-ssh-ed25519` and `sk-ecdsa` keys):
+  hold the key against the phone (NFC) or plug it in (USB), with its PIN where the key or the
+  server asks for it. See [Security keys](#security-keys) for what has and has not been tested.
 - A host name with several addresses is tried address by address, so a broken IPv6 route does
   not stop the connection; IPv4 or IPv6 can be forced per host.
 - Local (`-L`), remote (`-R`) and dynamic SOCKS (`-D`) port forwarding, configured per host or
@@ -70,6 +73,8 @@ output of `vim`, produced by the test suite.
 - Install a public key on the server you are connected to (what `ssh-copy-id` does).
 - OpenSSH certificates: add the certificate an authority issued for a key and servers that
   trust the authority accept it (Ed25519 and ECDSA keys).
+- Keys on a security key: make a new one on the hardware from the app, or import the key file
+  `ssh-keygen -t ed25519-sk` wrote on a computer.
 
 **Files**
 
@@ -166,9 +171,29 @@ service, SSH running on Android itself):
 
 Please report security problems privately to the maintainers rather than in a public issue.
 
+## Security keys
+
+A key that lives on a FIDO2 security key (a YubiKey, Nitrokey, SoloKey and the like) cannot be
+copied off the phone, because it is not on the phone: the app holds the public key and a
+handle, and every login needs the hardware to sign, with a touch and, if you choose so, its PIN.
+
+What is tested, and how:
+
+- The SSH side against a real OpenSSH server: both key types log in, and the server refuses a
+  signature that lacks the touch or the PIN check it demands. Key files are read and written
+  in agreement with `ssh-keygen`.
+- The conversation with the security key (CTAP2, through the
+  [Yubico SDK](https://github.com/Yubico/yubikit-android)) against an authenticator made of
+  software that is part of the tests: signing, making keys, both ways of proving the PIN,
+  wrong PINs, the wrong key, a key that is not touched.
+
+What is **not** tested: real hardware over real NFC or USB. No security key was available
+while this was written, so treat the feature as experimental until it has worked with yours,
+and please report how it went. Keys that only speak the older U2F protocol are not supported.
+
 ## Not there yet
 
-- Mosh, X11 forwarding and FIDO/security-key authentication.
+- Mosh and X11 forwarding.
 - Certificates for RSA keys: the SSH library can only sign those the old SHA-1 way, which
   current servers refuse.
 - Translations: the interface is English only for now.

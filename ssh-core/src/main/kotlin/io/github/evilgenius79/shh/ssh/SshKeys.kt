@@ -4,6 +4,7 @@ import com.hierynomus.sshj.common.KeyDecryptionFailedException
 import com.hierynomus.sshj.userauth.keyprovider.bcrypt.BCrypt
 import net.schmizz.sshj.DefaultConfig
 import com.hierynomus.sshj.userauth.fido.SecurityKeyPrivateKey
+import com.hierynomus.sshj.userauth.fido.SecurityKeyPublicKey
 import net.schmizz.sshj.common.Buffer
 import net.schmizz.sshj.common.Factory
 import net.schmizz.sshj.common.KeyType
@@ -181,6 +182,41 @@ object SshKeys {
         val generator = SecurityUtils.getKeyPairGenerator("RSA")
         generator.initialize(bits, random)
         return generator.generateKeyPair()
+    }
+
+    /**
+     * A key that was just made on a security key (FIDO2), from what the hardware reports about
+     * it. Nothing here is secret: the private key stays on the hardware.
+     *
+     * @param ed25519 the kind of key: Ed25519, or else ECDSA with the curve P-256.
+     * @param point the public key as the hardware gives it: 32 bytes for Ed25519, the
+     * uncompressed point (the byte 4, then X and Y) for ECDSA.
+     * @param application what the key is for, normally `ssh:`.
+     * @param keyHandle what the hardware knows the key by (the credential id).
+     */
+    fun securityKey(
+        ed25519: Boolean,
+        point: ByteArray,
+        application: String,
+        keyHandle: ByteArray,
+        touchRequired: Boolean = true,
+        verificationRequired: Boolean = false,
+    ): LoadedKey {
+        SshSecurity.install()
+        require(if (ed25519) point.size == 32 else point.size == 65 && point[0] == 4.toByte()) { "Not a public key of that kind" }
+        val type = if (ed25519) "sk-ssh-ed25519@openssh.com" else "sk-ecdsa-sha2-nistp256@openssh.com"
+        val blob = Buffer.PlainBuffer().putString(type)
+        if (!ed25519) blob.putString("nistp256")
+        blob.putBytes(point).putString(application)
+        val public = try {
+            Buffer.PlainBuffer(blob.compactData).readPublicKey() as SecurityKeyPublicKey
+        } catch (e: Exception) {
+            throw UnsupportedKeyException("The security key reported a public key that cannot be used", e)
+        }
+        val flags = (if (touchRequired) SecurityKeys.USER_PRESENCE_REQUIRED else 0) or
+            (if (verificationRequired) SecurityKeys.USER_VERIFICATION_REQUIRED else 0)
+        val private = SecurityKeyPrivateKey(type, public, flags.toByte(), keyHandle.copyOf(), null)
+        return LoadedKey(KeyPair(public, private), SshPublicKey.of(public))
     }
 
     /**

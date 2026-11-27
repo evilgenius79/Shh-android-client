@@ -19,6 +19,11 @@ Material Symbols (https://github.com/google/material-design-icons)
   Apache License 2.0. Copyright Google LLC.
   The vector drawables in app/src/main/res/drawable/ic_*.xml are taken from this project.
 
+YubiKit for Android (https://github.com/Yubico/yubikit-android)
+  Apache License 2.0. Copyright Yubico AB.
+  Used to talk to FIDO2 security keys over NFC and USB. It brings along Moshi and Okio
+  (Apache License 2.0, Copyright Square, Inc.) and JSpecify (Apache License 2.0).
+
 SLF4J (https://www.slf4j.org)
   MIT License. Copyright (c) 2004-2026 QOS.ch.
 

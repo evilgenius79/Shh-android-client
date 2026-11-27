@@ -21,6 +21,8 @@ import io.github.evilgenius79.shh.ssh.SshPrompts
 import io.github.evilgenius79.shh.ssh.AddressFamily
 import io.github.evilgenius79.shh.ssh.SshCertificate
 import io.github.evilgenius79.shh.ssh.SshShell
+import io.github.evilgenius79.shh.ssh.SecurityKeyAnswer
+import io.github.evilgenius79.shh.ssh.SecurityKeyRequest
 import io.github.evilgenius79.shh.ssh.SshTarget
 import io.github.evilgenius79.shh.terminal.ColorScheme
 import io.github.evilgenius79.shh.terminal.KeyEncoder
@@ -81,6 +83,21 @@ sealed interface SessionPrompt {
     class AgentUse(val target: SshTarget, val keyName: String, private val answer: CompletableFuture<AgentAnswer>) : SessionPrompt {
         fun respond(decision: AgentAnswer) {
             answer.complete(decision)
+        }
+    }
+
+    /**
+     * Logging in to [target] takes the security key that holds the key called [keyName]: the
+     * hardware has to sign [request].
+     */
+    class SecurityKey(
+        val target: SshTarget,
+        val keyName: String,
+        val request: SecurityKeyRequest,
+        private val answer: CompletableFuture<SecurityKeyAnswer>,
+    ) : SessionPrompt {
+        fun respond(result: SecurityKeyAnswer) {
+            answer.complete(result)
         }
     }
 }
@@ -622,12 +639,19 @@ class TerminalSession(
         }
     }
 
+    override fun signWithSecurityKey(target: SshTarget, key: io.github.evilgenius79.shh.ssh.SshPublicKey, request: SecurityKeyRequest): SecurityKeyAnswer {
+        val name = environment.data().identities.firstOrNull { it.fingerprint == key.fingerprint }?.name ?: key.fingerprint
+        // A session that is closed while the question is open gives up rather than trying passwords.
+        return ask<SecurityKeyAnswer>({ SessionPrompt.SecurityKey(target, name, request, it) }, SecurityKeyAnswer.Cancel)
+    }
+
     private fun cancelPrompt() {
         when (val current = promptFlow.value) {
             is SessionPrompt.HostKey -> current.respond(HostKeyDecision.REJECT)
             is SessionPrompt.Password -> current.respond(null)
             is SessionPrompt.Challenge -> current.respond(null)
             is SessionPrompt.AgentUse -> current.respond(AgentAnswer.DENY)
+            is SessionPrompt.SecurityKey -> current.respond(SecurityKeyAnswer.Cancel)
             null -> Unit
         }
         promptFlow.value = null

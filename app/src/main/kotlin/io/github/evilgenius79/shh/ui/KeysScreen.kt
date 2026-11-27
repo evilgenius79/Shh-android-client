@@ -31,6 +31,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -51,6 +52,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import io.github.evilgenius79.shh.security.SecurityKeyClient
+import io.github.evilgenius79.shh.security.SecurityKeyFinder
+import io.github.evilgenius79.shh.security.SecurityKeyOutcome
 import io.github.evilgenius79.shh.AppContainer
 import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.data.AppData
@@ -86,9 +90,16 @@ fun copyToClipboard(context: Context, label: String, text: String) {
 }
 
 @Composable
-fun KeysScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
+fun KeysScreen(
+    container: AppContainer,
+    data: AppData,
+    onBack: () -> Unit,
+    /** How security keys are found. The default looks on NFC and USB; tests bring their own. */
+    securityKeys: SecurityKeyFinder? = null,
+) {
     var fabMenu by remember { mutableStateOf(false) }
     var generating by remember { mutableStateOf(false) }
+    var onSecurityKey by remember { mutableStateOf(false) }
     var importing by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Identity?>(null) }
 
@@ -105,6 +116,10 @@ fun KeysScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
                     DropdownMenuItem(text = { Text("Import an existing key") }, leadingIcon = { AppIcon(R.drawable.ic_upload, null) }, onClick = {
                         fabMenu = false
                         importing = true
+                    })
+                    DropdownMenuItem(text = { Text("New key on a security key") }, leadingIcon = { AppIcon(R.drawable.ic_lock, null) }, onClick = {
+                        fabMenu = false
+                        onSecurityKey = true
                     })
                 }
             }
@@ -139,6 +154,7 @@ fun KeysScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
 
     if (generating) GenerateKeyDialog(container, onDone = { generating = false })
     if (importing) ImportKeyDialog(container, onDone = { importing = false })
+    if (onSecurityKey) NewSecurityKeyDialog(container, securityKeys, onDone = { onSecurityKey = false })
     // Looked up afresh, so that the dialog shows a certificate as soon as it is added.
     selected?.let { data.identity(it.id) }?.let { identity ->
         KeyDetailsDialog(
@@ -194,6 +210,73 @@ private fun GenerateKeyDialog(container: AppContainer, onDone: () -> Unit) {
         },
         dismissButton = { TextButton(enabled = !working, onClick = onDone) { Text("Cancel") } },
     )
+}
+
+/**
+ * Makes a new key on a security key (FIDO2): first what to call it and what kind it is to be,
+ * then the security key itself. What is stored in the app is the public key and the handle the
+ * hardware knows the key by.
+ */
+@Composable
+private fun NewSecurityKeyDialog(container: AppContainer, finder: SecurityKeyFinder?, onDone: () -> Unit) {
+    val nameState = rememberTextFieldState()
+    var ed25519 by remember { mutableStateOf(true) }
+    var verify by remember { mutableStateOf(false) }
+    var decided by remember { mutableStateOf(false) }
+    val name = nameState.text.toString().trim()
+
+    if (!decided) {
+        AlertDialog(
+            onDismissRequest = onDone,
+            title = { Text("New key on a security key") },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "The private key is made on the security key and never leaves it. Logging in then takes the key in your hand: " +
+                            "a phone that is lost or broken into gives nothing away.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    OutlinedTextField(state = nameState, label = { Text("Name") }, lineLimits = TextFieldLineLimits.SingleLine, modifier = Modifier.fillMaxWidth())
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = ed25519, onClick = { ed25519 = true }, label = { Text("Ed25519") })
+                        FilterChip(selected = !ed25519, onClick = { ed25519 = false }, label = { Text("ECDSA P-256") })
+                    }
+                    Text(
+                        if (ed25519) "Ed25519 is the usual choice. Some older security keys cannot make it: choose ECDSA for those."
+                        else "Every FIDO2 security key can make this kind.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    SwitchRow(
+                        "Ask for the PIN at every login",
+                        "Besides the touch. The security key needs to have a PIN set.",
+                        verify,
+                        { verify = it },
+                        Modifier.padding(horizontal = 0.dp),
+                    )
+                    Text(
+                        "Servers need OpenSSH 8.2 or later to accept such a key.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = { TextButton(enabled = name.isNotEmpty(), onClick = { decided = true }) { Text("Continue") } },
+            dismissButton = { TextButton(onClick = onDone) { Text("Cancel") } },
+        )
+    } else {
+        SecurityKeyDialog(
+            key = Triple(name, ed25519, verify),
+            task = remember(ed25519, verify) { SecurityKeyClient.creating(ed25519, verificationRequired = verify) },
+            why = "The new key \u201c$name\u201d will be made on your security key.",
+            skipLabel = null,
+            finder = finder,
+            onDone = { outcome ->
+                if (outcome is SecurityKeyOutcome.Done) container.store.saveIdentity(identityFrom(outcome.value, name, container.secrets))
+                onDone()
+            },
+        )
+    }
 }
 
 @Composable
@@ -323,6 +406,14 @@ private fun KeyDetailsDialog(container: AppContainer, identity: Identity, usedBy
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(identity.algorithm, style = MaterialTheme.typography.labelLarge)
                 Text(identity.fingerprint, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
+                if (identity.publicKey.startsWith("sk-")) {
+                    Text(
+                        "The private key is on the security key. The app holds only what the security key needs to find it, " +
+                            "so logging in takes the security key itself.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 Text("Public key", style = MaterialTheme.typography.labelLarge)
                 SelectionContainer {
                     Text(publicLine, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)

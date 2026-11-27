@@ -359,6 +359,122 @@ class ScreensTest {
         assertTrue(container.store.data.value.settings.hideKeysWithKeyboard)
     }
 
+    // ----- security keys -----
+
+    private fun securityKeyQuestion(device: SoftwareAuthenticator, verify: Boolean): Pair<SessionPrompt.SecurityKey, java.util.concurrent.CompletableFuture<io.github.evilgenius79.shh.ssh.SecurityKeyAnswer>> {
+        val credential = device.addCredential(ed25519 = true)
+        val request = io.github.evilgenius79.shh.ssh.SecurityKeyRequest(
+            "sk-ssh-ed25519@openssh.com", credential.application, credential.id, ByteArray(32) { 7 }, touchRequired = true, verificationRequired = verify,
+        )
+        val answer = java.util.concurrent.CompletableFuture<io.github.evilgenius79.shh.ssh.SecurityKeyAnswer>()
+        val target = io.github.evilgenius79.shh.ssh.SshTarget("web01.example.org", 22, "deploy")
+        return SessionPrompt.SecurityKey(target, "Key on my security key", request, answer) to answer
+    }
+
+    @Test
+    fun theSecurityKeyDialogAsksForTheKeyThenItsPinAndThenTheKeyAgain() {
+        val device = SoftwareAuthenticator(pin = "246810")
+        val (question, answer) = securityKeyQuestion(device, verify = true)
+        val finder = TestKeyFinder()
+        show { io.github.evilgenius79.shh.ui.SecurityKeyDialog(question, finder) }
+        compose.onNodeWithText("Logging in to web01.example.org takes the security key that holds \u201cKey on my security key\u201d.").assertIsDisplayed()
+        compose.onNodeWithText("Hold the key against the back of the phone and keep it there, or plug it in and touch it.").assertIsDisplayed()
+        shot("security-key-present-dark")
+
+        finder.tap(device)
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextCount("This key wants its PIN first. That is the PIN of the security key itself, not a password of the server.") == 1 }
+        compose.onNodeWithText("Continue").assertIsNotEnabled()
+        compose.onNode(androidx.compose.ui.test.hasSetTextAction()).performTextInput("135790")
+        shot("security-key-pin-dark")
+        compose.onNodeWithText("Continue").performClick()
+        compose.onNodeWithText("Hold the key against the back of the phone again and keep it there, or plug it in and touch it.").assertIsDisplayed()
+
+        // The wrong PIN: the key says so, and how many tries are left.
+        finder.tap(device)
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextCount("That PIN is not right. 7 more tries before the key locks itself.") == 1 }
+        compose.onNode(androidx.compose.ui.test.hasSetTextAction()).performTextInput("246810")
+        compose.onNodeWithText("Continue").performClick()
+        finder.tap(device)
+        compose.waitUntil(5_000) { answer.isDone }
+        val signed = answer.get() as io.github.evilgenius79.shh.ssh.SecurityKeyAnswer.Signed
+        assertEquals(5, signed.assertion.flags, "touched, and the PIN was checked")
+        assertTrue(!finder.isLooking)
+    }
+
+    @Test
+    fun theSecurityKeyDialogLetsTheUserGoOnWithoutTheKeyOrGiveUp() {
+        val (first, skipped) = securityKeyQuestion(SoftwareAuthenticator(), verify = false)
+        val finder = TestKeyFinder(nfc = io.github.evilgenius79.shh.security.SecurityKeyFinder.Nfc.SWITCHED_OFF, usb = true)
+        var question by androidx.compose.runtime.mutableStateOf(first)
+        show { io.github.evilgenius79.shh.ui.SecurityKeyDialog(question, finder) }
+        compose.onNodeWithText("Plug the key in and touch it. NFC is switched off; with it on, the key can also be held against the phone.").assertIsDisplayed()
+        compose.onNodeWithText("Open the NFC settings").assertIsDisplayed()
+        compose.onNodeWithText("Log in another way").performClick()
+        assertEquals(io.github.evilgenius79.shh.ssh.SecurityKeyAnswer.Skip, skipped.get())
+
+        val (second, cancelled) = securityKeyQuestion(SoftwareAuthenticator(), verify = false)
+        question = second
+        compose.onNodeWithText("Cancel").performClick()
+        assertEquals(io.github.evilgenius79.shh.ssh.SecurityKeyAnswer.Cancel, cancelled.get())
+        assertEquals(2, finder.starts, "each question looks for keys afresh")
+    }
+
+    @Test
+    fun aKeyCanBeMadeOnASecurityKeyFromTheKeysScreen() {
+        val data = sampleData()
+        val container = container(data)
+        val device = SoftwareAuthenticator(pin = "246810")
+        val finder = TestKeyFinder()
+        show {
+            val current by container.store.data.collectAsState()
+            KeysScreen(container, current, onBack = {}, securityKeys = finder)
+        }
+        compose.onNodeWithContentDescription("Add key").performClick()
+        compose.onNodeWithText("New key on a security key").performClick()
+        shot("security-key-new-dark")
+        compose.onNodeWithText("Continue").assertIsNotEnabled()
+        compose.onNode(androidx.compose.ui.test.hasSetTextAction()).performTextInput("Blue key")
+        compose.onNodeWithText("ECDSA P-256").performClick()
+        compose.onNodeWithText("Every FIDO2 security key can make this kind.").assertIsDisplayed()
+        compose.onNodeWithText("Ed25519").performClick()
+        compose.onNodeWithText("Continue").performClick()
+        compose.onNodeWithText("The new key \u201cBlue key\u201d will be made on your security key.").assertIsDisplayed()
+        assertTrue(finder.isLooking)
+
+        // The security key has a PIN, so it makes nothing before it gets it.
+        finder.tap(device)
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextCount("PIN of the security key") >= 1 }
+        compose.onNode(androidx.compose.ui.test.hasSetTextAction()).performTextInput("246810")
+        compose.onNodeWithText("Continue").performClick()
+        finder.tap(device)
+        compose.waitUntil(5_000) { container.store.data.value.identities.size == 2 }
+
+        val made = container.store.data.value.identities.first { it.name == "Blue key" }
+        assertEquals("Ed25519 on a security key", made.algorithm)
+        assertTrue(made.publicKey.startsWith("sk-ssh-ed25519@openssh.com "))
+        val credential = device.credentials.single()
+        val loaded = io.github.evilgenius79.shh.ssh.SshKeys.load(secrets.decryptText(made.encryptedPrivateKey))
+        assertEquals(io.github.evilgenius79.shh.ssh.SshKeys.securityKey(true, credential.point, "ssh:", credential.id).publicKey, loaded.publicKey)
+
+        // It is listed like any other key, and says where its private half is.
+        compose.waitUntil(5_000) { compose.onAllNodesWithTextCount("Blue key") == 1 }
+        compose.onNodeWithText("Blue key").performClick()
+        compose.onNodeWithText("The private key is on the security key.", substring = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun whatToDoWithTheKeyDependsOnWhatThePhoneHas() {
+        val ready = io.github.evilgenius79.shh.security.SecurityKeyFinder.Nfc.READY
+        val off = io.github.evilgenius79.shh.security.SecurityKeyFinder.Nfc.SWITCHED_OFF
+        val absent = io.github.evilgenius79.shh.security.SecurityKeyFinder.Nfc.ABSENT
+        fun how(nfc: io.github.evilgenius79.shh.security.SecurityKeyFinder.Nfc, usb: Boolean, again: Boolean) =
+            io.github.evilgenius79.shh.ui.howToPresent(nfc, usb, again)
+        assertEquals("Hold the key against the back of the phone and keep it there.", how(ready, false, false))
+        assertEquals("Plug the key in again and touch it.", how(absent, true, true))
+        assertEquals("NFC is switched off. Switch it on to hold the key against the phone.", how(off, false, false))
+        assertEquals("This phone has neither NFC nor a USB port that a key could use.", how(absent, false, false))
+    }
+
     // ----- importing an SSH config -----
 
     private fun importPlan(text: String, saved: List<Host> = emptyList()) =

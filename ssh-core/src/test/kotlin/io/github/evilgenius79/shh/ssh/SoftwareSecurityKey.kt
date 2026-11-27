@@ -1,7 +1,5 @@
 package io.github.evilgenius79.shh.ssh
 
-import com.hierynomus.sshj.userauth.fido.SecurityKeyPrivateKey
-import com.hierynomus.sshj.userauth.fido.SecurityKeyPublicKey
 import net.schmizz.sshj.common.SecurityUtils
 import java.nio.ByteBuffer
 import java.security.KeyPair
@@ -35,11 +33,19 @@ class SoftwareSecurityKey(val ecdsa: Boolean, val application: String = "ssh:", 
 
     val requests = ArrayList<SecurityKeyRequest>()
 
-    /** The key as the app holds it: the public key and the handle, without any private key. */
-    val key: LoadedKey = run {
-        val public = SecurityKeyPublicKey(pair.public, application)
-        LoadedKey(KeyPair(public, SecurityKeyPrivateKey(keyType, public, flags.toByte(), keyHandle, null)), SshPublicKey.of(public))
+    /** The public key as hardware reports it: 32 bytes for Ed25519, the uncompressed point for ECDSA. */
+    val point: ByteArray = if (ecdsa) {
+        val w = (pair.public as java.security.interfaces.ECPublicKey).w
+        fun coordinate(value: java.math.BigInteger) = value.toByteArray().let { bytes ->
+            if (bytes.size > 32) bytes.copyOfRange(bytes.size - 32, bytes.size) else ByteArray(32 - bytes.size) + bytes
+        }
+        byteArrayOf(4) + coordinate(w.affineX) + coordinate(w.affineY)
+    } else {
+        pair.public.encoded.takeLast(32).toByteArray()
     }
+
+    /** The key as the app holds it: the public key and the handle, without any private key. */
+    val key: LoadedKey = SshKeys.securityKey(!ecdsa, point, application, keyHandle, touchRequired = flags and 1 != 0, verificationRequired = flags and 4 != 0)
 
     /** Signs like the hardware would, reporting [touched] and [verified] the way it would. */
     fun sign(request: SecurityKeyRequest, touched: Boolean = true, verified: Boolean = false): SecurityKeyAssertion {

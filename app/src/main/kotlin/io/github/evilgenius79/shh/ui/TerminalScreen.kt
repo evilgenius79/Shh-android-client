@@ -264,6 +264,7 @@ fun TerminalScreen(
         is SessionPrompt.Password -> PasswordDialog(p)
         is SessionPrompt.Challenge -> ChallengeDialog(p)
         is SessionPrompt.AgentUse -> AgentUseDialog(p)
+        is SessionPrompt.SecurityKey -> SecurityKeyDialog(p)
         null -> Unit
     }
 
