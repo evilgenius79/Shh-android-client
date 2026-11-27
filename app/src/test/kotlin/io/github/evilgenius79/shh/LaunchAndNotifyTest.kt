@@ -142,6 +142,14 @@ class LaunchAndNotifyTest {
         // Closing a session takes its notification along.
         sessions.close(second)
         assertEquals(emptyList(), bellNotifications())
+
+        // The app goes to the background with the first session's terminal still showing, and
+        // that session rings. Coming back to the app is looking at it, which answers the bell.
+        sessions.appInForeground = false
+        session.onBell()
+        assertEquals(1, bellNotifications().size)
+        sessions.appInForeground = true
+        assertEquals(emptyList(), bellNotifications())
     }
 
     @Test

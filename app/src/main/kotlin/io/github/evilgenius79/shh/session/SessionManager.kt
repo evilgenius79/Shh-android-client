@@ -112,14 +112,27 @@ class SessionManager(
     /** True while the app has an activity on screen. Set by the application. */
     @Volatile
     var appInForeground: Boolean = false
+        set(value) {
+            field = value
+            if (value) answerBell()
+        }
 
     /** The session whose terminal is showing, if one is. Set by the UI. */
+    @Volatile
     var visibleSessionId: String? = null
         set(value) {
             field = value
-            // Looking at a session answers its bell.
-            session(value)?.let { notifications()?.cancel(bellNotificationId(it)) }
+            answerBell()
         }
+
+    /**
+     * Looking at a session answers its bell: its notification goes away, whether the user got
+     * there by switching tabs or by coming back to the app.
+     */
+    private fun answerBell() {
+        if (!appInForeground) return
+        session(visibleSessionId)?.let { notifications()?.cancel(bellNotificationId(it)) }
+    }
 
     private fun isInView(session: TerminalSession) = appInForeground && visibleSessionId == session.id
 
