@@ -3,6 +3,7 @@ package io.github.evilgenius79.shh.ssh
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.common.Buffer
 import net.schmizz.sshj.connection.Connection
+import net.schmizz.sshj.connection.ConnectionException
 import net.schmizz.sshj.connection.channel.direct.SessionChannel
 import net.schmizz.sshj.connection.channel.forwarded.RemotePortForwarder
 import net.schmizz.sshj.connection.channel.forwarded.SocketForwardingConnectListener
@@ -35,6 +36,8 @@ class SshConnection internal constructor(
     val target: SshTarget,
     /** Text the server sent before login, if any. */
     val banner: String?,
+    /** Answers the server's agent requests when agent forwarding is wanted. */
+    private val agent: AgentForwarder? = null,
 ) : Closeable {
     private val client: SSHClient get() = clients.last()
     private val closed = AtomicBoolean(false)
@@ -45,6 +48,19 @@ class SshConnection internal constructor(
 
     init {
         client.transport.disconnectListener = DisconnectListener { _, message -> notifyDisconnected(message) }
+        if (agent != null) client.connection.attach(agent)
+    }
+
+    /**
+     * True once the server agreed to forward the agent on some session of this connection.
+     * Servers can be configured to refuse (`AllowAgentForwarding no`).
+     */
+    @Volatile
+    var isAgentForwarded: Boolean = false
+        private set
+
+    private fun requestAgent(channel: ShellChannel) {
+        if (agent != null && channel.requestAgentForwarding()) isAgentForwarded = true
     }
 
     // The disconnect flag is consulted as well because sshj invokes its disconnect listener
@@ -96,6 +112,7 @@ class SshConnection internal constructor(
         val channel = ShellChannel(client.connection, client.remoteCharset)
         channel.open()
         try {
+            requestAgent(channel)
             for ((name, value) in environment) {
                 try {
                     channel.setEnvVar(name, value)
@@ -115,7 +132,10 @@ class SshConnection internal constructor(
     /** Runs [command] without a terminal and collects its output. */
     @Throws(IOException::class)
     fun execute(command: String, timeoutSeconds: Long = 30, stdin: ByteArray? = null): CommandResult {
-        client.startSession().use { session ->
+        val session = ShellChannel(client.connection, client.remoteCharset)
+        session.open()
+        session.use {
+            requestAgent(session)
             val running = session.exec(command)
             val err = ByteArrayOutputStream()
             val errReader = workers.submit { running.errorStream.copyTo(err) }
@@ -286,6 +306,14 @@ internal class ShellChannel(private val connection: Connection, charset: Charset
                 .putUInt32(heightPx.toLong())
                 .putBytes(modes),
         ).await(connection.timeoutMs.toLong(), TimeUnit.MILLISECONDS)
+    }
+
+    /** Asks the server to make the agent available to this session. False when it refuses. */
+    fun requestAgentForwarding(): Boolean = try {
+        sendChannelRequest(AgentForwarder.REQUEST_TYPE, true, null).await(connection.timeoutMs.toLong(), TimeUnit.MILLISECONDS)
+        true
+    } catch (_: ConnectionException) {
+        false
     }
 
     private companion object {

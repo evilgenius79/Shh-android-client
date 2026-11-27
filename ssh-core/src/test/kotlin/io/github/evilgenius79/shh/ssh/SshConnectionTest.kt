@@ -210,6 +210,131 @@ class SshConnectionTest {
         assertEquals(SshFailure.CANCELLED, error.failure)
     }
 
+    // ----- which address to connect to -----
+
+    private val loopback4 = java.net.InetAddress.getByAddress("server.test", byteArrayOf(127, 0, 0, 1))
+
+    /** An IPv6 address where nothing listens: the server of these tests is bound to 127.0.0.1 only. */
+    private val loopback6 = java.net.InetAddress.getByAddress("server.test", ByteArray(15) + 1)
+
+    private fun resolving(vararg addresses: java.net.InetAddress, block: () -> Unit) {
+        val before = SshConnector.resolver
+        SshConnector.resolver = { name -> if (name == "server.test") arrayOf(*addresses) else before(name) }
+        try {
+            block()
+        } finally {
+            SshConnector.resolver = before
+        }
+    }
+
+    private fun named(family: AddressFamily = AddressFamily.ANY) =
+        SshTarget("server.test", server.port, "alice", emptyList(), "wonderland".toCharArray(), addressFamily = family)
+
+    @Test
+    fun aNameWithSeveralAddressesIsTriedUntilOneAnswers() = resolving(loopback6, loopback4) {
+        // The first address does not answer, which is the usual fate of an IPv6 address on a
+        // network that only pretends to have IPv6. The second one is the server.
+        val connection = connect(named())
+        assertEquals("hello", connection.execute("echo hello").stdout.trim())
+        assertTrue(prompts.progress.any { it.contains("did not answer, trying 127.0.0.1") }, prompts.progress.toString())
+        // The host key is remembered under the name, not under whichever address worked.
+        assertEquals(1, hostKeys.find("server.test", server.port).size)
+    }
+
+    @Test
+    fun theAddressFamilyCanBeForced() = resolving(loopback6, loopback4) {
+        assertEquals("hello", connect(named(AddressFamily.IPV4)).execute("echo hello").stdout.trim())
+        assertTrue(prompts.progress.none { it.contains("did not answer") }, "IPv4 only: the other address is not even tried")
+
+        // IPv6 only: nothing listens there, or the machine has no IPv6 at all. Either way the
+        // connection is not made, and the IPv4 address is not used behind the user's back.
+        val error = assertFailsWith<SshConnectException> { connect(named(AddressFamily.IPV6)) }
+        assertTrue(error.failure in setOf(SshFailure.REFUSED, SshFailure.UNREACHABLE, SshFailure.TIMEOUT, SshFailure.IO), error.message)
+    }
+
+    @Test
+    fun aNameWithoutAnAddressOfTheWantedFamilySaysSo() = resolving(loopback4) {
+        val error = assertFailsWith<SshConnectException> { connect(named(AddressFamily.IPV6)) }
+        assertEquals(SshFailure.UNREACHABLE, error.failure)
+        assertEquals("server.test has no IPv6 address", error.message)
+    }
+
+    @Test
+    fun aServerThatAnswersButRefusesTheLoginIsNotTriedAtItsOtherAddresses() = resolving(loopback4, loopback4) {
+        prompts.passwords.clear()
+        val target = SshTarget("server.test", server.port, "alice", emptyList(), "wrong".toCharArray())
+        val error = assertFailsWith<SshConnectException> { connect(target) }
+        assertTrue(error.failure == SshFailure.CANCELLED || error.failure == SshFailure.AUTH_FAILED, error.message)
+        assertTrue(prompts.progress.none { it.contains("did not answer") })
+    }
+
+    // ----- the agent: what it tells and what it signs -----
+
+    private fun agentFor(vararg keys: LoadedKey): AgentForwarder {
+        val connection = connect()
+        // The forwarder needs a connection to exist; these tests talk to it directly.
+        val field = SshConnection::class.java.getDeclaredField("clients").apply { isAccessible = true }
+        @Suppress("UNCHECKED_CAST")
+        val client = (field.get(connection) as List<net.schmizz.sshj.SSHClient>).last()
+        return AgentForwarder(client.connection, { keys.toList() }) { key -> prompts.confirmAgentUse(target(), key) }
+    }
+
+    private fun request(type: Byte, body: net.schmizz.sshj.common.Buffer.PlainBuffer.() -> Unit = {}): ByteArray =
+        net.schmizz.sshj.common.Buffer.PlainBuffer().putByte(type).also(body).compactData
+
+    @Test
+    fun theAgentListsItsKeysAndSignsOnlyWithPermission() {
+        val ed = SshKeys.generate(KeyAlgorithm.ED25519)
+        val ec = SshKeys.generate(KeyAlgorithm.ECDSA_256)
+        val rsa = SshKeys.generate(KeyAlgorithm.RSA_3072)
+        val agent = agentFor(ed, ec, rsa)
+
+        // Listing: three keys, in order, and nobody is asked.
+        val listing = net.schmizz.sshj.common.Buffer.PlainBuffer(agent.answer(request(AgentForwarder.REQUEST_IDENTITIES)))
+        assertEquals(AgentForwarder.IDENTITIES_ANSWER, listing.readByte())
+        assertEquals(3, listing.readUInt32AsInt())
+        for (key in listOf(ed, ec, rsa)) {
+            assertTrue(key.publicKey.blob.contentEquals(listing.readBytes()))
+            listing.readString()
+        }
+        assertEquals(emptyList(), prompts.agentRequests.toList())
+
+        // Signing: each signature verifies with the public key, under the algorithm asked for.
+        val data = "data to sign".toByteArray()
+        for ((key, flags, expected) in listOf(
+            Triple(ed, 0, "ssh-ed25519"),
+            Triple(ec, 0, "ecdsa-sha2-nistp256"),
+            Triple(rsa, AgentForwarder.RSA_SHA2_512, "rsa-sha2-512"),
+            Triple(rsa, AgentForwarder.RSA_SHA2_256, "rsa-sha2-256"),
+        )) {
+            val reply = net.schmizz.sshj.common.Buffer.PlainBuffer(
+                agent.answer(request(AgentForwarder.SIGN_REQUEST) { putBytes(key.publicKey.blob).putBytes(data).putUInt32(flags.toLong()) }),
+            )
+            assertEquals(AgentForwarder.SIGN_RESPONSE, reply.readByte(), expected)
+            val signature = net.schmizz.sshj.common.Buffer.PlainBuffer(reply.readBytes())
+            assertEquals(expected, signature.readString())
+            val verifier = net.schmizz.sshj.common.Factory.Named.Util.create(net.schmizz.sshj.DefaultConfig().keyAlgorithms, expected).newSignature()
+            verifier.initVerify(key.keyPair.public)
+            verifier.update(data)
+            // What the library verifies is the signature as it travels: the name and the bytes.
+            val wire = net.schmizz.sshj.common.Buffer.PlainBuffer().putString(expected).putBytes(signature.readBytes()).compactData
+            assertTrue(verifier.verify(wire), "$expected signature verifies")
+        }
+        assertEquals(listOf(ed.publicKey, ec.publicKey, rsa.publicKey, rsa.publicKey), prompts.agentRequests.toList(), "asked every time")
+
+        // Refused, unknown key, unknown request, garbage: a plain failure each time.
+        prompts.allowAgent = false
+        val refused = agent.answer(request(AgentForwarder.SIGN_REQUEST) { putBytes(ed.publicKey.blob).putBytes(data).putUInt32(0) })
+        assertTrue(AgentForwarder.FAILURE_REPLY.contentEquals(refused))
+        prompts.allowAgent = true
+        val stranger = SshKeys.generate(KeyAlgorithm.ED25519)
+        val unknown = agent.answer(request(AgentForwarder.SIGN_REQUEST) { putBytes(stranger.publicKey.blob).putBytes(data).putUInt32(0) })
+        assertTrue(AgentForwarder.FAILURE_REPLY.contentEquals(unknown))
+        assertTrue(AgentForwarder.FAILURE_REPLY.contentEquals(agent.answer(request(17))), "adding keys from the server side is not on offer")
+        assertTrue(AgentForwarder.FAILURE_REPLY.contentEquals(agent.answer(byteArrayOf(AgentForwarder.SIGN_REQUEST, 0, 0))))
+        assertTrue(AgentForwarder.FAILURE_REPLY.contentEquals(agent.answer(ByteArray(0))))
+    }
+
     // ----- public key authentication -----
 
     @Test

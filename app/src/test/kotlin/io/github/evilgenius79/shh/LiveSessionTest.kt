@@ -280,6 +280,85 @@ class LiveSessionTest {
     }
 
     @Test
+    fun aProgramOnTheServerUsesAKeyOnlyAfterTheUserAgreed() {
+        assumeTrue(spec != null)
+        val s = spec!!
+        val authorizedKeys = File(s[5])
+        val before = authorizedKeys.readText()
+        try {
+            val key = io.github.evilgenius79.shh.ssh.SshKeys.generate(io.github.evilgenius79.shh.ssh.KeyAlgorithm.ED25519)
+            authorizedKeys.writeText(key.publicKey.toAuthorizedKey("agent-test") + "\n")
+            val identity = io.github.evilgenius79.shh.ui.identityFrom(key, "Agent key", secrets)
+            // Logs in with the saved password; the key is only in the agent.
+            val host = host().copy(forwardAgent = true)
+            val data = AppData(hosts = listOf(host), identities = listOf(identity))
+            val session = TerminalSession("agent", host, SessionEnvironment({ data }, secrets, hostKeys))
+            sessions.add(session)
+            session.connect()
+            session.acceptHostKey()
+            waitFor("the connection") { session.isConnected }
+
+            // From the server, log in to the server again with nothing but the agent.
+            val again = "ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null " +
+                "-o PreferredAuthentications=publickey -p ${s[1]} ${s[3]}@127.0.0.1 'echo through-agent-\$((3*3))'\n"
+            session.sendText(again)
+            waitFor("the question about the key") { session.prompt.value is SessionPrompt.AgentUse }
+            val first = session.prompt.value as SessionPrompt.AgentUse
+            assertEquals("Agent key", first.keyName, "the key is called by the name the user gave it")
+            first.respond(io.github.evilgenius79.shh.session.AgentAnswer.DENY)
+            waitFor("the login to be refused") { session.screen().contains("Permission denied") }
+            assertTrue(!session.screen().contains("through-agent-9"))
+
+            session.sendText(again)
+            waitFor("the question again") { session.prompt.value is SessionPrompt.AgentUse }
+            (session.prompt.value as SessionPrompt.AgentUse).respond(io.github.evilgenius79.shh.session.AgentAnswer.SESSION)
+            waitFor("the login through the agent") { session.screen().contains("through-agent-9") }
+
+            // Allowed for the session: the next use goes through without a question.
+            session.sendText("clear\n")
+            waitFor("the screen to clear") { !session.screen().contains("through-agent-9") }
+            session.sendText(again)
+            waitFor("the second login through the agent") { session.screen().contains("through-agent-9") }
+            assertEquals(null, session.prompt.value)
+        } finally {
+            authorizedKeys.writeText(before)
+        }
+    }
+
+    @Test
+    fun aKeyWithACertificateLogsInWithoutTheServerKnowingTheKey() {
+        assumeTrue(spec != null)
+        val s = spec!!
+        val authority = File(File(s[5]).parentFile, "user_ca")
+        assumeTrue("needs ssh-keygen and the test server's certificate authority", TestCertificates.available && authority.exists())
+        val key = io.github.evilgenius79.shh.ssh.SshKeys.generate(io.github.evilgenius79.shh.ssh.KeyAlgorithm.ED25519)
+        val bare = io.github.evilgenius79.shh.ui.identityFrom(key, "Certified key", secrets)
+        val certified = bare.copy(certificate = TestCertificates.certify(key, s[3], authority).toLine())
+
+        fun sessionWith(identity: io.github.evilgenius79.shh.data.Identity): TerminalSession {
+            val host = host(savePassword = false).copy(identityId = identity.id)
+            val data = AppData(hosts = listOf(host), identities = listOf(identity))
+            return TerminalSession("s${sessions.size}", host, SessionEnvironment({ data }, secrets, hostKeys)).also {
+                sessions.add(it)
+                it.connect()
+            }
+        }
+
+        // The key alone is in no authorized_keys file: the server turns it away and asks for a password.
+        val refused = sessionWith(bare)
+        refused.acceptHostKey()
+        waitFor("the fallback to a password") { refused.prompt.value is SessionPrompt.Password }
+        refused.close()
+
+        // With its certificate the same key is let in, and nothing is asked.
+        val accepted = sessionWith(certified)
+        waitFor("the login with the certificate") { accepted.isConnected }
+        assertEquals(null, accepted.prompt.value)
+        accepted.sendText("whoami\n")
+        waitFor("the shell") { accepted.screen().lines().any { it.trim() == s[3] } }
+    }
+
+    @Test
     fun aLongPasteArrivesComplete() {
         val session = open(host())
         session.acceptHostKey()

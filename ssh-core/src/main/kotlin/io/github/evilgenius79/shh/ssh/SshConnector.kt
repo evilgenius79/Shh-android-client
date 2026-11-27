@@ -16,7 +16,12 @@ import net.schmizz.sshj.userauth.method.AuthPublickey
 import net.schmizz.sshj.userauth.method.ChallengeResponseProvider
 import net.schmizz.sshj.userauth.password.PasswordFinder
 import net.schmizz.sshj.userauth.password.Resource
+import java.io.IOException
 import java.net.ConnectException
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.net.NoRouteToHostException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -63,7 +68,60 @@ object SshConnector {
             for (client in clients.asReversed()) runCatching { client.disconnect() }
             throw e
         }
-        return SshConnection(clients, target, banner)
+        val agent = target.agentKeys?.let { keys ->
+            AgentForwarder(clients.last().connection, keys) { key -> prompts.confirmAgentUse(target, key) }
+        }
+        return SshConnection(clients, target, banner, agent)
+    }
+
+    /** Looks up a host's addresses. A variable so that tests can decide what a name resolves to. */
+    @Volatile
+    internal var resolver: (String) -> Array<InetAddress> = { InetAddress.getAllByName(it) }
+
+    /** An [SSHClient] that connects to the address it is told to, under the name it was given. */
+    private class DialingClient(config: net.schmizz.sshj.Config) : SSHClient(config) {
+        @Volatile
+        var address: InetAddress? = null
+
+        override fun makeInetSocketAddress(hostname: String, port: Int): InetSocketAddress =
+            address?.let { InetSocketAddress(it, port) } ?: super.makeInetSocketAddress(hostname, port)
+    }
+
+    /** The addresses of [hop] that its address family allows, in the order to try them. */
+    private fun addressesOf(hop: SshTarget): List<InetAddress> {
+        val all = resolver(hop.host).toList()
+        val wanted = when (hop.addressFamily) {
+            AddressFamily.ANY -> all
+            AddressFamily.IPV4 -> all.filterIsInstance<Inet4Address>()
+            AddressFamily.IPV6 -> all.filterIsInstance<Inet6Address>()
+        }
+        if (wanted.isEmpty()) {
+            val kind = if (hop.addressFamily == AddressFamily.IPV4) "IPv4" else "IPv6"
+            throw SshConnectException(SshFailure.UNREACHABLE, "${hop.host} has no $kind address")
+        }
+        return wanted
+    }
+
+    /**
+     * Connects [client] to the first of the host's addresses that answers. A name often has an
+     * IPv6 and an IPv4 address of which only one works from where the phone is.
+     */
+    private fun dial(client: DialingClient, hop: SshTarget, prompts: SshPrompts) {
+        val addresses = addressesOf(hop)
+        for ((index, address) in addresses.withIndex()) {
+            client.address = address
+            try {
+                client.connect(hop.host, hop.port)
+                return
+            } catch (e: IOException) {
+                // Only a connection that was never made is worth another address, whatever the
+                // reason: refused, no route, no answer, or no IPv6 on this network at all. Once
+                // the server answered, what went wrong will go wrong at its other addresses too.
+                val neverConnected = !client.isConnected
+                if (!neverConnected || index == addresses.lastIndex) throw e
+                prompts.onProgress("${address.hostAddress} did not answer, trying ${addresses[index + 1].hostAddress}")
+            }
+        }
     }
 
     private fun open(
@@ -75,7 +133,7 @@ object SshConnector {
     ): SSHClient {
         val verifier = TrustOnFirstUseVerifier(hostKeys, prompts)
         val login = Login(hop, prompts)
-        val client = SSHClient(SshAlgorithms.config(hop.allowLegacyAlgorithms, options.compression))
+        val client = DialingClient(SshAlgorithms.config(hop.allowLegacyAlgorithms, options.compression))
         client.connectTimeout = options.connectTimeoutMs
         client.timeout = HANDSHAKE_READ_TIMEOUT_MS
         client.transport.timeoutMs = PROMPT_TIMEOUT_MS
@@ -92,7 +150,7 @@ object SshConnector {
                 if (via == null) "Connecting to ${hop.host}:${hop.port}" else "Connecting to ${hop.host}:${hop.port} through the jump host",
             )
             if (via == null) {
-                client.connect(hop.host, hop.port)
+                dial(client, hop, prompts)
             } else {
                 client.connectVia(via.newDirectConnection(hop.host, hop.port))
             }
@@ -123,7 +181,11 @@ object SshConnector {
             client.userAuth.banner?.takeIf { it.isNotBlank() }?.let { prompts.onBanner(hop, it) }
 
             val candidates = ArrayList<AuthMethod>()
-            for (key in hop.keys) candidates.add(AuthPublickey(KeyPairWrapper(key.keyPair)))
+            for (key in hop.keys) {
+                // A certificate first: where it is accepted the key needs no entry on the server.
+                key.certificate?.let { candidates.add(AuthPublickey(CertificateKeyProvider(key, it))) }
+                candidates.add(AuthPublickey(KeyPairWrapper(key.keyPair)))
+            }
             candidates.add(AuthKeyboardInteractive(InteractiveProvider()))
             candidates.add(AuthPassword(PasswordProvider()))
 

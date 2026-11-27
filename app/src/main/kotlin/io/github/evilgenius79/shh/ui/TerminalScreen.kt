@@ -65,6 +65,7 @@ import io.github.evilgenius79.shh.data.CursorStyle
 import io.github.evilgenius79.shh.data.Identity
 import io.github.evilgenius79.shh.data.Settings
 import io.github.evilgenius79.shh.data.Snippet
+import io.github.evilgenius79.shh.session.AgentAnswer
 import io.github.evilgenius79.shh.session.SessionManager
 import io.github.evilgenius79.shh.session.SessionPrompt
 import io.github.evilgenius79.shh.session.SessionState
@@ -259,6 +260,7 @@ fun TerminalScreen(
         is SessionPrompt.HostKey -> HostKeyDialog(p)
         is SessionPrompt.Password -> PasswordDialog(p)
         is SessionPrompt.Challenge -> ChallengeDialog(p)
+        is SessionPrompt.AgentUse -> AgentUseDialog(p)
         null -> Unit
     }
 
@@ -528,6 +530,29 @@ private fun PasswordDialog(prompt: SessionPrompt.Password) {
         },
         confirmButton = { TextButton(onClick = { prompt.respond(password.text.toString().toCharArray()) }) { Text("Log in") } },
         dismissButton = { TextButton(onClick = { prompt.respond(null) }) { Text("Cancel") } },
+    )
+}
+
+/** A program on the server asks to use one of the user's keys through the forwarded agent. */
+@Composable
+internal fun AgentUseDialog(prompt: SessionPrompt.AgentUse) {
+    AlertDialog(
+        onDismissRequest = { prompt.respond(AgentAnswer.DENY) },
+        icon = { AppIcon(R.drawable.ic_key, null) },
+        title = { Text("Use your key?") },
+        text = {
+            Text(
+                "${prompt.target.host} asks to sign in somewhere else with your key \"${prompt.keyName}\". " +
+                    "Allow it if you have just started something there that needs it, such as ssh or git.",
+            )
+        },
+        confirmButton = {
+            FlowRow(horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = { prompt.respond(AgentAnswer.ONCE) }) { Text("Allow once", softWrap = false) }
+                TextButton(onClick = { prompt.respond(AgentAnswer.SESSION) }) { Text("Allow for this session", softWrap = false) }
+            }
+        },
+        dismissButton = { TextButton(onClick = { prompt.respond(AgentAnswer.DENY) }) { Text("Deny") } },
     )
 }
 

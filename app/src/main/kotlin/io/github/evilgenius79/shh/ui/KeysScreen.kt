@@ -22,6 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,12 +60,15 @@ import io.github.evilgenius79.shh.data.SecretBox
 import io.github.evilgenius79.shh.ssh.KeyAlgorithm
 import io.github.evilgenius79.shh.ssh.LoadedKey
 import io.github.evilgenius79.shh.ssh.PassphraseRequiredException
+import io.github.evilgenius79.shh.ssh.SshCertificate
 import io.github.evilgenius79.shh.ssh.SshKeys
 import io.github.evilgenius79.shh.ssh.WrongPassphraseException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.text.DateFormat
+import java.util.Date
 
 /** Wraps a key pair for storage: the private half is written in OpenSSH format and encrypted. */
 fun identityFrom(key: LoadedKey, name: String, secrets: SecretBox): Identity = Identity(
@@ -132,7 +139,8 @@ fun KeysScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
 
     if (generating) GenerateKeyDialog(container, onDone = { generating = false })
     if (importing) ImportKeyDialog(container, onDone = { importing = false })
-    selected?.let { identity ->
+    // Looked up afresh, so that the dialog shows a certificate as soon as it is added.
+    selected?.let { data.identity(it.id) }?.let { identity ->
         KeyDetailsDialog(
             container = container,
             identity = identity,
@@ -269,11 +277,43 @@ private fun ImportKeyDialog(container: AppContainer, onDone: () -> Unit) {
     )
 }
 
+/**
+ * The certificate in [text], provided it is one for logging in with [identity]'s key.
+ *
+ * @throws IOException saying what is wrong with it otherwise.
+ */
+@Throws(IOException::class)
+fun certificateFor(identity: Identity, text: String): SshCertificate {
+    val certificate = SshCertificate.parse(text)
+    if (certificate.publicKey.toAuthorizedKey() != identity.publicKey) throw IOException("This certificate was issued for a different key")
+    if (certificate.isHostCertificate) throw IOException("This certificate identifies a server; it cannot be used to log in")
+    return certificate
+}
+
+/** One line about a certificate: what it is called, whom it is for and how long it lasts. */
+fun describeCertificate(certificate: SshCertificate, now: Date = Date()): String {
+    val accounts = if (certificate.principals.isEmpty()) "any account" else certificate.principals.joinToString(", ")
+    // Certificates without an end carry the largest possible date.
+    val endless = certificate.validBefore.time < 0 || certificate.validBefore.time > FAR_FUTURE_MS
+    val until = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(certificate.validBefore)
+    val validity = when {
+        now.before(certificate.validAfter) -> "not valid yet"
+        endless -> "does not expire"
+        certificate.isValidAt(now) -> "valid until $until"
+        else -> "expired on $until"
+    }
+    return "\"${certificate.keyId}\" for $accounts, $validity"
+}
+
+private const val FAR_FUTURE_MS = 7_000_000_000_000L // the year 2191
+
 @Composable
 private fun KeyDetailsDialog(container: AppContainer, identity: Identity, usedBy: Int, onDismiss: () -> Unit) {
     val context = LocalContext.current
     var exporting by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
+    var addingCertificate by remember { mutableStateOf(false) }
+    val certificate = remember(identity.certificate) { identity.certificate?.let { runCatching { SshCertificate.parse(it) }.getOrNull() } }
     val publicLine = "${identity.publicKey} ${identity.name}"
 
     AlertDialog(
@@ -300,6 +340,19 @@ private fun KeyDetailsDialog(container: AppContainer, identity: Identity, usedBy
                     }) { Text("Share") }
                     TextButton(onClick = { exporting = true }) { Text("Export private key") }
                 }
+                Text("Certificate", style = MaterialTheme.typography.labelLarge)
+                if (certificate != null) {
+                    Text(describeCertificate(certificate), style = MaterialTheme.typography.bodySmall)
+                    TextButton(onClick = { container.store.saveIdentity(identity.copy(certificate = null)) }) { Text("Remove certificate") }
+                } else {
+                    Text(
+                        "If a certificate authority signed this key, add the certificate it gave you. " +
+                            "Servers that trust the authority then accept the key without knowing it.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TextButton(onClick = { addingCertificate = true }) { Text("Add a certificate…") }
+                }
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } },
@@ -322,6 +375,64 @@ private fun KeyDetailsDialog(container: AppContainer, identity: Identity, usedBy
         )
     }
     if (exporting) ExportKeyDialog(container, identity, onDone = { exporting = false })
+    if (addingCertificate) AddCertificateDialog(container, identity, onDone = { addingCertificate = false })
+}
+
+@Composable
+private fun AddCertificateDialog(container: AppContainer, identity: Identity, onDone: () -> Unit) {
+    val context = LocalContext.current
+    val text = rememberTextFieldState()
+    var error by remember { mutableStateOf<String?>(null) }
+    // A complaint about the text is out of date as soon as the text changes.
+    LaunchedEffect(text.text) { error = null }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        try {
+            // A certificate is a single line; anything large is the wrong file.
+            val content = context.contentResolver.openInputStream(uri)?.use { it.readBytes().take(64 * 1024).toByteArray().decodeToString() }.orEmpty()
+            text.setTextAndPlaceCursorAtEnd(content)
+        } catch (e: IOException) {
+            error = "The file could not be read: ${e.message}"
+        }
+    }
+    AlertDialog(
+        onDismissRequest = onDone,
+        title = { Text("Add a certificate") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    "Paste the contents of the -cert.pub file made for this key, or choose the file.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                OutlinedTextField(
+                    state = text,
+                    label = { Text("Certificate") },
+                    placeholder = { Text("ssh-ed25519-cert-v01@openssh.com AAAA…") },
+                    lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = 3, maxHeightInLines = 6),
+                    isError = error != null,
+                    supportingText = error?.let { message -> { Text(message) } },
+                    textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                TextButton(onClick = { picker.launch("*/*") }) { Text("Choose a file…") }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                enabled = text.text.isNotBlank(),
+                onClick = {
+                    try {
+                        val certificate = certificateFor(identity, text.text.toString())
+                        container.store.saveIdentity(identity.copy(certificate = certificate.toLine()))
+                        onDone()
+                    } catch (e: IOException) {
+                        error = e.message
+                    }
+                },
+            ) { Text("Add") }
+        },
+        dismissButton = { TextButton(onClick = onDone) { Text("Cancel") } },
+    )
 }
 
 @Composable

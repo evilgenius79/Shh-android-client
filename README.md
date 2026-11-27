@@ -36,6 +36,10 @@ output of `vim`, produced by the test suite.
 - Password, public key and keyboard-interactive login, including multi-factor (key + one-time
   code).
 - Jump hosts (like `ssh -J`), chained as deep as you need.
+- Agent forwarding (`ssh -A`): programs on a server can use the keys stored in the app, and the
+  app asks before a key is used.
+- A host name with several addresses is tried address by address, so a broken IPv6 route does
+  not stop the connection; IPv4 or IPv6 can be forced per host.
 - Local (`-L`), remote (`-R`) and dynamic SOCKS (`-D`) port forwarding, configured per host or
   added to a running session.
 - Host keys are verified on first use and remembered; a changed key is reported loudly.
@@ -57,6 +61,8 @@ output of `vim`, produced by the test suite.
 - Import OpenSSH, PEM, PKCS#8 and PuTTY keys, with or without a passphrase.
 - Export in OpenSSH format with an optional passphrase; share the public key.
 - Install a public key on the server you are connected to (what `ssh-copy-id` does).
+- OpenSSH certificates: add the certificate an authority issued for a key and servers that
+  trust the authority accept it (Ed25519 and ECDSA keys).
 
 **Files**
 
@@ -153,7 +159,9 @@ Please report security problems privately to the maintainers rather than in a pu
 
 ## Not there yet
 
-- Mosh, agent forwarding, X11 forwarding and FIDO/security-key authentication.
+- Mosh, X11 forwarding and FIDO/security-key authentication.
+- Certificates for RSA keys: the SSH library can only sign those the old SHA-1 way, which
+  current servers refuse.
 - Translations: the interface is English only for now.
 - The app has not been published to an app store.
 

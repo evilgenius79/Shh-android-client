@@ -128,6 +128,14 @@ internal val HelpSections: List<HelpSection> = listOf(
             note("Create or import a key under Keys, the key button on the host list."),
             note("While you are connected with a password, Install a public key in the ⋮ menu puts the key on the server."),
             note("Then choose the key in the host's settings. From then on no password is asked for."),
+            note(
+                "If your servers trust a certificate authority, add the certificate it issued for the key: " +
+                    "tap the key under Keys and choose Add a certificate.",
+            ),
+            note(
+                "To use your keys from a server, for ssh or git there, switch on Forward the SSH agent in that host's settings. " +
+                    "The keys stay on the phone, and you are asked before one is used.",
+            ),
         ),
     ),
     HelpSection(

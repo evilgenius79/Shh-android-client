@@ -29,6 +29,10 @@ data class Host(
     val colorSchemeId: String? = null,
     val termType: String = "xterm-256color",
     val lastConnectedAt: Long = 0,
+    /** Which of the name's addresses to use when it has both kinds. */
+    val internetProtocol: InternetProtocol = InternetProtocol.AUTOMATIC,
+    /** Lend the keys stored in the app to programs on this server (agent forwarding). */
+    val forwardAgent: Boolean = false,
 ) {
     /** `user@host` plus the port when it is not 22. */
     val address: String
@@ -40,6 +44,9 @@ data class Host(
 
     val title: String get() = name.ifBlank { address }
 }
+
+@Serializable
+enum class InternetProtocol { AUTOMATIC, IPV4, IPV6 }
 
 @Serializable
 enum class ForwardKind { LOCAL, REMOTE, DYNAMIC }
@@ -78,6 +85,8 @@ data class Identity(
     /** The private key in OpenSSH format, encrypted with [SecretBox]. */
     val encryptedPrivateKey: String,
     val createdAt: Long = 0,
+    /** A certificate for this key (the line of a `-cert.pub` file), offered before the key itself. */
+    val certificate: String? = null,
 )
 
 /** A server key the user has accepted. */

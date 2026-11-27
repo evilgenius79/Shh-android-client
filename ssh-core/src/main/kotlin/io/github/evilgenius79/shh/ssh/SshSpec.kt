@@ -13,8 +13,23 @@ class SshTarget(
     val password: CharArray? = null,
     /** Offer legacy algorithms (SHA-1 key exchange, CBC ciphers, ssh-rsa) for old devices. */
     val allowLegacyAlgorithms: Boolean = false,
+    /** Which of the host name's addresses to connect to. */
+    val addressFamily: AddressFamily = AddressFamily.ANY,
+    /**
+     * Keys to lend to programs on the server (agent forwarding), or null for none. The list is
+     * only asked for when the server first wants it.
+     */
+    val agentKeys: (() -> List<LoadedKey>)? = null,
 ) {
     override fun toString(): String = "$username@$host:$port"
+}
+
+/** Which kind of address to use for a host name that has several. */
+enum class AddressFamily {
+    /** Whatever the name resolves to, trying each address in turn. */
+    ANY,
+    IPV4,
+    IPV6,
 }
 
 /** How to reach and keep up a connection. */
@@ -57,6 +72,14 @@ interface SshPrompts {
 
     /** @return one answer per prompt, or null to give up. */
     fun answerChallenge(challenge: InteractiveChallenge): List<String>?
+
+    /**
+     * A program on [target] asks to sign something with [key] through the forwarded agent, which
+     * amounts to logging in somewhere as the user. Called once per request and may block.
+     *
+     * @return true to let it. The default refuses, so that nothing is lent by oversight.
+     */
+    fun confirmAgentUse(target: SshTarget, key: SshPublicKey): Boolean = false
 
     /** The server sent a banner to show before logging in. */
     fun onBanner(target: SshTarget, banner: String) {}

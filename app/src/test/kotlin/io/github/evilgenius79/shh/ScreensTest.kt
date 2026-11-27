@@ -2,6 +2,9 @@ package io.github.evilgenius79.shh
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -10,6 +13,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.core.app.ApplicationProvider
 import com.github.takahirom.roborazzi.captureRoboImage
 import io.github.evilgenius79.shh.data.AppData
@@ -18,18 +22,22 @@ import io.github.evilgenius79.shh.data.ForwardKind
 import io.github.evilgenius79.shh.data.ForwardRule
 import io.github.evilgenius79.shh.data.Host
 import io.github.evilgenius79.shh.data.Identity
+import io.github.evilgenius79.shh.data.InternetProtocol
 import io.github.evilgenius79.shh.data.KnownHost
 import io.github.evilgenius79.shh.data.Settings
 import io.github.evilgenius79.shh.data.Snippet
 import io.github.evilgenius79.shh.data.ThemeMode
+import io.github.evilgenius79.shh.session.AgentAnswer
 import io.github.evilgenius79.shh.session.SessionEnvironment
 import io.github.evilgenius79.shh.session.SessionManager
+import io.github.evilgenius79.shh.session.SessionPrompt
 import io.github.evilgenius79.shh.session.SessionState
 import io.github.evilgenius79.shh.session.TerminalSession
 import io.github.evilgenius79.shh.ssh.InMemoryHostKeyStore
 import io.github.evilgenius79.shh.ssh.KeyAlgorithm
 import io.github.evilgenius79.shh.ssh.SshFailure
 import io.github.evilgenius79.shh.ssh.SshKeys
+import io.github.evilgenius79.shh.ui.AgentUseDialog
 import io.github.evilgenius79.shh.ui.DisconnectedBarContent
 import io.github.evilgenius79.shh.ui.HelpScreen
 import io.github.evilgenius79.shh.ui.HostEditScreen
@@ -43,6 +51,7 @@ import io.github.evilgenius79.shh.ui.ShhRoot
 import io.github.evilgenius79.shh.ui.ShhTheme
 import io.github.evilgenius79.shh.ui.SnippetsScreen
 import io.github.evilgenius79.shh.ui.TerminalScreen
+import io.github.evilgenius79.shh.ui.describeCertificate
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
@@ -198,6 +207,92 @@ class ScreensTest {
         assertEquals("ci", host.username)
         assertEquals(22, host.port)
         assertNull(password, "the password was not touched")
+    }
+
+    @Test
+    fun hostEditorOffersTheInternetProtocolAndAgentForwarding() {
+        var saved: Host? = null
+        val original = Host(id = "h", host = "router.lan", username = "root")
+        show { HostEditScreen(sampleData(), original, isNew = false, hasSavedPassword = false, onSave = { h, _ -> saved = h }, onBack = {}) }
+
+        // Untouched, a host keeps the cautious defaults.
+        compose.onNodeWithText("Save").performClick()
+        assertEquals(InternetProtocol.AUTOMATIC to false, assertNotNull(saved).let { it.internetProtocol to it.forwardAgent })
+
+        compose.onNodeWithContentDescription("Internet protocol: Automatic (try each address)").performScrollTo().performClick()
+        compose.onNodeWithText("IPv4 only").performClick()
+        compose.onNodeWithText("Forward the SSH agent").performScrollTo().performClick()
+        shot("host-edit-connection")
+        compose.onNodeWithText("Save").performClick()
+        assertEquals(InternetProtocol.IPV4 to true, assertNotNull(saved).let { it.internetProtocol to it.forwardAgent })
+    }
+
+    @Test
+    fun aServerThatWantsToUseAKeyIsPutToTheUser() {
+        val answers = ArrayList<AgentAnswer>()
+        fun question() = SessionPrompt.AgentUse(
+            io.github.evilgenius79.shh.ssh.SshTarget("git-box.example.org", 22, "dev"),
+            "Phone key",
+            java.util.concurrent.CompletableFuture<AgentAnswer>().also { answer -> answer.thenAccept { answers.add(it) } },
+        )
+        var current by androidx.compose.runtime.mutableStateOf(question())
+        show { AgentUseDialog(current) }
+        compose.onNodeWithText("git-box.example.org asks to sign in somewhere else with your key \"Phone key\"", substring = true).assertIsDisplayed()
+        shot("agent-use")
+        compose.onNodeWithText("Allow once").performClick()
+        current = question()
+        compose.onNodeWithText("Allow for this session").performClick()
+        current = question()
+        compose.onNodeWithText("Deny").performClick()
+        assertEquals(listOf(AgentAnswer.ONCE, AgentAnswer.SESSION, AgentAnswer.DENY), answers)
+    }
+
+    @Test
+    fun aCertificateCanBeAddedToAKeyAndRemovedAgain() {
+        org.junit.Assume.assumeTrue("ssh-keygen is needed to make a certificate", TestCertificates.available)
+        val container = container(sampleData())
+        fun stored() = container.store.data.value.identities.single().certificate
+        val certificate = TestCertificates.certify(sampleKey, principal = "deploy")
+        val forAnotherKey = TestCertificates.certify(SshKeys.generate(KeyAlgorithm.ED25519), principal = "deploy")
+
+        show {
+            val data by container.store.data.collectAsState()
+            KeysScreen(container, data, onBack = {})
+        }
+        compose.onNodeWithText("Phone key").performClick()
+        compose.onNodeWithText("Add a certificate…").performScrollTo().performClick()
+
+        // What is not a certificate, or not one for this key, is refused with the reason.
+        // (The field is found by being the one thing that can be typed into: the word
+        // "Certificate" is also a heading in the dialog underneath.)
+        val field = androidx.compose.ui.test.hasSetTextAction()
+        compose.onNode(field).performTextInput("this is not a certificate")
+        compose.onNodeWithText("Add").performClick()
+        compose.onNodeWithText("This is not an SSH certificate").assertIsDisplayed()
+        compose.onNode(field).performTextReplacement(forAnotherKey.toLine())
+        compose.onNodeWithText("Add").performClick()
+        compose.onNodeWithText("This certificate was issued for a different key").assertIsDisplayed()
+        assertNull(stored())
+
+        compose.onNode(field).performTextReplacement(certificate.toLine("deploy@laptop") + "\n")
+        compose.onNodeWithText("Add").performClick()
+        assertEquals(certificate.toLine(), stored())
+        compose.onNodeWithText("\"issued-for-the-test\" for deploy, valid until", substring = true).performScrollTo().assertIsDisplayed()
+        shot("key-with-certificate")
+
+        compose.onNodeWithText("Remove certificate").performScrollTo().performClick()
+        assertNull(stored())
+        compose.onNodeWithText("Add a certificate…").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun certificatesAreDescribedByWhatMattersAboutThem() {
+        org.junit.Assume.assumeTrue(TestCertificates.available)
+        val certificate = TestCertificates.certify(sampleKey, principal = "deploy,root", id = "laptop-2026")
+        val now = java.util.Date()
+        assertTrue(describeCertificate(certificate, now).startsWith("\"laptop-2026\" for deploy, root, valid until "))
+        assertTrue(describeCertificate(certificate, java.util.Date(now.time + 3_600_000)).contains("expired on "))
+        assertTrue(describeCertificate(certificate, java.util.Date(now.time - 3_600_000)).endsWith("not valid yet"))
     }
 
     @Test

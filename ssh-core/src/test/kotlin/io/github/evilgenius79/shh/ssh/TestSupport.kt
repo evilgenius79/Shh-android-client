@@ -243,6 +243,15 @@ class TestPrompts(
     val answers: ArrayDeque<String?> = ArrayDeque(),
 ) : SshPrompts {
     val hostKeyRequests = CopyOnWriteArrayList<HostKeyRequest>()
+
+    /** Keys the forwarded agent was asked to sign with, and what to answer. */
+    val agentRequests = CopyOnWriteArrayList<SshPublicKey>()
+    var allowAgent = true
+
+    override fun confirmAgentUse(target: SshTarget, key: SshPublicKey): Boolean {
+        agentRequests.add(key)
+        return allowAgent
+    }
     val passwordRequests = CopyOnWriteArrayList<Int>()
     val challenges = CopyOnWriteArrayList<InteractiveChallenge>()
     val banners = CopyOnWriteArrayList<String>()

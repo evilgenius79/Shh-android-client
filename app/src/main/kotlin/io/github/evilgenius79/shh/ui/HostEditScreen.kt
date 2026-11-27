@@ -39,6 +39,7 @@ import io.github.evilgenius79.shh.data.AppStore
 import io.github.evilgenius79.shh.data.ForwardKind
 import io.github.evilgenius79.shh.data.ForwardRule
 import io.github.evilgenius79.shh.data.Host
+import io.github.evilgenius79.shh.data.InternetProtocol
 import io.github.evilgenius79.shh.data.Identity
 import io.github.evilgenius79.shh.terminal.ColorScheme
 
@@ -73,6 +74,8 @@ fun HostEditScreen(
     var legacy by rememberSaveable { mutableStateOf(original.allowLegacyAlgorithms) }
     var compression by rememberSaveable { mutableStateOf(original.compression) }
     var keepAlive by rememberSaveable { mutableStateOf(original.keepAliveSeconds.toString()) }
+    var internetProtocol by rememberSaveable { mutableStateOf(original.internetProtocol) }
+    var forwardAgent by rememberSaveable { mutableStateOf(original.forwardAgent) }
     var forwards by remember { mutableStateOf(original.forwards) }
     var editingForward by remember { mutableStateOf<ForwardRule?>(null) }
     var showErrors by rememberSaveable { mutableStateOf(false) }
@@ -101,6 +104,8 @@ fun HostEditScreen(
             compression = compression,
             keepAliveSeconds = keepAliveNumber,
             forwards = forwards,
+            internetProtocol = internetProtocol,
+            forwardAgent = forwardAgent,
         )
         val passwordChange = when {
             password.isNotEmpty() -> password
@@ -203,6 +208,27 @@ fun HostEditScreen(
                 isError = showErrors && keepAliveNumber == null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = field,
+            )
+            SelectField(
+                label = "Internet protocol",
+                selected = internetProtocol,
+                options = InternetProtocol.entries,
+                optionLabel = {
+                    when (it) {
+                        InternetProtocol.AUTOMATIC -> "Automatic (try each address)"
+                        InternetProtocol.IPV4 -> "IPv4 only"
+                        InternetProtocol.IPV6 -> "IPv6 only"
+                    }
+                },
+                onSelect = { internetProtocol = it },
+                modifier = field,
+            )
+            SwitchRow(
+                "Forward the SSH agent",
+                "Lets programs on this server, such as ssh or git, log in elsewhere with your keys. " +
+                    "You are asked before a key is used. Only for servers you trust.",
+                forwardAgent,
+                { forwardAgent = it },
             )
             SwitchRow("Compression", "Helps on slow links, costs battery on fast ones", compression, { compression = it })
             SwitchRow(

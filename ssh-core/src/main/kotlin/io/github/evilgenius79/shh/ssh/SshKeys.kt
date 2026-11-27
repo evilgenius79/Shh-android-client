@@ -118,7 +118,19 @@ class SshPublicKey(
 class LoadedKey internal constructor(
     val keyPair: KeyPair,
     val publicKey: SshPublicKey,
+    /** A certificate for this key, offered to servers before the bare key. */
+    val certificate: SshCertificate? = null,
 ) {
+    /**
+     * This key together with [certificate].
+     *
+     * @throws IllegalArgumentException when the certificate was issued for another key.
+     */
+    fun withCertificate(certificate: SshCertificate): LoadedKey {
+        require(certificate.publicKey == publicKey) { "The certificate belongs to a different key" }
+        return LoadedKey(keyPair, publicKey, certificate)
+    }
+
     /** Human readable description such as "Ed25519" or "RSA 4096". */
     val description: String
         get() {
@@ -243,7 +255,7 @@ object SshKeys {
         if (encrypted) {
             val salt = ByteArray(16).also { random.nextBytes(it) }
             val material = ByteArray(32 + 16)
-            val passwordBytes = String(passphrase!!).toByteArray(StandardCharsets.UTF_8)
+            val passwordBytes = String(passphrase).toByteArray(StandardCharsets.UTF_8)
             BCrypt().pbkdf(passwordBytes, salt, BCRYPT_ROUNDS, material)
             java.util.Arrays.fill(passwordBytes, 0)
             val cipher = Cipher.getInstance("AES/CTR/NoPadding")

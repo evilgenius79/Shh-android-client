@@ -37,6 +37,10 @@ start() {
     # The tests add and remove keys here, and they usually do not run as root or as the test
     # user. World-writable is fine for a throwaway server (sshd runs with StrictModes off).
     chmod 666 "$DIR/authorized_keys"
+    # A certificate authority whose certificates the server accepts. The tests sign keys with
+    # it, so its private key has to be readable by whoever runs them. Throwaway, like the rest.
+    ssh-keygen -q -t ed25519 -N '' -C 'shh test user CA' -f "$DIR/user_ca"
+    chmod 644 "$DIR/user_ca"
     chmod 755 "$DIR"
 
     cat > "$DIR/sshd_config" <<CONF
@@ -47,6 +51,7 @@ HostKey $DIR/host_rsa
 HostKey $DIR/host_ecdsa
 PidFile $DIR/sshd.pid
 AuthorizedKeysFile $DIR/authorized_keys
+TrustedUserCAKeys $DIR/user_ca.pub
 StrictModes no
 PasswordAuthentication yes
 KbdInteractiveAuthentication no

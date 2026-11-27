@@ -96,6 +96,98 @@ class OpenSshInteropTest {
         return file
     }
 
+    // ----- certificates -----
+
+    @Test
+    fun aCertificateLogsInWhereTheKeyItselfIsUnknown() {
+        assumeTrue(haveSshKeygen())
+        val s = servers()
+        val authority = File(s.authorizedKeys.parentFile, "user_ca")
+        assumeTrue("The test server has no certificate authority; start it again with tools/test-sshd.sh", authority.exists())
+        val authorityKey = privateKeyFile(authority.readText())
+
+        /** Has the test authority sign [key] for the account [principal]. */
+        fun certify(key: LoadedKey, principal: String): SshCertificate {
+            val publicKey = temp.newFile("key-${System.nanoTime()}.pub")
+            publicKey.writeText(key.publicKey.toAuthorizedKey("cert-test") + "\n")
+            run("ssh-keygen", "-q", "-s", authorityKey.path, "-I", "issued-for-the-test", "-n", principal, "-V", "+10m", publicKey.path)
+            return SshCertificate.parse(File(publicKey.path.removeSuffix(".pub") + "-cert.pub").readText())
+        }
+
+        for (algorithm in listOf(KeyAlgorithm.ED25519, KeyAlgorithm.ECDSA_256, KeyAlgorithm.ECDSA_521)) {
+            val key = SshKeys.generate(algorithm)
+            val certificate = certify(key, s.user)
+            assertEquals("issued-for-the-test", certificate.keyId)
+            assertEquals(listOf(s.user), certificate.principals)
+            assertEquals(key.publicKey, certificate.publicKey)
+            assertTrue(certificate.isValidAt() && !certificate.isHostCertificate)
+            assertTrue(!certificate.isValidAt(java.util.Date(System.currentTimeMillis() + 3_600_000)), "valid for ten minutes, not for an hour")
+            assertEquals(certificate.toLine(), SshCertificate.parse(certificate.toLine("a comment")).toLine(), "survives being written and read")
+
+            // The key is in no authorized_keys file: on its own it is turned away.
+            prompts.passwords.clear()
+            assertFailsWith<SshConnectException>(algorithm.name) { connect(keys = listOf(key), password = null) }
+            // With the certificate it is let in.
+            val connection = connect(keys = listOf(key.withCertificate(certificate)), password = null)
+            assertEquals(s.user, connection.execute("whoami").stdout.trim(), algorithm.name)
+        }
+
+        // A certificate for another account does not open this one.
+        val key = SshKeys.generate(KeyAlgorithm.ED25519)
+        prompts.passwords.clear()
+        assertFailsWith<SshConnectException> { connect(keys = listOf(key.withCertificate(certify(key, "somebody-else"))), password = null) }
+        // And a certificate cannot be attached to a key it was not issued for.
+        val other = SshKeys.generate(KeyAlgorithm.ED25519)
+        assertFailsWith<IllegalArgumentException> { other.withCertificate(certify(key, s.user)) }
+        // What is not a certificate is refused when read.
+        assertFailsWith<UnsupportedKeyException> { SshCertificate.parse(key.publicKey.toAuthorizedKey("plain key")) }
+        assertFailsWith<UnsupportedKeyException> { SshCertificate.parse("ssh-ed25519-cert-v01@openssh.com AAAAnot-base64!") }
+    }
+
+    // ----- agent forwarding -----
+
+    @Test
+    fun programsOnTheServerCanLogInElsewhereThroughTheForwardedAgent() {
+        val s = servers()
+        val keys = listOf(KeyAlgorithm.ED25519, KeyAlgorithm.ECDSA_256, KeyAlgorithm.RSA_3072).map { SshKeys.generate(it) }
+        val target = SshTarget(s.host, s.port, s.user, emptyList(), s.password.toCharArray(), agentKeys = { keys })
+        val connection = SshConnector.connect(target, hostKeys, prompts, emptyList(), ConnectOptions()).also { open.add(it) }
+
+        // The server's own tool sees the three keys. Listing lends nothing, so nobody is asked.
+        val listing = connection.execute("ssh-add -l")
+        assertTrue(connection.isAgentForwarded)
+        for (key in keys) assertTrue(listing.stdout.contains(key.publicKey.fingerprint), "${key.description} is listed in:\n${listing.stdout}${listing.stderr}")
+        assertEquals(emptyList(), prompts.agentRequests.toList())
+
+        // From the server, log in to the server again with nothing but the agent to prove who
+        // we are. Each kind of key in turn is the only one the server knows.
+        val again = "ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null " +
+            "-o PreferredAuthentications=publickey -p ${s.port} ${s.user}@127.0.0.1 'echo through-agent-\$((3*3))'"
+        for (key in keys) {
+            s.authorizedKeys.writeText(key.publicKey.toAuthorizedKey("agent-test") + "\n")
+            prompts.agentRequests.clear()
+            val result = connection.execute(again)
+            assertEquals("through-agent-9", result.stdout.trim(), "${key.description}: ${result.stderr}")
+            assertEquals(listOf(key.publicKey), prompts.agentRequests.toList(), "asked once, for the key that was used")
+        }
+
+        // When the user says no, the login from the server fails.
+        prompts.allowAgent = false
+        assertTrue(!connection.execute(again).isSuccess)
+        prompts.allowAgent = true
+
+        // An interactive shell has the agent as well.
+        val shell = connection.openShell(columns = 120, rows = 24)
+        shell.write("ssh-add -l; echo listed-\$((5+5))\n".toByteArray())
+        val seen = readUntil(shell.output, "listed-10")
+        assertTrue(seen.contains(keys[0].publicKey.fingerprint), seen)
+        shell.close()
+
+        // And without agent forwarding there is no agent to talk to.
+        val plain = connect().execute("ssh-add -l")
+        assertTrue(!plain.isSuccess && !plain.stdout.contains("SHA256:"), plain.stdout + plain.stderr)
+    }
+
     // ----- key files, checked with ssh-keygen -----
 
     @Test

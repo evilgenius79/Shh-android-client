@@ -3,6 +3,7 @@ package io.github.evilgenius79.shh.session
 import io.github.evilgenius79.shh.data.AppData
 import io.github.evilgenius79.shh.data.ForwardKind
 import io.github.evilgenius79.shh.data.Host
+import io.github.evilgenius79.shh.data.InternetProtocol
 import io.github.evilgenius79.shh.data.SecretBox
 import io.github.evilgenius79.shh.ssh.ConnectOptions
 import io.github.evilgenius79.shh.ssh.HostKeyDecision
@@ -17,6 +18,8 @@ import io.github.evilgenius79.shh.ssh.SshConnector
 import io.github.evilgenius79.shh.ssh.SshFailure
 import io.github.evilgenius79.shh.ssh.SshKeys
 import io.github.evilgenius79.shh.ssh.SshPrompts
+import io.github.evilgenius79.shh.ssh.AddressFamily
+import io.github.evilgenius79.shh.ssh.SshCertificate
 import io.github.evilgenius79.shh.ssh.SshShell
 import io.github.evilgenius79.shh.ssh.SshTarget
 import io.github.evilgenius79.shh.terminal.ColorScheme
@@ -73,6 +76,24 @@ sealed interface SessionPrompt {
             answer.complete(answers)
         }
     }
+
+    /** A program on the server wants to sign something with the key called [keyName]. */
+    class AgentUse(val target: SshTarget, val keyName: String, private val answer: CompletableFuture<AgentAnswer>) : SessionPrompt {
+        fun respond(decision: AgentAnswer) {
+            answer.complete(decision)
+        }
+    }
+}
+
+/** What the user says to a server that wants to use one of their keys. */
+enum class AgentAnswer {
+    DENY,
+
+    /** This once; the next request asks again. */
+    ONCE,
+
+    /** This key may be used by this session until it is closed. */
+    SESSION,
 }
 
 /** What a session needs from the rest of the app. */
@@ -294,14 +315,34 @@ class TerminalSession(
         }
     }
 
+    /** Reads a stored key, with its certificate when it has a usable one. */
+    private fun load(identity: io.github.evilgenius79.shh.data.Identity): LoadedKey {
+        val key = SshKeys.load(environment.secrets.decryptText(identity.encryptedPrivateKey))
+        val certificate = identity.certificate ?: return key
+        // A certificate that cannot be read or does not fit is no reason to lose the key.
+        return try {
+            key.withCertificate(SshCertificate.parse(certificate))
+        } catch (_: Exception) {
+            key
+        }
+    }
+
     private fun buildTarget(host: Host, data: AppData): SshTarget {
         val keys = ArrayList<LoadedKey>()
-        data.identity(host.identityId)?.let { identity ->
-            keys.add(SshKeys.load(environment.secrets.decryptText(identity.encryptedPrivateKey)))
-        }
+        data.identity(host.identityId)?.let { keys.add(load(it)) }
         val password = host.encryptedPassword?.let { environment.secrets.decryptText(it).toCharArray() }
             ?: typedPasswords[passwordKey(host.username, host.host, host.port)]?.copyOf()
-        return SshTarget(host.host, host.port, host.username, keys, password, host.allowLegacyAlgorithms)
+        val family = when (host.internetProtocol) {
+            InternetProtocol.AUTOMATIC -> AddressFamily.ANY
+            InternetProtocol.IPV4 -> AddressFamily.IPV4
+            InternetProtocol.IPV6 -> AddressFamily.IPV6
+        }
+        // The agent holds every key in the app, like an agent on a desktop does. They are only
+        // read when the server first asks, and each use is put to the user.
+        val agent: (() -> List<LoadedKey>)? = if (!host.forwardAgent) null else {
+            { environment.data().identities.mapNotNull { identity -> runCatching { load(identity) }.getOrNull() } }
+        }
+        return SshTarget(host.host, host.port, host.username, keys, password, host.allowLegacyAlgorithms, family, agent)
     }
 
     /** Follows `jumpHostId` links, outermost hop first. A cycle simply ends the chain. */
@@ -542,16 +583,42 @@ class TerminalSession(
 
     // ----- SshPrompts: questions asked while connecting -----
 
+    /** One question at a time: whoever asks second waits until the first has its answer. */
+    private val promptTurn = java.util.concurrent.locks.ReentrantLock()
+
     private fun <T> ask(build: (CompletableFuture<T>) -> SessionPrompt, fallback: T): T {
-        val answer = CompletableFuture<T>()
-        val prompt = build(answer)
-        promptFlow.value = prompt
-        return try {
-            answer.get()
-        } catch (_: Exception) {
-            fallback
+        promptTurn.lock()
+        try {
+            if (closed.get()) return fallback
+            val answer = CompletableFuture<T>()
+            val prompt = build(answer)
+            promptFlow.value = prompt
+            return try {
+                answer.get()
+            } catch (_: Exception) {
+                fallback
+            } finally {
+                if (promptFlow.value === prompt) promptFlow.value = null
+            }
         } finally {
-            if (promptFlow.value === prompt) promptFlow.value = null
+            promptTurn.unlock()
+        }
+    }
+
+    /** Keys the user allowed the server to use for as long as this session is open. */
+    private val agentKeysAllowed: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
+
+    override fun confirmAgentUse(target: SshTarget, key: io.github.evilgenius79.shh.ssh.SshPublicKey): Boolean {
+        if (!isConnected) return false
+        if (key.fingerprint in agentKeysAllowed) return true
+        val name = environment.data().identities.firstOrNull { it.fingerprint == key.fingerprint }?.name ?: key.fingerprint
+        return when (ask({ SessionPrompt.AgentUse(target, name, it) }, AgentAnswer.DENY)) {
+            AgentAnswer.DENY -> false
+            AgentAnswer.ONCE -> true
+            AgentAnswer.SESSION -> {
+                agentKeysAllowed.add(key.fingerprint)
+                true
+            }
         }
     }
 
@@ -560,6 +627,7 @@ class TerminalSession(
             is SessionPrompt.HostKey -> current.respond(HostKeyDecision.REJECT)
             is SessionPrompt.Password -> current.respond(null)
             is SessionPrompt.Challenge -> current.respond(null)
+            is SessionPrompt.AgentUse -> current.respond(AgentAnswer.DENY)
             null -> Unit
         }
         promptFlow.value = null
