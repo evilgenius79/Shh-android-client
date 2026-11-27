@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,12 +43,12 @@ import io.github.evilgenius79.shh.data.fingerprint
 @Composable
 fun KnownHostsScreen(data: AppData, onForget: (KnownHost) -> Unit, onBack: () -> Unit) {
     var pending by remember { mutableStateOf<KnownHost?>(null) }
-    Scaffold(topBar = { BackTopBar("Known hosts", onBack) }) { padding ->
+    Scaffold(topBar = { BackTopBar(stringResource(R.string.knownhosts_title), onBack) }) { padding ->
         if (data.knownHosts.isEmpty()) {
             EmptyState(
                 R.drawable.ic_fingerprint,
-                "No known hosts",
-                "Server keys you accept when connecting are remembered here, so that a changed key is noticed.",
+                stringResource(R.string.knownhosts_empty_title),
+                stringResource(R.string.knownhosts_empty_text),
                 Modifier.padding(padding),
             )
         } else {
@@ -62,7 +63,9 @@ fun KnownHostsScreen(data: AppData, onForget: (KnownHost) -> Unit, onBack: () ->
                             }
                         },
                         leading = { AppIcon(R.drawable.ic_fingerprint, null) },
-                        trailing = { IconButton(onClick = { pending = entry }) { AppIcon(R.drawable.ic_delete, "Forget this key") } },
+                        trailing = {
+                            IconButton(onClick = { pending = entry }) { AppIcon(R.drawable.ic_delete, stringResource(R.string.knownhosts_forget)) }
+                        },
                     )
                 }
             }
@@ -70,9 +73,9 @@ fun KnownHostsScreen(data: AppData, onForget: (KnownHost) -> Unit, onBack: () ->
     }
     pending?.let { entry ->
         ConfirmDialog(
-            title = "Forget this key?",
-            text = "The next connection to ${entry.host} will ask you to verify its key again.",
-            confirmLabel = "Forget",
+            title = stringResource(R.string.knownhosts_forget_title),
+            text = stringResource(R.string.knownhosts_forget_text, entry.host),
+            confirmLabel = stringResource(R.string.knownhosts_forget_action),
             destructive = true,
             onConfirm = {
                 pending = null
@@ -87,16 +90,18 @@ fun KnownHostsScreen(data: AppData, onForget: (KnownHost) -> Unit, onBack: () ->
 fun SnippetsScreen(snippets: List<Snippet>, onSave: (Snippet) -> Unit, onDelete: (Snippet) -> Unit, onBack: () -> Unit) {
     var editing by remember { mutableStateOf<Snippet?>(null) }
     Scaffold(
-        topBar = { BackTopBar("Snippets", onBack) },
+        topBar = { BackTopBar(stringResource(R.string.snippets_title), onBack) },
         floatingActionButton = {
-            FloatingActionButton(onClick = { editing = Snippet(id = "", name = "", command = "") }) { AppIcon(R.drawable.ic_add, "Add snippet") }
+            FloatingActionButton(onClick = { editing = Snippet(id = "", name = "", command = "") }) {
+                AppIcon(R.drawable.ic_add, stringResource(R.string.snippets_add))
+            }
         },
     ) { padding ->
         if (snippets.isEmpty()) {
             EmptyState(
                 R.drawable.ic_code,
-                "No snippets",
-                "Save commands you type often and send them to a terminal from its menu.",
+                stringResource(R.string.snippets_empty_title),
+                stringResource(R.string.snippets_empty_text),
                 Modifier.padding(padding),
             )
         } else {
@@ -118,20 +123,26 @@ fun SnippetsScreen(snippets: List<Snippet>, onSave: (Snippet) -> Unit, onDelete:
         var run by remember(snippet) { mutableStateOf(snippet.runImmediately) }
         AlertDialog(
             onDismissRequest = { editing = null },
-            title = { Text(if (snippet.id.isEmpty()) "New snippet" else "Edit snippet") },
+            title = { Text(stringResource(if (snippet.id.isEmpty()) R.string.snippets_new_title else R.string.snippets_edit_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(name, { name = it }, label = { Text("Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(
+                        name,
+                        { name = it },
+                        label = { Text(stringResource(R.string.label_name)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                     OutlinedTextField(
                         command,
                         { command = it },
-                        label = { Text("Command") },
+                        label = { Text(stringResource(R.string.snippets_command)) },
                         minLines = 2,
                         maxLines = 6,
                         textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                         modifier = Modifier.fillMaxWidth(),
                     )
-                    SwitchRow("Run immediately", "Press Enter after inserting the command", run, { run = it })
+                    SwitchRow(stringResource(R.string.snippets_run_immediately), stringResource(R.string.snippets_run_immediately_summary), run, { run = it })
                 }
             },
             confirmButton = {
@@ -141,16 +152,16 @@ fun SnippetsScreen(snippets: List<Snippet>, onSave: (Snippet) -> Unit, onDelete:
                         onSave(snippet.copy(id = snippet.id.ifEmpty { AppStore.newId() }, name = name.trim(), command = command, runImmediately = run))
                         editing = null
                     },
-                ) { Text("Save") }
+                ) { Text(stringResource(R.string.action_save)) }
             },
             dismissButton = {
                 if (snippet.id.isNotEmpty()) {
                     TextButton(onClick = {
                         onDelete(snippet)
                         editing = null
-                    }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
+                    }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
                 }
-                TextButton(onClick = { editing = null }) { Text("Cancel") }
+                TextButton(onClick = { editing = null }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -160,22 +171,23 @@ fun SnippetsScreen(snippets: List<Snippet>, onSave: (Snippet) -> Unit, onDelete:
 fun AboutScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     var license by remember { mutableStateOf<Pair<String, String>?>(null) }
-    Scaffold(topBar = { BackTopBar("About", onBack) }) { padding ->
+    Scaffold(topBar = { BackTopBar(stringResource(R.string.about_title), onBack) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
             Entry(
-                headline = "Shh ${BuildConfig.VERSION_NAME}",
-                supporting = { Text("An open-source SSH client. Licensed under the Apache License 2.0.") },
+                headline = stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
+                supporting = { Text(stringResource(R.string.about_summary)) },
                 leading = { AppIcon(R.drawable.ic_terminal, null) },
             )
-            SectionHeader("Open-source components")
+            SectionHeader(stringResource(R.string.about_section_components))
+            // The names of software are the same in every language; only the "and" between two of them is not.
             val components = listOf(
-                Triple("sshj", "SSH protocol implementation. Apache License 2.0.", null),
-                Triple("Bouncy Castle", "Cryptography provider. MIT License.", null),
-                Triple("Kotlin, kotlinx.coroutines, kotlinx.serialization", "Apache License 2.0.", null),
-                Triple("AndroidX and Jetpack Compose", "Apache License 2.0.", null),
-                Triple("Material Symbols", "Icons by Google. Apache License 2.0.", null),
-                Triple("SLF4J", "Logging facade. MIT License.", null),
-                Triple("JetBrains Mono", "Terminal font. SIL Open Font License 1.1.", "licenses/JetBrainsMono-OFL.txt"),
+                Triple("sshj", stringResource(R.string.about_sshj_summary), null),
+                Triple("Bouncy Castle", stringResource(R.string.about_bouncy_castle_summary), null),
+                Triple("Kotlin, kotlinx.coroutines, kotlinx.serialization", stringResource(R.string.about_license_apache), null),
+                Triple(stringResource(R.string.about_androidx_name), stringResource(R.string.about_license_apache), null),
+                Triple("Material Symbols", stringResource(R.string.about_material_symbols_summary), null),
+                Triple("SLF4J", stringResource(R.string.about_slf4j_summary), null),
+                Triple("JetBrains Mono", stringResource(R.string.about_jetbrains_mono_summary), "licenses/JetBrainsMono-OFL.txt"),
             )
             for ((name, summary, asset) in components) {
                 Entry(
@@ -193,7 +205,7 @@ fun AboutScreen(onBack: () -> Unit) {
             onDismissRequest = { license = null },
             title = { Text(name) },
             text = { Text(text, style = MaterialTheme.typography.bodySmall, modifier = Modifier.verticalScroll(rememberScrollState())) },
-            confirmButton = { TextButton(onClick = { license = null }) { Text("Close") } },
+            confirmButton = { TextButton(onClick = { license = null }) { Text(stringResource(R.string.action_close)) } },
         )
     }
 }

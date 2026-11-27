@@ -102,12 +102,14 @@ class TerminalFontsTest {
 
     @Test
     fun aFontIsCalledWhatItsFileIsCalled() {
-        assertEquals("FiraCode-Regular", fontNameOf("FiraCode-Regular.ttf"))
-        assertEquals("Iosevka Term", fontNameOf("Iosevka Term.OTF"))
-        assertEquals("font.v2", fontNameOf("font.v2"), "only the endings of font files are dropped")
-        assertEquals("A font of your own", fontNameOf(null))
-        assertEquals("A font of your own", fontNameOf("  "))
-        assertEquals(60, fontNameOf("x".repeat(200) + ".ttf").length)
+        // The name for a font without one is a text of the app, so the app's resources are asked for it.
+        val resources = context.resources
+        assertEquals("FiraCode-Regular", fontNameOf(resources, "FiraCode-Regular.ttf"))
+        assertEquals("Iosevka Term", fontNameOf(resources, "Iosevka Term.OTF"))
+        assertEquals("font.v2", fontNameOf(resources, "font.v2"), "only the endings of font files are dropped")
+        assertEquals("A font of your own", fontNameOf(resources, null))
+        assertEquals("A font of your own", fontNameOf(resources, "  "))
+        assertEquals(60, fontNameOf(resources, "x".repeat(200) + ".ttf").length)
     }
 
     companion object {
