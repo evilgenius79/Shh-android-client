@@ -36,6 +36,7 @@ import io.github.evilgenius79.shh.ui.HostEditScreen
 import io.github.evilgenius79.shh.ui.HostsScreen
 import io.github.evilgenius79.shh.ui.KeysScreen
 import io.github.evilgenius79.shh.ui.KnownHostsScreen
+import io.github.evilgenius79.shh.ui.ReconnectingBar
 import io.github.evilgenius79.shh.ui.Screen
 import io.github.evilgenius79.shh.ui.SettingsScreen
 import io.github.evilgenius79.shh.ui.ShhTheme
@@ -307,6 +308,34 @@ class ScreensTest {
         compose.onNodeWithContentDescription("More").performClick()
         compose.onNodeWithText("How to use").performClick()
         assertEquals(1, help)
+    }
+
+    @Test
+    fun whileReconnectingTheBarSaysSoAndLetsTheUserHurryOrStopIt() {
+        var tries = 0
+        var stops = 0
+        show {
+            ReconnectingBar(
+                SessionState.Reconnecting("Connection lost: Broken transport; encountered EOF", attempt = 3),
+                onTryNow = { tries++ },
+                onStop = { stops++ },
+            )
+        }
+        shot("reconnecting")
+        compose.onNodeWithText("Connection lost: Broken transport; encountered EOF").assertIsDisplayed()
+        compose.onNodeWithText("Reconnecting, attempt 3…").assertIsDisplayed()
+        compose.onNodeWithText("Try now").performClick()
+        compose.onNodeWithText("Stop").performClick()
+        assertEquals(1 to 1, tries to stops)
+    }
+
+    @Test
+    fun theSessionManagerListensForTheNetworkComingBack() {
+        val manager = context.getSystemService(android.net.ConnectivityManager::class.java)
+        val before = org.robolectric.Shadows.shadowOf(manager).networkCallbacks.size
+        container(sampleData())
+        // That is what makes a dropped session reconnect at once instead of at its next try.
+        assertEquals(before + 1, org.robolectric.Shadows.shadowOf(manager).networkCallbacks.size)
     }
 
     // ----- how-to -----

@@ -41,6 +41,8 @@ output of `vim`, produced by the test suite.
   rsa-sha2). Legacy algorithms for old devices can be enabled per host.
 - Keep-alive, optional compression, a command to run after login (for example
   `tmux new -A -s main`).
+- A connection that drops, for example when the phone changes networks, is re-established
+  automatically, with its port forwards and the command after login.
 - Quick connect: type `user@host:port` and go.
 
 **Keys**

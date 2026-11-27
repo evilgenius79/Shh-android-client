@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- To hear that the network is back, so that a dropped session reconnects at once. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Android 17 and later: needed to reach servers on the local network (asked at runtime). -->
     <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />

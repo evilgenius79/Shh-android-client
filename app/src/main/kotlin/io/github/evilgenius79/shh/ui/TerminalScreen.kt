@@ -125,6 +125,7 @@ fun TerminalScreen(
                                 when (val s = state) {
                                     is SessionState.Connecting -> "Connecting…"
                                     SessionState.Connected -> active.host.address
+                                    is SessionState.Reconnecting -> "Reconnecting…"
                                     is SessionState.Disconnected -> s.message
                                 },
                                 maxLines = 1,
@@ -236,6 +237,9 @@ fun TerminalScreen(
             // reason for the disconnect stay readable.
             (state as? SessionState.Disconnected)?.let {
                 DisconnectedBar(it, onReconnect = { active.reconnect() }, onClose = { onClose(active) })
+            }
+            (state as? SessionState.Reconnecting)?.let {
+                ReconnectingBar(it, onTryNow = { active.retryNow() }, onStop = { active.stopReconnecting() })
             }
             if (settings.showExtraKeys) {
                 ExtraKeys(
@@ -410,6 +414,25 @@ internal fun DisconnectedBarContent(
                 } else {
                     Button(onClick = onReconnect) { Text("Reconnect", softWrap = false) }
                 }
+            }
+        }
+    }
+}
+
+/** Shown while a session whose connection broke is getting it back by itself. */
+@Composable
+internal fun ReconnectingBar(state: SessionState.Reconnecting, onTryNow: () -> Unit, onStop: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(modifier.fillMaxWidth(), tonalElevation = 6.dp, shadowElevation = 6.dp) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+            Text(state.reason, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                if (state.attempt == 1) "Reconnecting…" else "Reconnecting, attempt ${state.attempt}…",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, itemVerticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onStop) { Text("Stop", softWrap = false) }
+                Button(onClick = onTryNow) { Text("Try now", softWrap = false) }
             }
         }
     }

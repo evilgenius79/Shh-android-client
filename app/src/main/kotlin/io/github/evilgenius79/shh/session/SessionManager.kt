@@ -5,6 +5,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.Network
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -44,6 +46,22 @@ class SessionManager(
             }
         },
     )
+
+    init {
+        // A session that lost its connection waits a while before each new attempt. When the
+        // network comes back there is no reason to wait any longer.
+        try {
+            ContextCompat.getSystemService(context, ConnectivityManager::class.java)?.registerDefaultNetworkCallback(
+                object : ConnectivityManager.NetworkCallback() {
+                    override fun onAvailable(network: Network) {
+                        for (session in sessionsFlow.value) session.retryNow()
+                    }
+                },
+            )
+        } catch (_: RuntimeException) {
+            // Without the callback the sessions still retry, only not as promptly.
+        }
+    }
 
     fun session(id: String?): TerminalSession? = sessionsFlow.value.firstOrNull { it.id == id }
 

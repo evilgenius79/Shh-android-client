@@ -154,6 +154,12 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
             )
 
             SectionHeader("Sessions")
+            SwitchRow(
+                "Reconnect automatically",
+                "When a connection drops, for example because the network changed",
+                settings.autoReconnect,
+                { on -> update { it.copy(autoReconnect = on) } },
+            )
             SwitchRow("Keep the screen on", "While a terminal is showing", settings.keepScreenOn, { on -> update { it.copy(keepScreenOn = on) } })
             SwitchRow(
                 "Stay awake in the background",

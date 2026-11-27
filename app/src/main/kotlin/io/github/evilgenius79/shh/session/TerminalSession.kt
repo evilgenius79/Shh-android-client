@@ -41,6 +41,12 @@ sealed interface SessionState {
 
     data object Connected : SessionState
 
+    /**
+     * The connection broke and the session is getting it back by itself. [reason] is what
+     * happened, [attempt] counts the tries so far, starting at 1.
+     */
+    data class Reconnecting(val reason: String, val attempt: Int) : SessionState
+
     /** Over. [failure] is set when connecting failed, as opposed to an established session ending. */
     data class Disconnected(val message: String, val failure: SshFailure? = null) : SessionState
 }
@@ -77,7 +83,18 @@ class SessionEnvironment(
     val onClipboard: (String) -> Unit = {},
     /** Called after a session connected, to record the time on the host. */
     val onConnected: (Host) -> Unit = {},
-)
+    /**
+     * How long to wait before each automatic attempt to get a broken connection back. When the
+     * list is used up the session gives up.
+     */
+    val reconnectDelaysMs: List<Long> = DEFAULT_RECONNECT_DELAYS_MS,
+) {
+    companion object {
+        /** Quick at first, for a network that only blinked; then patient, for about five minutes. */
+        val DEFAULT_RECONNECT_DELAYS_MS: List<Long> =
+            listOf(1_000, 2_000, 5_000, 10_000, 20_000, 30_000, 30_000, 30_000, 30_000, 30_000, 60_000, 60_000)
+    }
+}
 
 /**
  * One terminal tab: an SSH connection, the shell running on it and the emulator showing it.
@@ -129,6 +146,17 @@ class TerminalSession(
     @Volatile
     private var generation = 0
 
+    /** Guards the decisions about what happens when a connection ends. */
+    private val lifecycle = Any()
+
+    /** The thread waiting for the next automatic attempt. Interrupting it makes the attempt now. */
+    @Volatile
+    private var reconnectWait: Thread? = null
+
+    /** Why the last automatic attempt failed, for the message when the session gives up. */
+    @Volatile
+    private var lastReconnectError: String? = null
+
     init {
         val settings = environment.data().settings
         val scheme = ColorScheme.byId(host.colorSchemeId ?: settings.colorSchemeId)
@@ -158,6 +186,65 @@ class TerminalSession(
         connect()
     }
 
+    /**
+     * While the session is waiting to try again by itself: try now. Called when the network comes
+     * back, and by the user who does not want to wait.
+     */
+    fun retryNow() {
+        if (stateFlow.value is SessionState.Reconnecting) reconnectWait?.interrupt()
+    }
+
+    /** Gives up getting the connection back; the session is then simply disconnected. */
+    fun stopReconnecting() {
+        synchronized(lifecycle) {
+            val current = stateFlow.value as? SessionState.Reconnecting ?: return
+            generation++
+            reconnectWait?.interrupt()
+            cancelPrompt()
+            stateFlow.value = SessionState.Disconnected(current.reason)
+            teardownConnection()
+        }
+    }
+
+    /**
+     * The connection of an established session broke. Tries to get it back, patiently: the usual
+     * cause is a phone that changed networks or lost its signal for a moment.
+     */
+    private fun beginAutoReconnect(reason: String) {
+        synchronized(lifecycle) {
+            if (closed.get() || stateFlow.value !is SessionState.Connected) return
+            cancelPrompt()
+            teardownConnection()
+            writer.shutdownNow()
+            writer = newWriter()
+            printNotice("$reason. Reconnecting…")
+            lastReconnectError = null
+            scheduleReconnect(reason, attempt = 1)
+        }
+    }
+
+    private fun scheduleReconnect(reason: String, attempt: Int) {
+        val delays = environment.reconnectDelaysMs
+        if (attempt > delays.size) {
+            val detail = lastReconnectError?.let { ": $it" }.orEmpty()
+            finish("$reason. Could not reconnect$detail", null)
+            return
+        }
+        val mine = ++generation
+        stateFlow.value = SessionState.Reconnecting(reason, attempt)
+        val thread = Thread({
+            try {
+                Thread.sleep(delays[attempt - 1])
+            } catch (_: InterruptedException) {
+                // Asked to try right away.
+            }
+            if (mine == generation && !closed.get()) runConnection(mine)
+        }, "shh-reconnect-$id")
+        thread.isDaemon = true
+        reconnectWait = thread
+        thread.start()
+    }
+
     private fun runConnection(attempt: Int) {
         val data = environment.data()
         try {
@@ -175,6 +262,7 @@ class TerminalSession(
             val (cols, lines) = synchronized(emulator) { columns to rows }
             val newShell = newConnection.openShell(host.termType, cols, lines, cols * cellWidthPx, lines * cellHeightPx, mapOf("LANG" to "C.UTF-8"))
             shell = newShell
+            if (stateFlow.value is SessionState.Reconnecting) printNotice("Reconnected")
             stateFlow.value = SessionState.Connected
             environment.onConnected(host)
             startForwards(newConnection)
@@ -258,22 +346,51 @@ class TerminalSession(
             // The connection broke; reported through the disconnect listener.
         }
         if (attempt != generation || closed.get()) return
+        // A shell that ended by itself reports how. Without that report the output stopped
+        // because the connection broke, or because the shell was killed.
         val status = shell.awaitExit(2000)
-        if (stateFlow.value is SessionState.Connected) {
-            val message = if (status != null) "Session ended (exit status $status)" else "Session ended"
-            finish(message, null)
+        if (attempt != generation || closed.get() || stateFlow.value !is SessionState.Connected) return
+        if (status != null) {
+            finish("Session ended (exit status $status)", null)
+            return
         }
+        // The transport says so through its listener, but not always before this point.
+        val active = connection
+        var broken = false
+        for (i in 0 until 10) {
+            broken = active == null || !active.isConnected
+            if (broken || attempt != generation) break
+            Thread.sleep(100)
+        }
+        if (attempt != generation || closed.get()) return
+        if (broken) connectionLost(null) else if (stateFlow.value is SessionState.Connected) finish("Session ended", null)
     }
 
     private fun onConnectionLost(reason: String?) {
         if (closed.get()) return
-        if (stateFlow.value is SessionState.Connected) {
-            finish(if (reason.isNullOrBlank()) "Connection lost" else "Connection lost: $reason", null)
-        }
+        connectionLost(reason)
     }
 
+    private fun connectionLost(reason: String?) {
+        if (stateFlow.value !is SessionState.Connected) return
+        val message = if (reason.isNullOrBlank()) "Connection lost" else "Connection lost: $reason"
+        if (environment.data().settings.autoReconnect) beginAutoReconnect(message) else finish(message, null)
+    }
+
+    /** A connection attempt failed. An automatic one is repeated unless repeating cannot help. */
     private fun fail(message: String, failure: SshFailure?) {
-        finish(message, failure)
+        val current = stateFlow.value
+        val pointless = failure == SshFailure.AUTH_FAILED || failure == SshFailure.HOST_KEY_REJECTED || failure == SshFailure.CANCELLED
+        if (current is SessionState.Reconnecting && !pointless) {
+            synchronized(lifecycle) {
+                if (closed.get() || stateFlow.value !is SessionState.Reconnecting) return
+                lastReconnectError = message
+                teardownConnection()
+                scheduleReconnect(current.reason, current.attempt + 1)
+            }
+        } else {
+            finish(message, failure)
+        }
     }
 
     private fun finish(message: String, failure: SshFailure?) {
@@ -367,6 +484,7 @@ class TerminalSession(
     fun close() {
         if (!closed.compareAndSet(false, true)) return
         generation++
+        reconnectWait?.interrupt()
         cancelPrompt()
         stateFlow.value = SessionState.Disconnected("Closed")
         teardownConnection()

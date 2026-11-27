@@ -100,7 +100,11 @@ internal val HelpSections: List<HelpSection> = listOf(
         listOf(
             note("Sessions stay connected when you leave the app. A notification shows that they are open and can disconnect them all."),
             note("Open another one with New session in the ⋮ menu. With more than one open, tabs appear to switch between them."),
-            note("When a connection ends, the bar under the terminal says why and offers to reconnect."),
+            note(
+                "When a connection drops, for example because the phone changed networks, the app reconnects by itself and " +
+                    "runs the host's startup command again. With a command such as tmux new -A -s main you are back where you were.",
+            ),
+            note("When a session ends for another reason, the bar under the terminal says why and offers to reconnect."),
             note("On the host list, typing user@host or user@host:port into the search field connects without saving a host."),
         ),
     ),

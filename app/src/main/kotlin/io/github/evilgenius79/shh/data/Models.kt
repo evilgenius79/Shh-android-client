@@ -121,6 +121,8 @@ data class Settings(
     val cursorStyle: CursorStyle = CursorStyle.BLOCK,
     val cursorBlink: Boolean = true,
     val showExtraKeys: Boolean = true,
+    /** Get a connection that broke back without being asked. */
+    val autoReconnect: Boolean = true,
     /** Ask for the screen lock (fingerprint, PIN, ...) when the app is opened. */
     val requireUnlock: Boolean = false,
     /** Let programs on the server put text on the clipboard (OSC 52). */
