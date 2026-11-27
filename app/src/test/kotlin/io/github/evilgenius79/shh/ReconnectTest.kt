@@ -176,6 +176,31 @@ class ReconnectTest {
     }
 
     @Test
+    fun aPasswordTypedOnceIsNotAskedForAgainWhenTheConnectionComesBack() {
+        val relay = relay()
+        val s = spec!!
+        // No password is saved with this host: it is typed at the prompt, as after a quick connect.
+        val host = Host(id = "live", host = "127.0.0.1", port = relay.port, username = s[3])
+        val data = AppData(hosts = listOf(host))
+        val session = TerminalSession("typed", host, SessionEnvironment({ data }, secrets, hostKeys, reconnectDelaysMs = listOf(100, 100, 100)))
+        sessions.add(session)
+        session.connect()
+        waitFor("the host key prompt") { session.prompt.value is SessionPrompt.HostKey }
+        (session.prompt.value as SessionPrompt.HostKey).respond(HostKeyDecision.ACCEPT_AND_REMEMBER)
+        waitFor("the password prompt") { session.prompt.value is SessionPrompt.Password }
+        (session.prompt.value as SessionPrompt.Password).respond(s[4].toCharArray())
+        waitFor("the login") { session.isConnected }
+
+        // The connection drops. Nobody answers anything from here on: were the session to ask for
+        // the password again, it would wait for an answer that never comes.
+        relay.cut()
+        waitFor("the connection to be back without a question") { session.isConnected && session.history().contains("[Reconnected]") }
+        assertNull(session.prompt.value)
+        session.sendText("echo typed-once-\$((3*3))\n")
+        waitFor("the new shell") { session.history().contains("typed-once-9") }
+    }
+
+    @Test
     fun leavingTheShellIsNotAConnectionToGetBack() {
         val relay = relay()
         val session = connect(relay, delays = listOf(50, 50, 50))

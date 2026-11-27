@@ -159,6 +159,15 @@ class TerminalSession(
     @Volatile
     private var lastReconnectError: String? = null
 
+    /**
+     * Passwords typed into this session's prompts, by `user@host:port`. They let the session get
+     * a broken connection back without asking again. Held in memory only, never saved, and wiped
+     * when the session is closed.
+     */
+    private val typedPasswords = java.util.concurrent.ConcurrentHashMap<String, CharArray>()
+
+    private fun passwordKey(user: String, host: String, port: Int) = "$user@$host:$port"
+
     init {
         val settings = environment.data().settings
         val scheme = ColorScheme.byId(host.colorSchemeId ?: settings.colorSchemeId)
@@ -285,6 +294,7 @@ class TerminalSession(
             keys.add(SshKeys.load(environment.secrets.decryptText(identity.encryptedPrivateKey)))
         }
         val password = host.encryptedPassword?.let { environment.secrets.decryptText(it).toCharArray() }
+            ?: typedPasswords[passwordKey(host.username, host.host, host.port)]?.copyOf()
         return SshTarget(host.host, host.port, host.username, keys, password, host.allowLegacyAlgorithms)
     }
 
@@ -492,6 +502,8 @@ class TerminalSession(
         stateFlow.value = SessionState.Disconnected("Closed")
         teardownConnection()
         writer.shutdownNow()
+        for (password in typedPasswords.values) password.fill('\u0000')
+        typedPasswords.clear()
     }
 
     // ----- TerminalHost: the emulator talking back -----
@@ -538,8 +550,13 @@ class TerminalSession(
     override fun confirmHostKey(request: HostKeyRequest): HostKeyDecision =
         ask({ SessionPrompt.HostKey(request, it) }, HostKeyDecision.REJECT)
 
-    override fun requestPassword(target: SshTarget, attempt: Int): CharArray? =
-        ask({ SessionPrompt.Password(target, attempt, it) }, null)
+    override fun requestPassword(target: SshTarget, attempt: Int): CharArray? {
+        val typed: CharArray? = ask({ SessionPrompt.Password(target, attempt, it) }, null)
+        if (typed != null) {
+            typedPasswords.put(passwordKey(target.username, target.host, target.port), typed.copyOf())?.fill('\u0000')
+        }
+        return typed
+    }
 
     override fun answerChallenge(challenge: InteractiveChallenge): List<String>? =
         ask({ SessionPrompt.Challenge(challenge, it) }, null)
