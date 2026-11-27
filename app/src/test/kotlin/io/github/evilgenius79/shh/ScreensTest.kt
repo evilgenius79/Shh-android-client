@@ -283,6 +283,16 @@ class ScreensTest {
         compose.onNodeWithText("CTRL").assertIsDisplayed()
         compose.onNodeWithText("Reconnect").assertIsDisplayed()
         shot("terminal-screen-dark")
+
+        // The terminal has the input focus without being touched first, so that a hardware
+        // keyboard types into it rather than operating the buttons of the top bar.
+        fun terminalIn(view: android.view.View): io.github.evilgenius79.shh.terminal.TerminalView? = when (view) {
+            is io.github.evilgenius79.shh.terminal.TerminalView -> view
+            is android.view.ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { terminalIn(view.getChildAt(it)) }
+            else -> null
+        }
+        val root = (compose.onRoot().fetchSemanticsNode().root as androidx.compose.ui.platform.ViewRootForTest).view
+        assertTrue(assertNotNull(terminalIn(root.rootView)).isFocused, "the terminal view has the focus")
         compose.onNodeWithText("Close").performClick()
         assertEquals(1, closed)
     }

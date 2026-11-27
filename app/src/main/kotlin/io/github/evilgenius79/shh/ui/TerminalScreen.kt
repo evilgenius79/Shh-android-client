@@ -43,6 +43,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -224,6 +225,9 @@ fun TerminalScreen(
                     onRelease = { view -> view.attach(null) },
                     modifier = Modifier.fillMaxSize(),
                 )
+                // Keys belong to the terminal from the start. Without this a hardware keyboard
+                // would steer the buttons of the top bar until the terminal was touched.
+                LaunchedEffect(terminalView, active) { terminalView?.requestFocus() }
                 (state as? SessionState.Connecting)?.let { ConnectingOverlay(it, onCancel = { onClose(active) }) }
             }
             // Below the terminal rather than on top of it, so the last lines of output and the
