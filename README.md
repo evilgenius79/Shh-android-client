@@ -55,6 +55,10 @@ output of `vim`, produced by the test suite.
   `tmux new -A -s main`).
 - A connection that drops, for example when the phone changes networks, is re-established
   automatically, with its port forwards and the command after login.
+- Mosh, for hosts that have it installed: the session logs in over SSH, then carries on over
+  UDP and survives changes of network and long silences without logging in again. Where Mosh
+  cannot be started or UDP does not get through, the session simply stays on SSH. See
+  [Mosh](#mosh).
 - Home screen shortcuts to the hosts used last, and `ssh://` links (the address is filled in;
   you decide whether to connect).
 - A notification when a session in the background rings the bell, for example at the end of a
@@ -115,9 +119,10 @@ build tools 36.0.0). Point `ANDROID_HOME` at the SDK or create a `local.properti
 |---|---|
 | `terminal-core` | The terminal emulator. Pure Kotlin, no Android dependencies. |
 | `ssh-core` | Connections, authentication, port forwarding, SFTP and key handling on top of [sshj](https://github.com/hierynomus/sshj). Pure Kotlin. |
+| `mosh-core` | A client for the Mosh protocol, written for this app. Pure Kotlin. |
 | `app` | The Android application: Jetpack Compose UI, storage, the terminal view and the foreground service that keeps sessions alive. |
 
-Keeping the two cores free of Android makes them testable on any machine with a JDK.
+Keeping the cores free of Android makes them testable on any machine with a JDK.
 
 ## Testing
 
@@ -134,6 +139,9 @@ runs everything that needs no device:
 - **SSH** – end-to-end tests against an SSH server running inside the test JVM (Apache MINA),
   key file tests against the real `ssh-keygen` and configuration file tests against the real
   `ssh` when they are installed.
+- **Mosh** – unit tests of the wire format and the state synchronisation, and tests against a
+  real `mosh-server` when one is installed (`apt install mosh`), also over a simulated network
+  that loses, delays and reorders datagrams.
 - **App** – storage and backup tests, Compose UI tests, and tests that draw real program output
   through the terminal view. Screenshots are written to `app/build/outputs/screenshots`.
 
@@ -191,9 +199,34 @@ What is **not** tested: real hardware over real NFC or USB. No security key was 
 while this was written, so treat the feature as experimental until it has worked with yours,
 and please report how it went. Keys that only speak the older U2F protocol are not supported.
 
+## Mosh
+
+Switch on "Use Mosh" in a host's settings. The host needs `mosh-server` installed (the `mosh`
+package of most systems) and has to be reachable over UDP on ports 60001 to 60999.
+
+The Mosh client in this app is its own implementation of the protocol, not the reference
+client: Mosh is licensed under the GPL and this app is not. It was written from scratch; how
+the protocol looks on the wire was learned from the Mosh paper and from reading the Mosh
+sources, without copying code. It talks to a stock `mosh-server` and is tested against
+version 1.4. What differs from the `mosh` you may know:
+
+- No local echo. What you type shows when the server's answer arrives, as with SSH.
+- Output that scrolls quickly is shown in fewer steps than the reference client shows on a
+  slow connection. The screen is always right in the end.
+- Little scrollback: Mosh transmits the screen, not everything that was printed. That is true
+  of every Mosh client.
+- A Mosh session has no SSH connection, so no file browser, no port forwards and no forwarded
+  agent. Hosts behind a jump host work only if their UDP ports can be reached directly.
+- It keeps talking to the server every few seconds, which uses more battery than an idle SSH
+  session.
+- A server whose app does not come back ends itself after a week.
+
+Not tested: IPv6, servers other than 1.4, and real changes of network on a real phone (the
+tests move the session to a new socket on the same machine).
+
 ## Not there yet
 
-- Mosh and X11 forwarding.
+- X11 forwarding.
 - Certificates for RSA keys: the SSH library can only sign those the old SHA-1 way, which
   current servers refuse.
 - Translations: the interface is English only for now.

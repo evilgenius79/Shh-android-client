@@ -24,6 +24,12 @@ YubiKit for Android (https://github.com/Yubico/yubikit-android)
   Used to talk to FIDO2 security keys over NFC and USB. It brings along Moshi and Okio
   (Apache License 2.0, Copyright Square, Inc.) and JSpecify (Apache License 2.0).
 
+Mosh (https://mosh.org)
+  No code of Mosh is part of this product. The module mosh-core is an implementation of the
+  Mosh protocol written for this app, which talks to the mosh-server program on the remote
+  host. How the protocol works on the wire was learned from the Mosh paper and by reading
+  the Mosh source code (GPL-3.0); nothing was copied or translated from that code.
+
 SLF4J (https://www.slf4j.org)
   MIT License. Copyright (c) 2004-2026 QOS.ch.
 
