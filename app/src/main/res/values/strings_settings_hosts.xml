@@ -130,6 +130,9 @@
     <!-- Switch for compressing what is sent to and from the server. -->
     <string name="hostedit_compression">Compression</string>
     <string name="hostedit_compression_summary">Helps on slow links, costs battery on fast ones</string>
+    <!-- Switch for running the session over Mosh, a program that has to be installed on the server. Mosh is a name. -->
+    <string name="hostedit_use_mosh">Use Mosh</string>
+    <string name="hostedit_use_mosh_summary">Stays connected through changes of network without logging in again. The server needs Mosh installed and UDP ports 60001 to 60999 open. A Mosh session has no file browser and no port forwards.</string>
     <string name="hostedit_legacy_algorithms">Allow legacy algorithms</string>
     <string name="hostedit_legacy_algorithms_summary">Only for old devices that cannot do modern cryptography (SHA-1, CBC, ssh-rsa)</string>
     <!-- Heading of the settings about the terminal of this host. -->

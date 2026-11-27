@@ -227,6 +227,12 @@ class ScreensTest {
         shot("host-edit-connection")
         compose.onNodeWithText("Save").performClick()
         assertEquals(InternetProtocol.IPV4 to true, assertNotNull(saved).let { it.internetProtocol to it.forwardAgent })
+
+        // Mosh is something to switch on per host: it needs something on the server.
+        assertTrue(!assertNotNull(saved).useMosh)
+        compose.onNodeWithText("Use Mosh").performScrollTo().performClick()
+        compose.onNodeWithText("Save").performClick()
+        assertTrue(assertNotNull(saved).useMosh)
     }
 
     @Test

@@ -78,6 +78,7 @@ fun HostEditScreen(
     var keepAlive by rememberSaveable { mutableStateOf(original.keepAliveSeconds.toString()) }
     var internetProtocol by rememberSaveable { mutableStateOf(original.internetProtocol) }
     var forwardAgent by rememberSaveable { mutableStateOf(original.forwardAgent) }
+    var useMosh by rememberSaveable { mutableStateOf(original.useMosh) }
     var forwards by remember { mutableStateOf(original.forwards) }
     var editingForward by remember { mutableStateOf<ForwardRule?>(null) }
     var showErrors by rememberSaveable { mutableStateOf(false) }
@@ -110,6 +111,7 @@ fun HostEditScreen(
             forwards = forwards,
             internetProtocol = internetProtocol,
             forwardAgent = forwardAgent,
+            useMosh = useMosh,
         )
         val passwordChange = when {
             password.isNotEmpty() -> password
@@ -238,6 +240,7 @@ fun HostEditScreen(
                 { forwardAgent = it },
             )
             SwitchRow(stringResource(R.string.hostedit_compression), stringResource(R.string.hostedit_compression_summary), compression, { compression = it })
+            SwitchRow(stringResource(R.string.hostedit_use_mosh), stringResource(R.string.hostedit_use_mosh_summary), useMosh, { useMosh = it })
             SwitchRow(
                 stringResource(R.string.hostedit_legacy_algorithms),
                 stringResource(R.string.hostedit_legacy_algorithms_summary),
