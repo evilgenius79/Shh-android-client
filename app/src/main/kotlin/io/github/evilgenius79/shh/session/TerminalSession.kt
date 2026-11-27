@@ -78,7 +78,9 @@ class SessionEnvironment(
     val secrets: SecretBox,
     val hostKeys: HostKeyStore,
     /** Called when the remote program rings the bell. */
-    val onBell: () -> Unit = {},
+    val onBell: (TerminalSession) -> Unit = {},
+    /** Called when a session's shell ended by itself, with its exit status. */
+    val onShellExited: (TerminalSession, Int) -> Unit = { _, _ -> },
     /** Called when the remote program asks to copy text (only when the setting allows it). */
     val onClipboard: (String) -> Unit = {},
     /** Called after a session connected, to record the time on the host. */
@@ -352,6 +354,7 @@ class TerminalSession(
         if (attempt != generation || closed.get() || stateFlow.value !is SessionState.Connected) return
         if (status != null) {
             finish("Session ended (exit status $status)", null)
+            environment.onShellExited(this, status)
             return
         }
         // The transport says so through its listener, but not always before this point.
@@ -493,7 +496,7 @@ class TerminalSession(
 
     // ----- TerminalHost: the emulator talking back -----
 
-    override fun onBell() = environment.onBell()
+    override fun onBell() = environment.onBell(this)
 
     override fun onTitleChanged(title: String) {
         titleFlow.value = title.ifBlank { host.title }

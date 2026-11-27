@@ -41,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -106,7 +108,9 @@ fun <T> SelectField(
             trailingIcon = { AppIcon(R.drawable.ic_expand_more, null) },
             modifier = Modifier.fillMaxWidth(),
         )
-        // The text field would swallow the tap, so a transparent layer on top takes it.
+        // The text field would swallow the tap, so a transparent layer on top takes it. That
+        // layer is what a screen reader lands on, so it has to say what the field is and holds.
+        val description = "$label: ${optionLabel(selected)}"
         Box(
             Modifier
                 .matchParentSize()
@@ -114,8 +118,9 @@ fun <T> SelectField(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     role = Role.DropdownList,
-                    onClickLabel = label,
-                ) { expanded = true },
+                    onClickLabel = "change",
+                ) { expanded = true }
+                .semantics { contentDescription = description },
         )
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             for (option in options) {

@@ -145,6 +145,12 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
                 modifier = Modifier.padding(horizontal = 16.dp),
             )
             SwitchRow("Extra keys", "Esc, Tab, Ctrl, Alt, arrows and more, above the keyboard", settings.showExtraKeys, { on -> update { it.copy(showExtraKeys = on) } })
+            SwitchRow(
+                "Full keyboard features",
+                "Voice typing, swipe typing and keyboards for other scripts. The keyboard may then correct what you type.",
+                settings.fullKeyboard,
+                { on -> update { it.copy(fullKeyboard = on) } },
+            )
             SwitchRow("Vibrate on bell", null, settings.vibrateOnBell, { on -> update { it.copy(vibrateOnBell = on) } })
             SwitchRow(
                 "Let servers set the clipboard",
@@ -159,6 +165,18 @@ fun SettingsScreen(container: AppContainer, data: AppData, onBack: () -> Unit) {
                 "When a connection drops, for example because the network changed",
                 settings.autoReconnect,
                 { on -> update { it.copy(autoReconnect = on) } },
+            )
+            SwitchRow(
+                "Close a tab when its shell exits",
+                "After exit or Ctrl+D. A shell that ends with an error stays, so that it can be read.",
+                settings.closeOnExit,
+                { on -> update { it.copy(closeOnExit = on) } },
+            )
+            SwitchRow(
+                "Notify on bell in the background",
+                "When a session you are not looking at rings the bell, for example at the end of a long command",
+                settings.notifyOnBell,
+                { on -> update { it.copy(notifyOnBell = on) } },
             )
             SwitchRow("Keep the screen on", "While a terminal is showing", settings.keepScreenOn, { on -> update { it.copy(keepScreenOn = on) } })
             SwitchRow(

@@ -1,9 +1,11 @@
 package io.github.evilgenius79.shh.terminal
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.Typeface
@@ -24,6 +26,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.OverScroller
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.net.toUri
 import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.session.TerminalSession
 import kotlin.math.abs
@@ -95,9 +98,26 @@ class TerminalView(context: Context) : View(context) {
     /** Called for a tap that neither the terminal program nor a selection consumed. */
     var onTap: (() -> Unit)? = null
 
+    /**
+     * False (the default) asks the keyboard for plain characters: no autocorrect, no predictions,
+     * no composing of words, which is what a shell wants. True presents the terminal as an
+     * ordinary text field instead. That is what voice typing, swipe typing and the keyboards for
+     * Chinese, Japanese or Korean need, at the price of a keyboard that may change words.
+     */
+    var fullKeyboard: Boolean = false
+        set(value) {
+            if (field == value) return
+            field = value
+            // The keyboard reads these attributes when input starts, so start it again.
+            ContextCompat.getSystemService(context, InputMethodManager::class.java)?.restartInput(this)
+        }
+
     init {
         isFocusable = true
         isFocusableInTouchMode = true
+        // A terminal is not a form. Without this, password managers offer to fill it in and
+        // their popup covers the prompt.
+        importantForAutofill = IMPORTANT_FOR_AUTOFILL_NO
         val regular = ResourcesCompat.getFont(context, R.font.jetbrains_mono_regular) ?: Typeface.MONOSPACE
         val bold = ResourcesCompat.getFont(context, R.font.jetbrains_mono_bold) ?: Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
         renderer = TerminalRenderer(regular, bold)
@@ -207,11 +227,13 @@ class TerminalView(context: Context) : View(context) {
     override fun onCheckIsTextEditor(): Boolean = true
 
     override fun onCreateInputConnection(outAttrs: EditorInfo): InputConnection {
-        // "Visible password" stops keyboards from autocorrecting, predicting or composing words,
-        // none of which makes sense in a shell, while keeping their normal layout.
-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT or
-            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD or
-            InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        outAttrs.inputType = if (fullKeyboard) {
+            InputType.TYPE_CLASS_TEXT
+        } else {
+            // "Visible password" stops keyboards from autocorrecting, predicting or composing
+            // words, none of which makes sense in a shell, while keeping their normal layout.
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        }
         outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_FLAG_NO_EXTRACT_UI or EditorInfo.IME_ACTION_NONE
         return TerminalInputConnection()
     }
@@ -607,16 +629,22 @@ class TerminalView(context: Context) : View(context) {
         actionMode = startActionMode(
             object : ActionMode.Callback2() {
                 override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                    menu.add(Menu.NONE, MENU_COPY, 0, android.R.string.copy)
-                    menu.add(Menu.NONE, MENU_PASTE, 1, android.R.string.paste)
-                    menu.add(Menu.NONE, MENU_SELECT_ALL, 2, android.R.string.selectAll)
+                    menu.add(Menu.NONE, MENU_OPEN_LINK, 0, "Open link")
+                    menu.add(Menu.NONE, MENU_COPY, 1, android.R.string.copy)
+                    menu.add(Menu.NONE, MENU_PASTE, 2, android.R.string.paste)
+                    menu.add(Menu.NONE, MENU_SELECT_ALL, 3, android.R.string.selectAll)
                     return true
                 }
 
-                override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean = false
+                override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+                    // Offered only while the selection is a web address.
+                    menu.findItem(MENU_OPEN_LINK)?.isVisible = linkInSelection() != null
+                    return true
+                }
 
                 override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
                     when (item.itemId) {
+                        MENU_OPEN_LINK -> openSelectedLink()
                         MENU_COPY -> copySelection()
                         MENU_PASTE -> {
                             clearSelection()
@@ -624,6 +652,7 @@ class TerminalView(context: Context) : View(context) {
                         }
                         MENU_SELECT_ALL -> {
                             selectAll()
+                            mode.invalidate()
                             return true
                         }
                     }
@@ -669,6 +698,20 @@ class TerminalView(context: Context) : View(context) {
         val current = session ?: return null
         val ends = selection?.ordered() ?: return null
         return synchronized(current.emulator) { current.emulator.getText(ends[0], ends[1], ends[2], ends[3]) }
+    }
+
+    /** The web address the selection consists of, or null when the selection is something else. */
+    fun linkInSelection(): String? = selectedText()?.let { Links.asLink(it) }
+
+    /** Opens the selected web address in the browser. */
+    fun openSelectedLink() {
+        val link = linkInSelection() ?: return
+        clearSelection()
+        try {
+            context.startActivity(Intent(Intent.ACTION_VIEW, link.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        } catch (_: ActivityNotFoundException) {
+            // No browser on this device: nothing to open it with.
+        }
     }
 
     fun copySelection() {
@@ -718,6 +761,7 @@ class TerminalView(context: Context) : View(context) {
         private const val MENU_COPY = 1
         private const val MENU_PASTE = 2
         private const val MENU_SELECT_ALL = 3
+        private const val MENU_OPEN_LINK = 4
 
         /** Characters that end a word when long-pressing to select. Paths and URLs stay whole. */
         private const val WORD_BREAKS = " \t\"'`()[]{}<>|;,"

@@ -83,8 +83,16 @@ internal val HelpSections: List<HelpSection> = listOf(
                 text = "Scrolls back through earlier output. In full-screen programs such as less, man or vim it scrolls the program.",
             ),
             item("Pinch", text = "Makes the text smaller or larger."),
-            item("Hold", text = "Selects the word under your finger. Keep the finger down and drag to select more, then choose Copy."),
+            item(
+                "Hold",
+                text = "Selects the word under your finger. Keep the finger down and drag to select more, then choose Copy. " +
+                    "When what you selected is a web address, Open link is offered too.",
+            ),
             note("The clipboard button at the top of the terminal pastes."),
+            note(
+                "If voice typing, swipe typing or a keyboard for another script does not work in the terminal, " +
+                    "switch on Full keyboard features in Settings.",
+            ),
         ),
     ),
     HelpSection(
@@ -105,6 +113,12 @@ internal val HelpSections: List<HelpSection> = listOf(
                     "runs the host's startup command again. With a command such as tmux new -A -s main you are back where you were.",
             ),
             note("When a session ends for another reason, the bar under the terminal says why and offers to reconnect."),
+            note("Leaving the shell with exit or with CTRL and then D closes its tab."),
+            note(
+                "A session you are not looking at that rings the bell sends a notification. " +
+                    "End a long command with ; printf '\\a' to be told when it is done.",
+            ),
+            note("Hold the app's icon on the home screen for shortcuts to the hosts you used last."),
             note("On the host list, typing user@host or user@host:port into the search field connects without saving a host."),
         ),
     ),

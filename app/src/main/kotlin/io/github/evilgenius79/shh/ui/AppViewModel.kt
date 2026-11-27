@@ -44,6 +44,9 @@ class AppViewModel : ViewModel() {
     /** Set once the user got past the app lock for this run of the app. */
     var unlocked: Boolean by mutableStateOf(false)
 
+    /** An address from an ssh:// link, put into the host list's field for the user to confirm. */
+    var offeredAddress: String by mutableStateOf("")
+
     fun open(screen: Screen) {
         // Going to a screen that is already on the stack returns to it instead of stacking a copy.
         val existing = stack.indexOf(screen)

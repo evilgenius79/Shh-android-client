@@ -123,6 +123,12 @@ data class Settings(
     val showExtraKeys: Boolean = true,
     /** Get a connection that broke back without being asked. */
     val autoReconnect: Boolean = true,
+    /** Present the terminal to the keyboard as ordinary text: voice, swipe and CJK input work. */
+    val fullKeyboard: Boolean = false,
+    /** Close a session's tab when its shell ends by itself without an error. */
+    val closeOnExit: Boolean = true,
+    /** Post a notification when a session that is not on screen rings the bell. */
+    val notifyOnBell: Boolean = true,
     /** Ask for the screen lock (fingerprint, PIN, ...) when the app is opened. */
     val requireUnlock: Boolean = false,
     /** Let programs on the server put text on the clipboard (OSC 52). */

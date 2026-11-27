@@ -1,5 +1,8 @@
 package io.github.evilgenius79.shh.session
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -12,7 +15,12 @@ import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import io.github.evilgenius79.shh.Launch
+import io.github.evilgenius79.shh.MainActivity
+import io.github.evilgenius79.shh.R
 import io.github.evilgenius79.shh.data.AppStore
 import io.github.evilgenius79.shh.data.Host
 import io.github.evilgenius79.shh.data.SecretBox
@@ -38,11 +46,21 @@ class SessionManager(
         data = { store.data.value },
         secrets = secrets,
         hostKeys = hostKeys,
-        onBell = { main.post { bell() } },
+        onBell = { session -> main.post { bell(session) } },
+        onShellExited = { session, status ->
+            // Leaving the shell with "exit" or Ctrl+D is how a session is closed from the inside.
+            // After an error the tab stays, so that what led to it can still be read.
+            if (status == 0 && store.data.value.settings.closeOnExit) main.post { close(session) }
+        },
         onClipboard = { text -> main.post { copyToClipboard(text) } },
         onConnected = { host ->
             store.update { data ->
                 data.copy(hosts = data.hosts.map { if (it.id == host.id) it.copy(lastConnectedAt = System.currentTimeMillis()) else it })
+            }
+            // Lets the launcher learn which of the home screen shortcuts matter.
+            try {
+                ShortcutManagerCompat.reportShortcutUsed(context, host.id)
+            } catch (_: RuntimeException) {
             }
         },
     )
@@ -77,15 +95,33 @@ class SessionManager(
     fun close(session: TerminalSession) {
         session.close()
         sessionsFlow.value = sessionsFlow.value - session
+        notifications()?.cancel(bellNotificationId(session))
         updateService()
     }
 
     fun closeAll() {
         val all = sessionsFlow.value
         sessionsFlow.value = emptyList()
-        for (session in all) session.close()
+        for (session in all) {
+            session.close()
+            notifications()?.cancel(bellNotificationId(session))
+        }
         updateService()
     }
+
+    /** True while the app has an activity on screen. Set by the application. */
+    @Volatile
+    var appInForeground: Boolean = false
+
+    /** The session whose terminal is showing, if one is. Set by the UI. */
+    var visibleSessionId: String? = null
+        set(value) {
+            field = value
+            // Looking at a session answers its bell.
+            session(value)?.let { notifications()?.cancel(bellNotificationId(it)) }
+        }
+
+    private fun isInView(session: TerminalSession) = appInForeground && visibleSessionId == session.id
 
     private fun updateService() {
         val intent = Intent(context, SessionService::class.java)
@@ -96,11 +132,44 @@ class SessionManager(
         }
     }
 
-    private fun bell() {
-        if (!store.data.value.settings.vibrateOnBell) return
+    private fun bell(session: TerminalSession) {
+        val settings = store.data.value.settings
+        if (settings.notifyOnBell && !isInView(session) && session in sessionsFlow.value) notifyBell(session)
+        if (!settings.vibrateOnBell) return
         val vibrator = ContextCompat.getSystemService(context, Vibrator::class.java) ?: return
         if (!vibrator.hasVibrator()) return
         vibrator.vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE))
+    }
+
+    private fun notifications(): NotificationManager? = ContextCompat.getSystemService(context, NotificationManager::class.java)
+
+    private fun bellNotificationId(session: TerminalSession): Int = BELL_NOTIFICATION_BASE + (session.id.hashCode() and 0xFFFF)
+
+    /**
+     * A program in a session nobody is looking at rang the bell, which is how a long job says
+     * that it is done ("make; printf '\\a'"). Tapping the notification opens that session.
+     */
+    private fun notifyBell(session: TerminalSession) {
+        val manager = notifications() ?: return
+        val channel = NotificationChannel(BELL_CHANNEL_ID, "Bell", NotificationManager.IMPORTANCE_DEFAULT)
+        channel.description = "A session in the background rang the bell"
+        manager.createNotificationChannel(channel)
+        val open = PendingIntent.getActivity(
+            context,
+            bellNotificationId(session),
+            Intent(context, MainActivity::class.java).setAction(Launch.ACTION_SHOW_SESSION).putExtra(Launch.EXTRA_ID, session.id),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val notification = NotificationCompat.Builder(context, BELL_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_terminal)
+            .setContentTitle(session.title.value)
+            .setContentText("Rang the bell")
+            .setContentIntent(open)
+            .setAutoCancel(true)
+            // A program that keeps ringing does not keep buzzing the phone.
+            .setOnlyAlertOnce(true)
+            .build()
+        manager.notify(bellNotificationId(session), notification)
     }
 
     private fun copyToClipboard(text: String) {
@@ -114,6 +183,9 @@ class SessionManager(
          * Spelled out because the platform's constant for it does not exist on older versions.
          */
         const val LOCAL_NETWORK_PERMISSION = "android.permission.ACCESS_LOCAL_NETWORK"
+
+        private const val BELL_CHANNEL_ID = "bell"
+        private const val BELL_NOTIFICATION_BASE = 1000
 
         /** True on Android versions that put local network access behind a runtime permission. */
         val needsLocalNetworkPermission: Boolean get() = Build.VERSION.SDK_INT >= 37

@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,6 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.evilgenius79.shh.AppContainer
+import io.github.evilgenius79.shh.Launch
 import io.github.evilgenius79.shh.data.AppStore
 import io.github.evilgenius79.shh.data.Host
 import io.github.evilgenius79.shh.session.SessionManager
@@ -58,6 +60,22 @@ fun ShhRoot(container: AppContainer, model: AppViewModel = viewModel()) {
             }
         }
 
+        // A shortcut, a notification or a link that opened the app. Handled here, behind the app
+        // lock, so that none of them gets past it.
+        val launch by container.launch.collectAsStateCompat()
+        LaunchedEffect(launch) {
+            val request = launch ?: return@LaunchedEffect
+            container.launch.value = null
+            when (request) {
+                is Launch.ShowSession -> if (container.sessions.session(request.sessionId) != null) model.showSession(request.sessionId)
+                is Launch.Connect -> data.host(request.hostId)?.let { connect(it) }
+                is Launch.Offer -> {
+                    model.offeredAddress = request.address
+                    model.open(Screen.Hosts)
+                }
+            }
+        }
+
         // If the session being shown was closed, fall back to another one or to the host list.
         val active = container.sessions.session(model.activeSessionId) ?: sessions.lastOrNull()
         LaunchedEffect(active, model.current) {
@@ -78,6 +96,7 @@ fun ShhRoot(container: AppContainer, model: AppViewModel = viewModel()) {
                 onDelete = { container.store.deleteHost(it.id) },
                 onAdd = { model.open(Screen.HostEdit(null)) },
                 onNavigate = model::open,
+                offeredAddress = model.offeredAddress,
             )
             is Screen.HostEdit -> {
                 val existing = data.host(screen.hostId)
@@ -105,6 +124,11 @@ fun ShhRoot(container: AppContainer, model: AppViewModel = viewModel()) {
                 )
             }
             Screen.Terminal -> if (active != null) {
+                // Tell the sessions which one is being looked at; its bell needs no notification.
+                DisposableEffect(active.id) {
+                    container.sessions.visibleSessionId = active.id
+                    onDispose { container.sessions.visibleSessionId = null }
+                }
                 TerminalScreen(
                     sessions = sessions,
                     active = active,

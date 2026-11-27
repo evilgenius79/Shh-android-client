@@ -280,6 +280,49 @@ class LiveSessionTest {
     }
 
     @Test
+    fun leavingTheShellClosesItsTabUnlessItEndedWithAnError() {
+        assumeTrue(spec != null)
+        val context: Context = ApplicationProvider.getApplicationContext()
+        val store = io.github.evilgenius79.shh.data.AppStore(File.createTempFile("store", ".json"), java.util.concurrent.Executor { it.run() })
+        val manager = io.github.evilgenius79.shh.session.SessionManager(context, store, secrets, hostKeys)
+        val main = org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper())
+
+        fun login(): TerminalSession {
+            val session = manager.open(host())
+            sessions.add(session)
+            if (hostKeys.find(host().host, host().port).isEmpty()) session.acceptHostKey()
+            waitFor("the login") { session.isConnected }
+            return session
+        }
+
+        // "exit" at the prompt: the tab goes away, as a terminal window would.
+        val first = login()
+        first.sendText("exit\n")
+        waitFor("the tab to close") {
+            main.idle()
+            manager.sessions.value.isEmpty()
+        }
+
+        // A shell that ends with an error stays, so that what happened can be read.
+        val second = login()
+        second.sendText("exit 3\n")
+        waitFor("the session to end") { second.state.value is SessionState.Disconnected }
+        main.idle()
+        assertEquals(listOf(second), manager.sessions.value)
+        assertEquals("Session ended (exit status 3)", (second.state.value as SessionState.Disconnected).message)
+        manager.close(second)
+
+        // And with the setting off, a clean exit stays too.
+        store.updateSettings { it.copy(closeOnExit = false) }
+        val third = login()
+        third.sendText("exit\n")
+        waitFor("the session to end") { third.state.value is SessionState.Disconnected }
+        main.idle()
+        assertEquals(listOf(third), manager.sessions.value)
+        manager.closeAll()
+    }
+
+    @Test
     fun askingForThePasswordAndCancelling() {
         val session = open(host(savePassword = false))
         session.acceptHostKey()

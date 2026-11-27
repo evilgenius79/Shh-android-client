@@ -39,6 +39,7 @@ import io.github.evilgenius79.shh.ui.KnownHostsScreen
 import io.github.evilgenius79.shh.ui.ReconnectingBar
 import io.github.evilgenius79.shh.ui.Screen
 import io.github.evilgenius79.shh.ui.SettingsScreen
+import io.github.evilgenius79.shh.ui.ShhRoot
 import io.github.evilgenius79.shh.ui.ShhTheme
 import io.github.evilgenius79.shh.ui.SnippetsScreen
 import io.github.evilgenius79.shh.ui.TerminalScreen
@@ -336,6 +337,52 @@ class ScreensTest {
         container(sampleData())
         // That is what makes a dropped session reconnect at once instead of at its next try.
         assertEquals(before + 1, org.robolectric.Shadows.shadowOf(manager).networkCallbacks.size)
+    }
+
+    // ----- arriving through a link, a shortcut or a notification -----
+
+    @Test
+    fun anSshLinkFillsInTheAddressButDoesNotConnect() {
+        val container = container(sampleData())
+        show { ShhRoot(container) }
+        compose.onNodeWithText("Web server").assertIsDisplayed()
+
+        container.launch.value = Launch.Offer("root@203.0.113.5:2200")
+        compose.onNodeWithText("Connect to root@203.0.113.5:2200").assertIsDisplayed()
+        assertEquals(emptyList(), container.sessions.sessions.value, "following a link opens no connection by itself")
+        assertNull(container.launch.value, "the request is dealt with once")
+        shot("hosts-ssh-link")
+    }
+
+    @Test
+    fun aNotificationOrShortcutLeadsToTheSession() {
+        org.robolectric.Shadows.shadowOf(context as android.app.Application).grantPermissions(android.Manifest.permission.POST_NOTIFICATIONS)
+        val data = sampleData()
+        val container = container(data)
+        show { ShhRoot(container) }
+
+        // A shortcut asks for a connection to a saved host: its terminal opens.
+        container.launch.value = Launch.Connect("3")
+        compose.onNodeWithText("CTRL").assertIsDisplayed()
+        val first = container.sessions.sessions.value.single()
+        assertEquals("3", first.host.id)
+
+        // A second session, then the notification of the first one is tapped.
+        val second = container.sessions.open(data.hosts[3])
+        compose.runOnIdle { }
+        container.launch.value = Launch.ShowSession(first.id)
+        compose.waitForIdle()
+        assertEquals(first.id, container.sessions.visibleSessionId)
+        container.launch.value = Launch.ShowSession(second.id)
+        compose.waitForIdle()
+        assertEquals(second.id, container.sessions.visibleSessionId)
+
+        // Requests for things that no longer exist are dropped quietly.
+        container.launch.value = Launch.ShowSession("gone")
+        container.launch.value = Launch.Connect("no-such-host")
+        compose.waitForIdle()
+        assertEquals(2, container.sessions.sessions.value.size)
+        container.sessions.closeAll()
     }
 
     // ----- how-to -----

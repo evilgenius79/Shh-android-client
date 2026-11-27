@@ -213,6 +213,80 @@ class TerminalViewRenderTest {
         assertEquals(null, view.selectedText())
     }
 
+    @Test
+    fun aSelectedWebAddressCanBeOpened() {
+        val session = session()
+        val view = laidOutView(session, columns = 60, rows = 6)
+        synchronized(session.emulator) { session.emulator.append("docs: https://example.org/guide?id=7. then run make\r\n") }
+        val (cellWidth, cellHeight) = view.sizeFor(1, 1)
+        fun hold(column: Int) {
+            val start = android.os.SystemClock.uptimeMillis()
+            touch(view, android.view.MotionEvent.ACTION_DOWN, cellWidth * (column + 0.5f), cellHeight * 0.5f, start, start)
+            org.robolectric.shadows.ShadowLooper.idleMainLooper(
+                android.view.ViewConfiguration.getLongPressTimeout() + 200L,
+                java.util.concurrent.TimeUnit.MILLISECONDS,
+            )
+            touch(view, android.view.MotionEvent.ACTION_UP, cellWidth * (column + 0.5f), cellHeight * 0.5f, start, start + 700)
+        }
+
+        // Holding a finger on the address selects all of it, with the full stop that follows.
+        hold(column = 12)
+        assertEquals("https://example.org/guide?id=7.", view.selectedText())
+        assertEquals("https://example.org/guide?id=7", view.linkInSelection(), "the full stop ends the sentence, not the address")
+        view.openSelectedLink()
+        val started = org.robolectric.Shadows.shadowOf(context as android.app.Application).nextStartedActivity
+        assertEquals(android.content.Intent.ACTION_VIEW, started.action)
+        assertEquals("https://example.org/guide?id=7", started.dataString)
+        assertEquals(null, view.selectedText(), "opening ends the selection")
+
+        // An ordinary word is not a link, and nothing is started for it.
+        hold(column = 50)
+        assertEquals("make", view.selectedText())
+        assertEquals(null, view.linkInSelection())
+        view.openSelectedLink()
+        assertEquals(null, org.robolectric.Shadows.shadowOf(context as android.app.Application).nextStartedActivity)
+    }
+
+    @Test
+    fun onlyWebAddressesCountAsLinks() {
+        fun link(text: String) = io.github.evilgenius79.shh.terminal.Links.asLink(text)
+        assertEquals("https://example.org", link("https://example.org"))
+        assertEquals("http://10.0.0.1:8080/status", link(" http://10.0.0.1:8080/status, "))
+        assertEquals("https://www.example.org/a", link("www.example.org/a"))
+        // Brackets that belong to the address stay; one that closes a sentence goes.
+        assertEquals("https://en.wikipedia.org/wiki/Unix_(disambiguation)", link("https://en.wikipedia.org/wiki/Unix_(disambiguation)"))
+        assertEquals("https://example.org/x", link("https://example.org/x)."))
+        for (other in listOf("make", "example.org", "ftp://example.org/file", "file:///etc/passwd", "intent://scan/#Intent;end", "https://", "www.", "")) {
+            assertEquals(null, link(other), other)
+        }
+    }
+
+    @Test
+    fun theKeyboardIsAskedForPlainCharactersUnlessFullFeaturesAreWanted() {
+        val view = TerminalView(context)
+        assertEquals(View.IMPORTANT_FOR_AUTOFILL_NO, view.importantForAutofill, "password managers leave the terminal alone")
+
+        val plain = android.view.inputmethod.EditorInfo()
+        view.onCreateInputConnection(plain)
+        val variation = android.text.InputType.TYPE_MASK_VARIATION
+        assertEquals(android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD, plain.inputType and variation)
+        assertTrue(plain.inputType and android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS != 0)
+
+        view.fullKeyboard = true
+        val full = android.view.inputmethod.EditorInfo()
+        val connection = view.onCreateInputConnection(full)
+        assertEquals(android.text.InputType.TYPE_CLASS_TEXT, full.inputType, "an ordinary text field: voice, swipe and composing keyboards work")
+
+        // Text such a keyboard composes arrives once it is committed.
+        val session = session()
+        view.attach(session)
+        connection.setComposingText("にほ", 1)
+        connection.setComposingText("日本", 1)
+        connection.commitText("日本", 1)
+        connection.finishComposingText()
+        view.attach(null)
+    }
+
     /** Two fingers at [first] and [second]; [action] says what they are doing. */
     private fun twoFingers(view: View, action: Int, first: Pair<Float, Float>, second: Pair<Float, Float>, downTime: Long, eventTime: Long) {
         val properties = Array(2) { index ->

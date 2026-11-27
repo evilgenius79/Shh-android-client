@@ -23,8 +23,10 @@ output of `vim`, produced by the test suite.
 - A bar with the keys a phone keyboard lacks: Esc, Tab, Ctrl and Alt (tap twice to lock), arrows
   that repeat while held, Home/End and Page Up/Down, plus a panel with F1–F12 and the characters
   a shell needs but a phone hides, such as `~ \ { } [ ]`.
-- Hardware keyboard support, pinch to zoom, long-press to select and copy, Ctrl+Shift+C /
-  Ctrl+Shift+V.
+- Hardware keyboard support, pinch to zoom, long-press to select and copy or to open a web
+  address, Ctrl+Shift+C / Ctrl+Shift+V.
+- Keyboards are asked for plain characters by default (no autocorrect); a setting turns on
+  voice typing, swipe typing and composing keyboards such as Chinese, Japanese and Korean.
 - Twelve colour schemes (green on black, Dracula, Solarized, Gruvbox, Nord, One Dark, Tokyo Night, …),
   per host if you like. JetBrains Mono is bundled.
 - Scrolling inside `less`, `man` or `vim` works with a swipe.
@@ -43,6 +45,10 @@ output of `vim`, produced by the test suite.
   `tmux new -A -s main`).
 - A connection that drops, for example when the phone changes networks, is re-established
   automatically, with its port forwards and the command after login.
+- Home screen shortcuts to the hosts used last, and `ssh://` links (the address is filled in;
+  you decide whether to connect).
+- A notification when a session in the background rings the bell, for example at the end of a
+  long command.
 - Quick connect: type `user@host:port` and go.
 
 **Keys**

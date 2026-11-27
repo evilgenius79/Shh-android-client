@@ -88,9 +88,11 @@ fun HostsScreen(
     onDelete: (Host) -> Unit,
     onAdd: () -> Unit,
     onNavigate: (Screen) -> Unit,
+    /** An address to start the field with, from an ssh:// link. The user still has to tap Connect. */
+    offeredAddress: String = "",
 ) {
     var menuOpen by remember { mutableStateOf(false) }
-    var query by rememberSaveable { mutableStateOf("") }
+    var query by rememberSaveable(offeredAddress) { mutableStateOf(offeredAddress) }
     var pendingDelete by remember { mutableStateOf<Host?>(null) }
 
     Scaffold(

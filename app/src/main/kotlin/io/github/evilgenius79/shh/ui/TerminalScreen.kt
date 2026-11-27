@@ -221,6 +221,7 @@ fun TerminalScreen(
                         }
                         view.ctrl = ctrl
                         view.alt = alt
+                        view.fullKeyboard = settings.fullKeyboard
                         view.onFontSizeChanged = { onFontSize(it.toInt()) }
                         // Read so that a colour change triggers this block and repaints the view.
                         if (colorVersion >= 0) view.invalidate()
