@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="keybar_key_up">向上键</string>
+    <string name="keybar_key_down">向下键</string>
+    <string name="keybar_key_left">向左键</string>
+    <string name="keybar_key_right">向右键</string>
+    <string name="keybar_key_more">更多按键</string>
+
+    <string name="keybar_modifier_off">已关闭</string>
+    <string name="keybar_modifier_once">对下一个按键生效</string>
+    <string name="keybar_modifier_locked">已锁定</string>
+
+    <string name="keybar_panel_shown">已显示</string>
+    <string name="keybar_panel_hidden">已隐藏</string>
+
+    <string name="keybar_title">自定义按键栏</string>
+    <string name="keybar_reset">重置</string>
+    <string name="keybar_intro">先点按按键栏上的一个位置，再点按要放在那里的按键。接着会自动选中下一个位置，所以依次点按各个按键就能排满一行。</string>
+    <string name="keybar_place">第 %1$d 个位置，共 %2$d 个</string>
+    <string name="keybar_place_selected">第 %1$d 个位置，共 %2$d 个，已选择</string>
+    <string name="keybar_note_wide">在宽屏上（例如横握手机时），两行会合并成一行显示。</string>
+    <string name="keybar_note_no_panel_key">按键栏上现在没有打开面板的按键，因此无法使用 F1 至 F12 以及面板上的字符。把带三个点的按键放回去就能恢复。</string>
+    <string name="keybar_section_keys">按键</string>
+    <string name="keybar_section_characters">字符</string>
+    <string name="keybar_section_own">自定义</string>
+    <string name="keybar_own_label">按键输入的文本</string>
+    <string name="keybar_own_use">使用</string>
+    <plurals name="keybar_own_note">
+        <item quantity="other">最多 %1$d 个字符，例如 :wq 或某个常用的字母。较长的命令请放到“命令片段”中。</item>
+    </plurals>
+    <string name="keybar_put_on_bar">放到按键栏上</string>
+
+    <string name="help_title">Shh 使用说明</string>
+
+    <string name="help_bar_title">按键栏</string>
+    <string name="help_bar_intro">键盘上方的两行按键，提供了手机键盘上没有的键。</string>
+    <string name="help_bar_modifier_once">点按一次。按键会亮起，对您按下的下一个键生效，然后自动关闭。要输入 Ctrl+C，请先点按 CTRL，再按键盘上的 C。</string>
+    <string name="help_bar_modifier_lock">连续点按两次可将其锁定。锁定的按键上会显示一个圆点，并对之后按下的每个键都生效，直到您再次点按它。ALT 的用法相同。</string>
+    <string name="help_bar_repeat">按住方向键、PGUP、PGDN 或 DEL 会连续重复，和在普通键盘上一样。</string>
+    <string name="help_bar_more">打开一个面板，其中有 F1 至 F12、DEL，以及在手机键盘上不容易输入的字符，例如 ~ \\ ` { } [ ]。再次点按可关闭面板。</string>
+    <string name="help_bar_esc">在 vi 中退出插入模式，在许多程序中关闭菜单。</string>
+    <string name="help_bar_tab">补全已输入了开头的命令或文件名。</string>
+    <string name="help_bar_arrange">按键栏显示哪些按键、各放在哪个位置，都由您决定：前往“设置”中的“自定义按键栏”。还可以让某个按键输入您自定的几个字符。</string>
+    <string name="help_bar_hide">可以在“设置”中通过“扩展按键”关闭按键栏，也可以设为在连接实体键盘时隐藏。</string>
+
+    <string name="help_combos_title">值得记住的组合键</string>
+    <string name="help_combos_ctrl_c">中止正在运行的程序。</string>
+    <string name="help_combos_ctrl_d">表示输入结束。在空的提示符下会退出登录。</string>
+    <string name="help_combos_ctrl_z">暂停正在运行的程序。输入 fg 可让它恢复运行。</string>
+    <string name="help_combos_ctrl_l">清屏。</string>
+    <string name="help_combos_ctrl_r">搜索之前输入过的命令。</string>
+    <string name="help_combos_ctrl_a">跳到行首。先按 CTRL 再按 E 则跳到行尾。</string>
+    <string name="help_combos_ctrl_w">删除光标前的一个单词。</string>
+    <string name="help_combos_up">调出上一条命令。</string>
+
+    <string name="help_touch_title">触摸操作</string>
+    <string name="help_cap_tap">点按</string>
+    <string name="help_touch_tap">打开键盘。在支持鼠标的程序（如 htop 或 mc）中，点按相当于鼠标点击。</string>
+    <string name="help_cap_swipe">滑动</string>
+    <string name="help_touch_swipe">向回滚动，查看之前的输出。在 less、man 或 vim 等全屏程序中，则是滚动程序的内容。</string>
+    <string name="help_cap_pinch">双指张合</string>
+    <string name="help_touch_pinch">缩小或放大文字。</string>
+    <string name="help_cap_hold">长按</string>
+    <string name="help_touch_hold">选中手指下的单词。手指不要松开，拖动可选择更多内容，然后选择“复制”。如果选中的是网址，还会提供“打开链接”。</string>
+    <string name="help_touch_paste">终端顶部的剪贴板按钮用于粘贴。</string>
+    <string name="help_touch_full_keyboard">如果语音输入、滑行输入或中文等非拉丁文字的输入法在终端中无法使用，请在“设置”中开启“完整键盘功能”。</string>
+
+    <string name="help_keyboard_title">使用实体键盘时</string>
+    <string name="help_cap_ctrl">Ctrl</string>
+    <string name="help_cap_shift">Shift</string>
+    <string name="help_keyboard_copy">复制选中的文本。</string>
+    <string name="help_keyboard_paste">粘贴。</string>
+    <string name="help_keyboard_other_keys">其他按键都会原样发送到服务器。</string>
+
+    <string name="help_sessions_title">会话</string>
+    <string name="help_sessions_background">离开应用后，会话仍保持连接。一条通知会提示有会话处于打开状态，并可用来将它们全部断开。</string>
+    <string name="help_sessions_new">通过 ⋮ 菜单中的“新建会话”可以再打开一个会话。打开了多个会话时，会出现标签页供您切换。</string>
+    <string name="help_sessions_reconnect">连接断开时（例如手机切换了网络），应用会自动重新连接，并再次运行该主机的“登录后运行”命令。使用 tmux new -A -s main 这样的命令，就能回到断开前的状态。</string>
+    <string name="help_sessions_mosh">如果主机上安装了 Mosh，请在该主机的设置中开启“使用 Mosh”。这样，切换网络后会话仍会继续，无需重新登录；连接中断一段时间，会话也会等它恢复。连不上 Mosh 时，会话会继续使用 SSH，并给出说明。</string>
+    <string name="help_sessions_ended">会话因其他原因结束时，终端下方的提示栏会说明原因，并提供重新连接的按钮。</string>
+    <string name="help_sessions_exit">用 exit 或者先按 CTRL 再按 D 退出 shell 后，对应的标签页会关闭。</string>
+    <string name="help_sessions_bell">您没在查看的会话响铃时，会发出通知。在耗时较长的命令末尾加上 ; printf \'\\a\'，命令完成时就会通知您。</string>
+    <string name="help_sessions_shortcuts">在主屏幕上长按应用图标，可以看到最近用过的主机的快捷方式。</string>
+    <string name="help_sessions_quick_connect">在主机列表的搜索框中输入 user@host 或 user@host:port，无需保存主机即可连接。</string>
+    <string name="help_sessions_import_config">如果您有来自电脑的 SSH 配置文件，主机列表 ⋮ 菜单中的“导入 SSH 配置”可以添加其中的主机，连同它们的跳板机和端口转发。</string>
+
+    <string name="help_login_title">使用密钥登录</string>
+    <string name="help_login_create">在“密钥”中创建或导入密钥，入口是主机列表上的钥匙按钮。</string>
+    <string name="help_login_install">用密码连接之后，⋮ 菜单中的“安装公钥”可以把公钥放到服务器上。</string>
+    <string name="help_login_choose">然后在该主机的设置中选择这个密钥。此后就不会再要求输入密码。</string>
+    <string name="help_login_certificate">如果您的服务器信任某个证书颁发机构，请添加该机构为此密钥签发的证书：在“密钥”中点按该密钥，然后选择“添加证书”。</string>
+    <string name="help_login_security_key">如果您有 FIDO2 安全密钥，“密钥”中的 + 按钮可以在它上面生成密钥。此后登录时需要用到这枚安全密钥：将它贴在手机背面或插入手机，并在它闪烁时触摸它。这是新功能，尚未用真实硬件测试过。</string>
+    <string name="help_login_agent">要在服务器上使用您的密钥（供那里的 ssh 或 git 使用），请在该主机的设置中开启“SSH 代理转发”。密钥始终留在手机上，每次使用前都会征求您的同意。</string>
+
+    <string name="help_menu_title">终端 ⋮ 菜单中的其他功能</string>
+    <string name="help_cap_files">文件</string>
+    <string name="help_menu_files">浏览服务器上的文件，并可上传、下载、重命名和编辑。</string>
+    <string name="help_cap_port_forwards">端口转发</string>
+    <string name="help_menu_port_forwards">通过此连接访问服务器所在网络中的服务。</string>
+    <string name="help_cap_snippets">命令片段</string>
+    <string name="help_menu_snippets">发送之前保存的命令。</string>
+    <string name="help_cap_colours">配色</string>
+    <string name="help_menu_colours">更改配色方案。默认配色在“设置”中选择，主机的设置中还可以为该主机单独指定。</string>
+    <string name="help_menu_font">在“设置”中还可以让终端使用您自己的字体：手机上任意等宽的 .ttf 或 .otf 文件都可以。</string>
+</resources>

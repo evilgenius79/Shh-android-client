@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_close">Fechar</string>
+    <string name="action_save">Salvar</string>
+    <string name="action_ok">OK</string>
+    <string name="action_continue">Continuar</string>
+    <string name="action_add">Adicionar</string>
+    <string name="action_delete">Excluir</string>
+    <string name="action_copy">Copiar</string>
+    <string name="action_share">Compartilhar</string>
+    <string name="action_back">Voltar</string>
+    <string name="action_more">Mais opções</string>
+    <string name="label_name">Nome</string>
+    <string name="label_port">Porta</string>
+    <string name="label_user_name">Nome de usuário</string>
+</resources>

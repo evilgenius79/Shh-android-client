@@ -330,6 +330,55 @@ class ScreensTest {
         shot("keys-dark")
     }
 
+    // ----- other languages -----
+
+    @Test
+    @Config(qualifiers = "+de")
+    fun theScreensSpeakTheLanguageOfTheDevice() {
+        val data = sampleData()
+        show { SettingsScreen(container(data), data, onBack = {}) }
+        shot("settings-de")
+        compose.onNodeWithText("Einstellungen").assertIsDisplayed()
+        compose.onNodeWithText("Settings").assertDoesNotExist()
+        // Counts take the form the language has for them.
+        assertEquals("1 offene Sitzung", context.resources.getQuantityString(R.plurals.notification_sessions, 1, 1))
+        assertEquals("3 offene Sitzungen", context.resources.getQuantityString(R.plurals.notification_sessions, 3, 3))
+    }
+
+    @Test
+    @Config(qualifiers = "+de")
+    fun theHowToIsTranslatedToo() {
+        show { HelpScreen(onBack = {}) }
+        shot("help-de")
+        compose.onNodeWithText("Anleitung zu Shh").assertIsDisplayed()
+        // The keys of the bar keep their names in every language.
+        assertTrue(compose.onAllNodesWithTextCount("CTRL") >= 1)
+    }
+
+    @Test
+    @Config(qualifiers = "+ru-w320dp-h640dp")
+    fun aLongLanguageOnASmallPhoneStillShowsEveryButtonOfAKey() {
+        val data = sampleData()
+        val container = container(data)
+        show { KeysScreen(container, data, onBack = {}) }
+        compose.onNodeWithText("Phone key").performClick()
+        shot("key-details-ru")
+        // In Russian the three buttons under the public key need more than one line.
+        for (label in listOf("Скопировать", "Поделиться", "Экспорт закрытого ключа")) {
+            compose.onNodeWithText(label).assertIsDisplayed()
+            assertLabelIntact(label)
+        }
+    }
+
+    @Test
+    @Config(qualifiers = "+ru")
+    fun russianCountsTakeTheFormTheNumberCallsFor() {
+        fun sessions(count: Int) = context.resources.getQuantityString(R.plurals.notification_sessions, count, count)
+        // One, a few, many: three different endings.
+        assertEquals(3, listOf(sessions(1), sessions(3), sessions(5)).map { it.substringAfter(' ') }.distinct().size, "${sessions(1)} / ${sessions(3)} / ${sessions(5)}")
+        assertEquals(sessions(1).substringAfter(' '), sessions(21).substringAfter(' '), "21 goes like 1")
+    }
+
     @Test
     fun knownHostsAndSnippets() {
         val forgotten = ArrayList<KnownHost>()

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_sessions">打开的会话</string>
+    <string name="channel_sessions_description">有 SSH 会话打开时显示，使会话在后台保持连接。</string>
+    <plurals name="notification_sessions">
+        <item quantity="other">%d 个打开的会话</item>
+    </plurals>
+    <string name="notification_text">点按即可返回终端</string>
+    <string name="action_disconnect_all">全部断开</string>
+</resources>

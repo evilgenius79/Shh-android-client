@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="keybar_key_up">Nach oben</string>
+    <string name="keybar_key_down">Nach unten</string>
+    <string name="keybar_key_left">Nach links</string>
+    <string name="keybar_key_right">Nach rechts</string>
+    <string name="keybar_key_more">Weitere Tasten</string>
+
+    <string name="keybar_modifier_off">Aus</string>
+    <string name="keybar_modifier_once">An für die nächste Taste</string>
+    <string name="keybar_modifier_locked">Eingerastet</string>
+
+    <string name="keybar_panel_shown">Eingeblendet</string>
+    <string name="keybar_panel_hidden">Ausgeblendet</string>
+
+    <string name="keybar_title">Tastenleiste</string>
+    <string name="keybar_reset">Zurücksetzen</string>
+    <string name="keybar_intro">Erst einen Platz auf der Leiste antippen, dann die Taste, die dorthin gehört. Der nächste Platz wird automatisch ausgewählt, sodass sich eine Reihe füllen lässt, indem ihre Tasten nacheinander angetippt werden.</string>
+    <string name="keybar_place">Platz %1$d von %2$d</string>
+    <string name="keybar_place_selected">Platz %1$d von %2$d, ausgewählt</string>
+    <string name="keybar_note_wide">Auf einem breiten Bildschirm, etwa bei quer gehaltenem Smartphone, werden die beiden Reihen als eine angezeigt.</string>
+    <string name="keybar_note_no_panel_key">Die Leiste hat jetzt keine Taste mehr für das Tastenfeld. F1 bis F12 und die Zeichen darauf sind deshalb nicht erreichbar. Dafür die Taste mit den drei Punkten wieder auf die Leiste setzen.</string>
+    <string name="keybar_section_keys">Tasten</string>
+    <string name="keybar_section_characters">Zeichen</string>
+    <string name="keybar_section_own">Eigene Taste</string>
+    <string name="keybar_own_label">Text der Taste</string>
+    <string name="keybar_own_use">Verwenden</string>
+    <plurals name="keybar_own_note">
+        <item quantity="one">Bis zu %1$d Zeichen, zum Beispiel :wq oder ein oft gebrauchter Buchstabe. Längere Befehle gehören in die Snippets.</item>
+        <item quantity="other">Bis zu %1$d Zeichen, zum Beispiel :wq oder ein oft gebrauchter Buchstabe. Längere Befehle gehören in die Snippets.</item>
+    </plurals>
+    <string name="keybar_put_on_bar">Setzen auf die Leiste</string>
+
+    <string name="help_title">Anleitung zu Shh</string>
+
+    <string name="help_bar_title">Die Tastenleiste</string>
+    <string name="help_bar_intro">Die zwei Reihen über der Tastatur enthalten die Tasten, die einer Smartphone-Tastatur fehlen.</string>
+    <string name="help_bar_modifier_once">Einmal tippen. Die Taste leuchtet auf, gilt für die nächste gedrückte Taste und schaltet sich dann von selbst aus. Für Strg+C erst CTRL antippen, dann C auf der Tastatur.</string>
+    <string name="help_bar_modifier_lock">Zweimal hintereinander tippen, damit sie einrastet. Eine eingerastete Taste zeigt einen Punkt und bleibt für jede Taste an, bis sie erneut angetippt wird. ALT funktioniert genauso.</string>
+    <string name="help_bar_repeat">Eine Pfeiltaste, PGUP, PGDN oder DEL gedrückt halten: Sie wiederholt sich dann wie auf einer Tastatur.</string>
+    <string name="help_bar_more">Öffnet ein Tastenfeld mit F1 bis F12, DEL und den Zeichen, die auf einer Smartphone-Tastatur schwer zu erreichen sind, etwa ~ \\ ` { } [ ]. Erneutes Tippen schließt das Tastenfeld.</string>
+    <string name="help_bar_esc">Verlässt in vi den Einfügemodus und schließt in vielen Programmen Menüs.</string>
+    <string name="help_bar_tab">Vervollständigt einen angefangenen Befehl oder Dateinamen.</string>
+    <string name="help_bar_arrange">Welche Tasten die Leiste zeigt und wo, lässt sich frei wählen: in den Einstellungen unter „Tastenleiste“. Eine Taste kann auch ein paar eigene Zeichen eingeben.</string>
+    <string name="help_bar_hide">Die Leiste lässt sich in den Einstellungen unter „Zusatztasten“ ausschalten oder so einstellen, dass sie verschwindet, solange eine physische Tastatur verbunden ist.</string>
+
+    <string name="help_combos_title">Nützliche Tastenkombinationen</string>
+    <string name="help_combos_ctrl_c">Das laufende Programm abbrechen.</string>
+    <string name="help_combos_ctrl_d">Ende der Eingabe. An einer leeren Eingabeaufforderung führt das zur Abmeldung.</string>
+    <string name="help_combos_ctrl_z">Das laufende Programm anhalten. Mit fg läuft es weiter.</string>
+    <string name="help_combos_ctrl_l">Den Bildschirm leeren.</string>
+    <string name="help_combos_ctrl_r">Frühere Befehle durchsuchen.</string>
+    <string name="help_combos_ctrl_a">An den Zeilenanfang springen. CTRL und dann E springt ans Ende.</string>
+    <string name="help_combos_ctrl_w">Das Wort vor dem Cursor löschen.</string>
+    <string name="help_combos_up">Den vorherigen Befehl zurückholen.</string>
+
+    <string name="help_touch_title">Gesten</string>
+    <string name="help_cap_tap">Tippen</string>
+    <string name="help_touch_tap">Öffnet die Tastatur. In Programmen, die die Maus verstehen, etwa htop oder mc, wirkt ein Tippen stattdessen als Klick.</string>
+    <string name="help_cap_swipe">Wischen</string>
+    <string name="help_touch_swipe">Scrollt zurück durch frühere Ausgaben. In Vollbildprogrammen wie less, man oder vim wird stattdessen im Programm gescrollt.</string>
+    <string name="help_cap_pinch">Zwei Finger</string>
+    <string name="help_touch_pinch">Auseinander- oder Zusammenziehen macht den Text größer oder kleiner.</string>
+    <string name="help_cap_hold">Halten</string>
+    <string name="help_touch_hold">Markiert das Wort unter dem Finger. Den Finger liegen lassen und ziehen, um mehr zu markieren, dann „Kopieren“ wählen. Ist das Markierte eine Webadresse, wird auch „Link öffnen“ angeboten.</string>
+    <string name="help_touch_paste">Die Schaltfläche mit der Zwischenablage oben im Terminal fügt deren Inhalt ein.</string>
+    <string name="help_touch_full_keyboard">Wenn Spracheingabe, Wischeingabe oder eine Tastatur für eine andere Schrift im Terminal nicht funktioniert, in den Einstellungen „Alle Tastaturfunktionen“ einschalten.</string>
+
+    <string name="help_keyboard_title">Mit physischer Tastatur</string>
+    <string name="help_cap_ctrl">Strg</string>
+    <string name="help_cap_shift">Umschalt</string>
+    <string name="help_keyboard_copy">Den markierten Text kopieren.</string>
+    <string name="help_keyboard_paste">Einfügen.</string>
+    <string name="help_keyboard_other_keys">Jede andere Taste geht genau so an den Server, wie sie gedrückt wurde.</string>
+
+    <string name="help_sessions_title">Sitzungen</string>
+    <string name="help_sessions_background">Sitzungen bleiben verbunden, wenn die App verlassen wird. Eine Benachrichtigung zeigt, dass sie offen sind, und kann sie alle trennen.</string>
+    <string name="help_sessions_new">Eine weitere Sitzung lässt sich mit „Neue Sitzung“ im ⋮-Menü öffnen. Sind mehrere offen, erscheinen Tabs zum Wechseln.</string>
+    <string name="help_sessions_reconnect">Bricht eine Verbindung ab, etwa weil das Smartphone das Netzwerk gewechselt hat, verbindet sich die App von selbst neu und führt den für den Host eingestellten „Befehl nach Anmeldung“ erneut aus. Mit einem Befehl wie tmux new -A -s main geht es dort weiter, wo man war.</string>
+    <string name="help_sessions_mosh">Bei einem Host, auf dem Mosh installiert ist, in dessen Einstellungen „Mosh verwenden“ einschalten. Die Sitzung läuft dann bei einem Netzwerkwechsel ohne neue Anmeldung weiter und wartet ab, wenn die Verbindung eine Weile weg ist. Ist Mosh nicht erreichbar, bleibt die Sitzung bei SSH und weist darauf hin.</string>
+    <string name="help_sessions_ended">Endet eine Sitzung aus einem anderen Grund, nennt die Leiste unter dem Terminal den Grund und bietet an, neu zu verbinden.</string>
+    <string name="help_sessions_exit">Wird die Shell mit exit oder mit CTRL und dann D verlassen, schließt sich ihr Tab.</string>
+    <string name="help_sessions_bell">Läutet eine Sitzung, die gerade nicht zu sehen ist, die Glocke, kommt eine Benachrichtigung. An einen langen Befehl ; printf \'\\a\' anhängen, um zu erfahren, wann er fertig ist.</string>
+    <string name="help_sessions_shortcuts">Das App-Symbol auf dem Startbildschirm gedrückt halten: Dort gibt es Verknüpfungen zu den zuletzt verwendeten Hosts.</string>
+    <string name="help_sessions_quick_connect">In der Hostliste verbindet die Eingabe von user@host oder user@host:port ins Suchfeld, ohne einen Host zu speichern.</string>
+    <string name="help_sessions_import_config">Gibt es eine SSH-Konfigurationsdatei von einem Computer, fügt „SSH-Konfiguration importieren“ im ⋮-Menü der Hostliste deren Hosts hinzu, samt ihren Jump-Hosts und Tunneln.</string>
+
+    <string name="help_login_title">Anmelden mit Schlüssel</string>
+    <string name="help_login_create">Unter „Schlüssel“, der Schaltfläche mit dem Schlüssel in der Hostliste, einen Schlüssel erzeugen oder importieren.</string>
+    <string name="help_login_install">Solange eine Verbindung mit Passwort besteht, bringt „Öffentlichen Schlüssel installieren“ im ⋮-Menü den Schlüssel auf den Server.</string>
+    <string name="help_login_choose">Dann den Schlüssel in den Einstellungen des Hosts auswählen. Von da an wird kein Passwort mehr verlangt.</string>
+    <string name="help_login_certificate">Vertrauen die Server einer Zertifizierungsstelle, das Zertifikat hinzufügen, das sie für den Schlüssel ausgestellt hat: den Schlüssel unter „Schlüssel“ antippen und „Zertifikat hinzufügen“ wählen.</string>
+    <string name="help_login_security_key">Mit einem FIDO2-Sicherheitsschlüssel kann die Schaltfläche + unter „Schlüssel“ einen Schlüssel darauf erzeugen. Zum Anmelden ist dann der Sicherheitsschlüssel nötig: an die Rückseite des Smartphones halten oder einstecken und berühren, wenn er blinkt. Das ist neu und noch nicht mit echter Hardware erprobt.</string>
+    <string name="help_login_agent">Um die Schlüssel von einem Server aus zu nutzen, etwa für ssh oder git dort, in den Einstellungen dieses Hosts „SSH-Agent weiterleiten“ einschalten. Die Schlüssel bleiben auf dem Smartphone, und vor jeder Verwendung wird gefragt.</string>
+
+    <string name="help_menu_title">Außerdem im ⋮-Menü eines Terminals</string>
+    <string name="help_cap_files">Dateien</string>
+    <string name="help_menu_files">Die Dateien des Servers ansehen, hoch- und herunterladen, umbenennen und bearbeiten.</string>
+    <string name="help_cap_port_forwards">Tunnel</string>
+    <string name="help_menu_port_forwards">Über die Verbindung einen Dienst im Netzwerk des Servers erreichen.</string>
+    <string name="help_cap_snippets">Snippets</string>
+    <string name="help_menu_snippets">Einen zuvor gespeicherten Befehl senden.</string>
+    <string name="help_cap_colours">Farben</string>
+    <string name="help_menu_colours">Das Farbschema wechseln. Der Standard steht in den Einstellungen, und in den Einstellungen eines Hosts lässt sich für ihn ein eigenes festlegen.</string>
+    <string name="help_menu_font">In den Einstellungen lässt sich für das Terminal auch eine eigene Schriftart wählen: jede Monospace-Schriftdatei (.ttf oder .otf) auf dem Smartphone.</string>
+</resources>

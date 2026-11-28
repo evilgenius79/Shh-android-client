@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_sessions">Sessions ouvertes</string>
+    <string name="channel_sessions_description">Affichée tant que des sessions SSH sont ouvertes, pour qu\'elles restent connectées en arrière-plan.</string>
+    <plurals name="notification_sessions">
+        <item quantity="one">%d session ouverte</item>
+        <item quantity="many">%d sessions ouvertes</item>
+        <item quantity="other">%d sessions ouvertes</item>
+    </plurals>
+    <string name="notification_text">Appuyez pour revenir au terminal</string>
+    <string name="action_disconnect_all">Tout déconnecter</string>
+</resources>

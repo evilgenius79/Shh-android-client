@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -444,7 +445,8 @@ private fun KeyDetailsDialog(container: AppContainer, identity: Identity, usedBy
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                // Three buttons that fit one line in English and not in most other languages.
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     TextButton(onClick = { copyToClipboard(context, resources.getString(R.string.keys_public_key_clip_label), publicLine) }) {
                         Text(stringResource(R.string.action_copy))
                     }

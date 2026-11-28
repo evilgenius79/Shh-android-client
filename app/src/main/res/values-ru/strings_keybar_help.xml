@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="keybar_key_up">Вверх</string>
+    <string name="keybar_key_down">Вниз</string>
+    <string name="keybar_key_left">Влево</string>
+    <string name="keybar_key_right">Вправо</string>
+    <string name="keybar_key_more">Ещё клавиши</string>
+
+    <string name="keybar_modifier_off">Выключена</string>
+    <string name="keybar_modifier_once">Включена для следующей клавиши</string>
+    <string name="keybar_modifier_locked">Зафиксирована</string>
+
+    <string name="keybar_panel_shown">Показаны</string>
+    <string name="keybar_panel_hidden">Скрыты</string>
+
+    <string name="keybar_title">Клавиши панели</string>
+    <string name="keybar_reset">Сбросить</string>
+    <string name="keybar_intro">Нажмите ячейку на панели, а затем клавишу, которая должна в ней стоять. Следующая ячейка выбирается сама, так что ряд можно заполнить, нажимая нужные клавиши одну за другой.</string>
+    <string name="keybar_place">Ячейка %1$d из %2$d</string>
+    <string name="keybar_place_selected">Ячейка %1$d из %2$d, выбрана</string>
+    <string name="keybar_note_wide">На широком экране, например когда телефон повёрнут горизонтально, оба ряда показываются как один.</string>
+    <string name="keybar_note_no_panel_key">Теперь на панели нет клавиши с тремя точками, поэтому до F1–F12 и символов, которые она открывает, не добраться. Верните эту клавишу на панель, чтобы снова ими пользоваться.</string>
+    <string name="keybar_section_keys">Клавиши</string>
+    <string name="keybar_section_characters">Символы</string>
+    <string name="keybar_section_own">Своя клавиша</string>
+    <string name="keybar_own_label">Вводимый текст</string>
+    <string name="keybar_own_use">На панель</string>
+    <plurals name="keybar_own_note">
+        <item quantity="one">До %1$d символа, например :wq или часто нужная буква. Для более длинных команд есть «Сниппеты».</item>
+        <item quantity="few">До %1$d символов, например :wq или часто нужная буква. Для более длинных команд есть «Сниппеты».</item>
+        <item quantity="many">До %1$d символов, например :wq или часто нужная буква. Для более длинных команд есть «Сниппеты».</item>
+        <item quantity="other">До %1$d символа, например :wq или часто нужная буква. Для более длинных команд есть «Сниппеты».</item>
+    </plurals>
+    <string name="keybar_put_on_bar">поместить на панель</string>
+
+    <string name="help_title">Как пользоваться Shh</string>
+
+    <string name="help_bar_title">Панель клавиш</string>
+    <string name="help_bar_intro">В двух рядах над клавиатурой собраны клавиши, которых нет на клавиатуре телефона.</string>
+    <string name="help_bar_modifier_once">Нажмите один раз. Клавиша подсветится, подействует на следующую нажатую клавишу и сама выключится. Для Ctrl+C нажмите CTRL, а затем C на клавиатуре.</string>
+    <string name="help_bar_modifier_lock">Нажмите дважды подряд, чтобы зафиксировать клавишу. Зафиксированная клавиша отмечена точкой и действует на все клавиши, пока вы не нажмёте её снова. ALT работает так же.</string>
+    <string name="help_bar_repeat">Удерживайте стрелку, PGUP, PGDN или DEL, и клавиша будет повторяться, как на обычной клавиатуре.</string>
+    <string name="help_bar_more">Открывает ещё одну панель с клавишами F1–F12, DEL и символами, до которых трудно добраться на клавиатуре телефона, например ~ \\ ` { } [ ]. Нажмите ещё раз, чтобы закрыть её.</string>
+    <string name="help_bar_esc">Выходит из режима вставки в vi и закрывает меню во многих программах.</string>
+    <string name="help_bar_tab">Дополняет команду или имя файла, которые вы начали вводить.</string>
+    <string name="help_bar_arrange">Какие клавиши показывает панель и где они стоят, решаете вы: «Настройки», затем «Клавиши панели». Клавиша может вводить и несколько символов, которые вы зададите сами.</string>
+    <string name="help_bar_hide">Панель можно отключить в настройках переключателем «Дополнительные клавиши» или сделать так, чтобы она скрывалась, пока подключена физическая клавиатура.</string>
+
+    <string name="help_combos_title">Полезные сочетания клавиш</string>
+    <string name="help_combos_ctrl_c">Остановить работающую программу.</string>
+    <string name="help_combos_ctrl_d">Конец ввода. В пустой командной строке — выход из системы.</string>
+    <string name="help_combos_ctrl_z">Приостановить работающую программу. Чтобы вернуть её, введите fg.</string>
+    <string name="help_combos_ctrl_l">Очистить экран.</string>
+    <string name="help_combos_ctrl_r">Искать среди команд, введённых ранее.</string>
+    <string name="help_combos_ctrl_a">Перейти в начало строки. CTRL, а затем E — в конец.</string>
+    <string name="help_combos_ctrl_w">Удалить слово перед курсором.</string>
+    <string name="help_combos_up">Вернуть предыдущую команду.</string>
+
+    <string name="help_touch_title">Жесты</string>
+    <string name="help_cap_tap">Нажатие</string>
+    <string name="help_touch_tap">Открывает клавиатуру. В программах, которые понимают мышь, например htop или mc, нажатие работает как щелчок мышью.</string>
+    <string name="help_cap_swipe">Свайп</string>
+    <string name="help_touch_swipe">Прокручивает вывод назад, к более ранним строкам. В полноэкранных программах, таких как less, man или vim, прокручивает содержимое самой программы.</string>
+    <string name="help_cap_pinch">Щипок</string>
+    <string name="help_touch_pinch">Уменьшает или увеличивает текст.</string>
+    <string name="help_cap_hold">Удержание</string>
+    <string name="help_touch_hold">Выделяет слово под пальцем. Не отрывая пальца, проведите им, чтобы выделить больше, затем выберите «Скопировать». Если выделен веб-адрес, появится ещё и пункт «Открыть ссылку».</string>
+    <string name="help_touch_paste">Кнопка буфера обмена вверху экрана терминала вставляет его содержимое.</string>
+    <string name="help_touch_full_keyboard">Если в терминале не работает голосовой ввод, непрерывный ввод или клавиатура для другой письменности, включите в настройках «Все возможности клавиатуры».</string>
+
+    <string name="help_keyboard_title">С физической клавиатурой</string>
+    <string name="help_cap_ctrl">Ctrl</string>
+    <string name="help_cap_shift">Shift</string>
+    <string name="help_keyboard_copy">Скопировать выделенный текст.</string>
+    <string name="help_keyboard_paste">Вставить.</string>
+    <string name="help_keyboard_other_keys">Все остальные клавиши передаются на сервер как есть.</string>
+
+    <string name="help_sessions_title">Сеансы</string>
+    <string name="help_sessions_background">Сеансы остаются подключёнными, когда вы уходите из приложения. Уведомление показывает, что они открыты, и позволяет отключить их все.</string>
+    <string name="help_sessions_new">Ещё один сеанс открывается пунктом «Новый сеанс» в меню ⋮. Когда открыто несколько сеансов, появляются вкладки для переключения между ними.</string>
+    <string name="help_sessions_reconnect">Если соединение обрывается, например из-за того, что телефон сменил сеть, приложение само подключается заново и снова выполняет команду, заданную для хоста в поле «Команда при входе». С такой командой, как tmux new -A -s main, вы вернётесь туда, где были.</string>
+    <string name="help_sessions_mosh">Если на хосте установлен Mosh, включите в его настройках «Использовать Mosh». Тогда сеанс продолжается при смене сети без повторного входа и пережидает временную потерю связи. Если Mosh недоступен, сеанс остаётся на SSH и сообщает об этом.</string>
+    <string name="help_sessions_ended">Если сеанс завершился по другой причине, строка под терминалом сообщает причину и предлагает переподключиться.</string>
+    <string name="help_sessions_exit">Выход из оболочки командой exit или клавишами CTRL и затем D закрывает её вкладку.</string>
+    <string name="help_sessions_bell">Если сеанс, который сейчас не на экране, подаёт сигнал терминала, приходит уведомление. Допишите в конец долгой команды ; printf \'\\a\', чтобы узнать, когда она завершится.</string>
+    <string name="help_sessions_shortcuts">Удерживайте значок приложения на главном экране, чтобы увидеть ярлыки хостов, к которым вы подключались последними.</string>
+    <string name="help_sessions_quick_connect">В списке хостов можно ввести в поле поиска user@host или user@host:port и подключиться, не сохраняя хост.</string>
+    <string name="help_sessions_import_config">Если у вас есть файл конфигурации SSH с компьютера, пункт «Импорт конфигурации SSH» в меню ⋮ списка хостов добавит хосты из него вместе с их промежуточными хостами и пробросами портов.</string>
+
+    <string name="help_login_title">Вход по ключу</string>
+    <string name="help_login_create">Создайте или импортируйте ключ на экране «Ключи» — его открывает кнопка с ключом в списке хостов.</string>
+    <string name="help_login_install">Пока вы подключены по паролю, пункт «Установить открытый ключ» в меню ⋮ разместит ключ на сервере.</string>
+    <string name="help_login_choose">Затем выберите этот ключ в настройках хоста. После этого пароль запрашиваться не будет.</string>
+    <string name="help_login_certificate">Если ваши серверы доверяют центру сертификации, добавьте сертификат, который он выдал для ключа: откройте ключ на экране «Ключи» и выберите «Добавить сертификат».</string>
+    <string name="help_login_security_key">Если у вас есть ключ безопасности FIDO2, ключ можно создать прямо на нём кнопкой + на экране «Ключи». Тогда для входа понадобится сам ключ безопасности: приложите его к задней стороне телефона или подключите по USB и коснитесь его, когда он замигает. Эта возможность новая и пока не проверена на настоящих устройствах.</string>
+    <string name="help_login_agent">Чтобы пользоваться своими ключами на сервере — для ssh или git на нём, — включите «Проброс SSH-агента» в настройках этого хоста. Ключи остаются на телефоне, а перед использованием ключа приложение спросит у вас разрешения.</string>
+
+    <string name="help_menu_title">Также в меню ⋮ терминала</string>
+    <string name="help_cap_files">Файлы</string>
+    <string name="help_menu_files">Просматривать файлы на сервере, загружать на него новые, скачивать, переименовывать и редактировать.</string>
+    <string name="help_cap_port_forwards">Пробросы</string>
+    <string name="help_menu_port_forwards">Обращаться к службе в сети сервера через это соединение.</string>
+    <string name="help_cap_snippets">Сниппеты</string>
+    <string name="help_menu_snippets">Отправить сохранённую ранее команду.</string>
+    <string name="help_cap_colours">Цвета</string>
+    <string name="help_menu_colours">Сменить цветовую схему. Схема по умолчанию задаётся в настройках, а в настройках хоста ему можно назначить собственную.</string>
+    <string name="help_menu_font">В настройках можно также выбрать для терминала свой шрифт: любой файл моноширинного шрифта .ttf или .otf на телефоне.</string>
+</resources>

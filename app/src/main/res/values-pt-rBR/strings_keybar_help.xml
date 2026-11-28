@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="keybar_key_up">Seta para cima</string>
+    <string name="keybar_key_down">Seta para baixo</string>
+    <string name="keybar_key_left">Seta para a esquerda</string>
+    <string name="keybar_key_right">Seta para a direita</string>
+    <string name="keybar_key_more">Mais teclas</string>
+
+    <string name="keybar_modifier_off">Desativada</string>
+    <string name="keybar_modifier_once">Ativada para a próxima tecla</string>
+    <string name="keybar_modifier_locked">Ativada e travada</string>
+
+    <string name="keybar_panel_shown">Exibidas</string>
+    <string name="keybar_panel_hidden">Ocultas</string>
+
+    <string name="keybar_title">Teclas da barra</string>
+    <string name="keybar_reset">Redefinir</string>
+    <string name="keybar_intro">Toque em uma posição da barra e depois na tecla que deve ficar nela. A posição seguinte é selecionada automaticamente; assim, para preencher uma fileira, basta tocar nas teclas dela uma após a outra.</string>
+    <string name="keybar_place">Posição %1$d de %2$d</string>
+    <string name="keybar_place_selected">Posição %1$d de %2$d, selecionada</string>
+    <string name="keybar_note_wide">Em uma tela larga, como a de um celular na horizontal, as duas fileiras aparecem como uma só.</string>
+    <string name="keybar_note_no_panel_key">A barra está sem a tecla do painel, então as teclas F1 a F12 e os caracteres que ficam nele estão inacessíveis. Coloque de volta a tecla dos três pontos para usá-los.</string>
+    <string name="keybar_section_keys">Teclas</string>
+    <string name="keybar_section_characters">Caracteres</string>
+    <string name="keybar_section_own">Personalizada</string>
+    <string name="keybar_own_label">Texto que a tecla digita</string>
+    <string name="keybar_own_use">Usar</string>
+    <plurals name="keybar_own_note">
+        <item quantity="one">Até %1$d caractere, por exemplo :wq ou uma letra que você usa muito. Comandos mais longos ficam melhor em “Snippets”.</item>
+        <item quantity="many">Até %1$d de caracteres, por exemplo :wq ou uma letra que você usa muito. Comandos mais longos ficam melhor em “Snippets”.</item>
+        <item quantity="other">Até %1$d caracteres, por exemplo :wq ou uma letra que você usa muito. Comandos mais longos ficam melhor em “Snippets”.</item>
+    </plurals>
+    <string name="keybar_put_on_bar">colocar na barra</string>
+
+    <string name="help_title">Como usar o Shh</string>
+
+    <string name="help_bar_title">A barra de teclas</string>
+    <string name="help_bar_intro">As duas fileiras acima do teclado trazem as teclas que faltam no teclado do celular.</string>
+    <string name="help_bar_modifier_once">Toque uma vez. A tecla acende, vale para a próxima tecla que você pressionar e depois se desativa sozinha. Para Ctrl+C, toque em CTRL e depois em C no teclado.</string>
+    <string name="help_bar_modifier_lock">Toque duas vezes seguidas para travar a tecla. Uma tecla travada mostra um ponto e continua ativa para todas as teclas até você tocar nela de novo. ALT funciona do mesmo jeito.</string>
+    <string name="help_bar_repeat">Mantenha pressionada uma seta, PGUP, PGDN ou DEL e a tecla se repete, como em um teclado.</string>
+    <string name="help_bar_more">Abre um painel com F1 a F12, DEL e os caracteres difíceis de alcançar no teclado do celular, como ~ \\ ` { } [ ]. Toque nela de novo para fechar o painel.</string>
+    <string name="help_bar_esc">Sai do modo de inserção no vi e fecha menus em muitos programas.</string>
+    <string name="help_bar_tab">Completa o comando ou o nome de arquivo que você começou a digitar.</string>
+    <string name="help_bar_arrange">Você escolhe quais teclas a barra mostra, e onde: Configurações, “Teclas da barra”. Uma tecla também pode digitar alguns caracteres definidos por você.</string>
+    <string name="help_bar_hide">A barra pode ser desativada em Configurações, em “Teclas extras”, ou configurada para se ocultar enquanto um teclado físico estiver conectado.</string>
+
+    <string name="help_combos_title">Combinações que vale a pena conhecer</string>
+    <string name="help_combos_ctrl_c">Interromper o programa em execução.</string>
+    <string name="help_combos_ctrl_d">Fim da entrada. Em um prompt vazio, faz logout.</string>
+    <string name="help_combos_ctrl_z">Pausar o programa em execução. Digite fg para trazê-lo de volta.</string>
+    <string name="help_combos_ctrl_l">Limpar a tela.</string>
+    <string name="help_combos_ctrl_r">Buscar nos comandos que você já digitou.</string>
+    <string name="help_combos_ctrl_a">Ir para o início da linha. CTRL e depois E vai para o fim.</string>
+    <string name="help_combos_ctrl_w">Apagar a palavra antes do cursor.</string>
+    <string name="help_combos_up">Trazer de volta o comando anterior.</string>
+
+    <string name="help_touch_title">Gestos</string>
+    <string name="help_cap_tap">Toque</string>
+    <string name="help_touch_tap">Abre o teclado. Em programas que entendem o mouse, como htop ou mc, o toque funciona como um clique.</string>
+    <string name="help_cap_swipe">Deslize</string>
+    <string name="help_touch_swipe">Rola de volta pela saída anterior. Em programas de tela cheia, como less, man ou vim, rola o conteúdo do programa.</string>
+    <string name="help_cap_pinch">Pinça</string>
+    <string name="help_touch_pinch">Diminui ou aumenta o texto.</string>
+    <string name="help_cap_hold">Toque longo</string>
+    <string name="help_touch_hold">Seleciona a palavra sob o dedo. Mantenha o dedo na tela e arraste para selecionar mais; depois escolha “Copiar”. Quando a seleção é um endereço da web, também aparece “Abrir link”.</string>
+    <string name="help_touch_paste">Para colar, use o botão da área de transferência no alto do terminal.</string>
+    <string name="help_touch_full_keyboard">Se a digitação por voz, a digitação por gestos ou um teclado de outro sistema de escrita não funcionar no terminal, ative “Recursos completos do teclado” em Configurações.</string>
+
+    <string name="help_keyboard_title">Com um teclado físico</string>
+    <string name="help_cap_ctrl">Ctrl</string>
+    <string name="help_cap_shift">Shift</string>
+    <string name="help_keyboard_copy">Copiar o texto selecionado.</string>
+    <string name="help_keyboard_paste">Colar.</string>
+    <string name="help_keyboard_other_keys">Todas as outras teclas vão para o servidor exatamente como foram digitadas.</string>
+
+    <string name="help_sessions_title">Sessões</string>
+    <string name="help_sessions_background">As sessões continuam conectadas quando você sai do app. Uma notificação mostra que elas estão abertas e permite desconectar todas.</string>
+    <string name="help_sessions_new">Abra outra com “Nova sessão”, no menu ⋮. Com mais de uma aberta, aparecem abas para alternar entre elas.</string>
+    <string name="help_sessions_reconnect">Quando uma conexão cai, por exemplo porque o celular mudou de rede, o app reconecta sozinho e executa de novo o comando de inicialização do host. Com um comando como tmux new -A -s main, você volta para onde estava.</string>
+    <string name="help_sessions_mosh">Em um host que tem o Mosh instalado, ative “Usar Mosh” nas configurações dele. A sessão então continua depois de uma troca de rede, sem novo login, e espera quando a conexão some por um tempo. Onde não for possível alcançar o Mosh, a sessão fica em SSH e avisa.</string>
+    <string name="help_sessions_ended">Quando uma sessão termina por outro motivo, a barra abaixo do terminal diz por quê e oferece a reconexão.</string>
+    <string name="help_sessions_exit">Sair do shell com exit ou com CTRL e depois D fecha a aba da sessão.</string>
+    <string name="help_sessions_bell">Quando uma sessão que você não está vendo toca a campainha, ela envia uma notificação. Termine um comando demorado com ; printf \'\\a\' para receber um aviso quando ele terminar.</string>
+    <string name="help_sessions_shortcuts">Toque e mantenha pressionado o ícone do app na tela inicial para ver atalhos para os hosts usados por último.</string>
+    <string name="help_sessions_quick_connect">Na lista de hosts, digitar user@host ou user@host:port no campo de busca conecta sem salvar um host.</string>
+    <string name="help_sessions_import_config">Se você tem um arquivo de configuração do SSH de um computador, a opção “Importar configuração do SSH”, no menu ⋮ da lista de hosts, adiciona os hosts dele, com seus hosts de salto e túneis.</string>
+
+    <string name="help_login_title">Login com chave</string>
+    <string name="help_login_create">Crie ou importe uma chave em “Chaves”, o botão de chave na lista de hosts.</string>
+    <string name="help_login_install">Enquanto você está conectado com senha, a opção “Instalar uma chave pública” do menu ⋮ coloca a chave no servidor.</string>
+    <string name="help_login_choose">Depois escolha a chave nas configurações do host. A partir daí, a senha não é mais pedida.</string>
+    <string name="help_login_certificate">Se os seus servidores confiam em uma autoridade certificadora, adicione o certificado que ela emitiu para a chave: toque na chave em “Chaves” e escolha “Adicionar um certificado”.</string>
+    <string name="help_login_security_key">Com uma chave de segurança FIDO2, o botão + em “Chaves” pode criar uma chave nela. O login passa a exigir a chave de segurança: encoste-a na parte de trás do celular ou conecte-a, e toque nela quando piscar. Este recurso é novo e ainda não foi testado com hardware de verdade.</string>
+    <string name="help_login_agent">Para usar suas chaves a partir de um servidor, com ssh ou git por lá, ative “Encaminhar o agente SSH” nas configurações desse host. As chaves ficam no celular, e o app pergunta antes de usar uma delas.</string>
+
+    <string name="help_menu_title">Também no menu ⋮ de um terminal</string>
+    <string name="help_cap_files">Arquivos</string>
+    <string name="help_menu_files">Navegar pelos arquivos do servidor; enviar, baixar, renomear e editar arquivos.</string>
+    <string name="help_cap_port_forwards">Túneis</string>
+    <string name="help_menu_port_forwards">Acessar um serviço da rede do servidor por meio da conexão.</string>
+    <string name="help_cap_snippets">Snippets</string>
+    <string name="help_menu_snippets">Enviar um comando que você salvou antes.</string>
+    <string name="help_cap_colours">Cores</string>
+    <string name="help_menu_colours">Mudar o esquema de cores. As Configurações guardam o padrão, e as configurações de um host podem dar a ele um esquema próprio.</string>
+    <string name="help_menu_font">As Configurações também permitem usar no terminal uma fonte sua: qualquer arquivo .ttf ou .otf monoespaçado que esteja no celular.</string>
+</resources>

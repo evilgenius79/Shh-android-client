@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="terminal_connecting">Conectando…</string>
+    <string name="terminal_reconnecting">Reconectando…</string>
+    <plurals name="terminal_mosh_silent_seconds">
+        <item quantity="one">O servidor não responde há %1$d segundo.</item>
+        <item quantity="many">O servidor não responde há %1$d de segundos.</item>
+        <item quantity="other">O servidor não responde há %1$d segundos.</item>
+    </plurals>
+    <plurals name="terminal_mosh_silent_minutes">
+        <item quantity="one">O servidor não responde há %1$d minuto.</item>
+        <item quantity="many">O servidor não responde há %1$d de minutos.</item>
+        <item quantity="other">O servidor não responde há %1$d minutos.</item>
+    </plurals>
+    <string name="terminal_mosh_silent_explanation">O Mosh mantém a sessão. Ela continua sozinha quando o servidor voltar a ficar acessível, mesmo a partir de outra rede.</string>
+    <string name="terminal_reconnecting_attempt">Reconectando, tentativa %1$d…</string>
+    <string name="terminal_back_to_hosts">Hosts</string>
+    <string name="terminal_paste">Colar</string>
+
+    <string name="terminal_menu_new_session">Nova sessão</string>
+    <string name="terminal_menu_snippets">Snippets</string>
+    <string name="terminal_menu_files">Arquivos</string>
+    <string name="terminal_menu_port_forwards">Túneis</string>
+    <string name="terminal_menu_install_key">Instalar uma chave pública</string>
+    <string name="terminal_menu_colours">Cores</string>
+    <string name="terminal_menu_larger_text">Texto maior</string>
+    <string name="terminal_menu_smaller_text">Texto menor</string>
+    <string name="terminal_menu_show_keyboard">Mostrar teclado</string>
+    <string name="terminal_menu_how_to_use">Como usar</string>
+    <string name="terminal_menu_reset">Redefinir terminal</string>
+    <string name="terminal_menu_close_session">Fechar sessão</string>
+
+    <string name="terminal_snippets_title">Snippets</string>
+    <string name="terminal_snippets_empty">Nenhum snippet ainda. Adicione alguns pelo menu da lista de hosts.</string>
+    <string name="terminal_colours_title">Cores desta sessão</string>
+
+    <string name="terminal_reconnect">Reconectar</string>
+    <string name="terminal_allow_local_network">Permitir acesso</string>
+    <string name="terminal_reconnect_try_now">Tentar agora</string>
+    <string name="terminal_reconnect_stop">Parar</string>
+
+    <string name="terminal_hint_local_network_blocked">O Android não está deixando este app acessar dispositivos na sua rede local. Se este servidor está no seu Wi-Fi ou em outra rede local, permita o acesso e a conexão será refeita.</string>
+    <string name="terminal_hint_no_answer">Nada respondeu. Confira o endereço e a porta, e se este dispositivo está na rede certa.</string>
+    <string name="terminal_hint_refused">O host está acessível, mas nada está escutando nessa porta.</string>
+    <string name="terminal_hint_unknown_host">Não foi possível resolver o nome. Confira a grafia e a sua conexão.</string>
+    <string name="terminal_hint_protocol">Se for um equipamento antigo, tente “Permitir algoritmos legados” nas configurações do host.</string>
+    <string name="terminal_hint_auth_failed">Confira o nome de usuário, a senha ou a chave deste host.</string>
+
+    <string name="terminal_hostkey_changed_title">A chave do host mudou</string>
+    <string name="terminal_hostkey_new_type_title">Nova chave de um host conhecido</string>
+    <string name="terminal_hostkey_unknown_title">Host desconhecido</string>
+    <string name="terminal_hostkey_changed_text">%1$s apresentou uma chave diferente daquela em que você confiava. A menos que você saiba que o servidor foi reinstalado, alguém pode estar interceptando a conexão.</string>
+    <string name="terminal_hostkey_new_type_text">%1$s é conhecido, mas apresentou uma chave de um tipo que você ainda não tinha visto dele.</string>
+    <string name="terminal_hostkey_unknown_text">Você nunca se conectou a %1$s. Confira se a impressão digital é igual à do servidor.</string>
+    <string name="terminal_hostkey_previously_trusted">Confiável até agora:</string>
+    <string name="terminal_hostkey_replace">Substituir e conectar</string>
+    <string name="terminal_hostkey_trust">Confiar e conectar</string>
+    <string name="terminal_hostkey_once">Só desta vez</string>
+
+    <string name="terminal_password_title">Senha</string>
+    <string name="terminal_password_for">Senha de %1$s</string>
+    <string name="terminal_password_again">Essa senha não foi aceita. Tente de novo para %1$s.</string>
+    <string name="terminal_password_label">Senha</string>
+    <string name="terminal_log_in">Entrar</string>
+
+    <string name="terminal_agent_title">Usar sua chave?</string>
+    <string name="terminal_agent_text">%1$s está pedindo para fazer login em outro lugar com a sua chave “%2$s”. Permita se você acabou de iniciar lá algo que precise disso, como ssh ou git.</string>
+    <string name="terminal_agent_allow_once">Permitir uma vez</string>
+    <string name="terminal_agent_allow_session">Permitir nesta sessão</string>
+    <string name="terminal_agent_deny">Negar</string>
+
+    <string name="terminal_challenge_title">Verificação</string>
+
+    <string name="terminal_host_copy_name">%1$s (cópia)</string>
+
+    <string name="files_upload">Enviar um arquivo</string>
+    <string name="files_new_folder">Nova pasta</string>
+    <string name="files_refresh">Atualizar</string>
+    <string name="files_parent_folder">Pasta superior</string>
+
+    <string name="files_uploading">Enviando %1$s · %2$s</string>
+    <string name="files_downloading">Baixando %1$s · %2$s</string>
+
+    <string name="files_empty_title">Pasta vazia</string>
+    <string name="files_empty_text">Envie um arquivo ou crie uma pasta com os botões acima.</string>
+
+    <string name="files_entry_details_with_size">%1$s · %2$s · %3$s</string>
+    <string name="files_entry_details">%1$s · %2$s</string>
+    <string name="files_options_for">Opções de %1$s</string>
+
+    <string name="files_download">Baixar</string>
+    <string name="files_edit_as_text">Editar como texto</string>
+    <string name="files_rename">Renomear</string>
+    <string name="files_permissions">Permissões</string>
+    <string name="files_copy_path">Copiar caminho</string>
+    <string name="files_path_clip_label">Caminho</string>
+
+    <string name="files_new_folder_title">Nova pasta</string>
+    <string name="files_create">Criar</string>
+    <string name="files_rename_title">Renomear</string>
+    <string name="files_new_name_label">Novo nome</string>
+
+    <string name="files_delete_title">Excluir %1$s?</string>
+    <string name="files_delete_folder_text">A pasta e tudo o que há nela serão excluídos do servidor. Esta ação não pode ser desfeita.</string>
+    <string name="files_delete_file_text">O arquivo será excluído do servidor. Esta ação não pode ser desfeita.</string>
+
+    <string name="files_permissions_title">Permissões de %1$s</string>
+    <string name="files_permissions_label">Modo octal, por exemplo 644</string>
+    <string name="files_apply">Aplicar</string>
+
+    <string name="files_discard_title">Descartar alterações?</string>
+    <string name="files_discard_text">Suas alterações em %1$s não foram salvas.</string>
+    <string name="files_discard">Descartar</string>
+
+    <string name="files_error_open_browser">Não foi possível abrir o navegador de arquivos: %1$s</string>
+    <string name="files_error_open">Não foi possível abrir %1$s: %2$s</string>
+    <string name="files_error_create_folder">Não foi possível criar a pasta: %1$s</string>
+    <string name="files_error_rename">Não foi possível renomear %1$s: %2$s</string>
+    <string name="files_error_delete">Não foi possível excluir %1$s: %2$s</string>
+    <string name="files_error_permissions">Não foi possível alterar as permissões: %1$s</string>
+    <string name="files_error_download">Falha ao baixar %1$s: %2$s</string>
+    <string name="files_error_upload">Falha ao enviar %1$s: %2$s</string>
+    <string name="files_error_save">Não foi possível salvar %1$s: %2$s</string>
+    <string name="files_transfer_cancelled">Transferência cancelada</string>
+
+    <string name="files_reason_session_not_connected">A sessão não está conectada</string>
+    <string name="files_reason_not_connected">Sem conexão</string>
+    <string name="files_reason_destination_not_opened">Não foi possível abrir o destino</string>
+    <string name="files_reason_file_not_opened">Não foi possível abrir o arquivo</string>
+
+    <string name="keys_title">Chaves</string>
+    <string name="keys_add">Adicionar chave</string>
+    <string name="keys_add_generate">Gerar uma nova chave</string>
+    <string name="keys_add_import">Importar uma chave existente</string>
+    <string name="keys_add_on_security_key">Criar em chave de segurança</string>
+
+    <string name="keys_empty_title">Nenhuma chave ainda</string>
+    <string name="keys_empty_text">Gere um par de chaves ou importe um; depois, coloque a chave pública nos seus servidores para fazer login sem senha.</string>
+
+    <plurals name="keys_kind_used_by">
+        <item quantity="one">%1$s · usada por %2$d host</item>
+        <item quantity="many">%1$s · usada por %2$d de hosts</item>
+        <item quantity="other">%1$s · usada por %2$d hosts</item>
+    </plurals>
+
+    <string name="keys_generate_title">Gerar chave</string>
+    <string name="keys_type_label">Tipo</string>
+    <string name="keys_generate_ed25519_hint">Ed25519 é a escolha recomendada: pequena, rápida e aceita por todos os servidores atuais.</string>
+    <string name="keys_generate_other_hint">Use este tipo só se um servidor não aceitar chaves Ed25519.</string>
+    <string name="keys_generating">Gerando…</string>
+    <string name="keys_generate">Gerar</string>
+
+    <string name="keys_security_key_title">Nova chave em chave de segurança</string>
+    <string name="keys_security_key_intro">A chave privada é criada na chave de segurança e nunca sai dela. O login passa a exigir a chave de segurança em mãos: um celular perdido ou invadido não dá acesso a nada.</string>
+    <string name="keys_security_key_ed25519_hint">Ed25519 é a escolha habitual. Algumas chaves de segurança mais antigas não conseguem criar esse tipo: para elas, escolha ECDSA.</string>
+    <string name="keys_security_key_ecdsa_hint">Toda chave de segurança FIDO2 consegue criar este tipo.</string>
+    <string name="keys_security_key_pin_title">Pedir o PIN a cada login</string>
+    <string name="keys_security_key_pin_summary">Além do toque. A chave de segurança precisa ter um PIN definido.</string>
+    <string name="keys_security_key_server_note">Os servidores precisam do OpenSSH 8.2 ou posterior para aceitar uma chave assim.</string>
+    <string name="keys_security_key_why">A nova chave “%1$s” será criada na sua chave de segurança.</string>
+
+    <string name="keys_import_title">Importar chave</string>
+    <string name="keys_import_private_key_label">Chave privada</string>
+    <string name="keys_choose_file">Escolher um arquivo…</string>
+    <string name="keys_import_passphrase_label">Frase secreta desta chave</string>
+    <string name="keys_import_formats">São aceitas chaves OpenSSH, PEM, PKCS#8 e PuTTY (.ppk). A chave fica armazenada com criptografia neste dispositivo.</string>
+    <string name="keys_import_too_large">Esse arquivo é grande demais para ser uma chave privada.</string>
+    <string name="keys_error_file_not_read">Não foi possível ler o arquivo: %1$s</string>
+    <string name="keys_import_needs_passphrase">Esta chave é protegida por uma frase secreta.</string>
+    <string name="keys_import_wrong_passphrase">Essa frase secreta não está correta.</string>
+    <string name="keys_import_not_a_key">Esta não é uma chave privada que possa ser lida.</string>
+    <string name="keys_import">Importar</string>
+
+    <string name="keys_details_on_security_key">A chave privada está na chave de segurança. O app guarda apenas o que a chave de segurança precisa para encontrá-la; por isso, o login exige a própria chave de segurança.</string>
+    <string name="keys_public_key_heading">Chave pública</string>
+    <string name="keys_public_key_hint">Para fazer login com esta chave, adicione a chave pública como uma linha ao arquivo ~/.ssh/authorized_keys de um servidor.</string>
+    <string name="keys_public_key_clip_label">Chave pública</string>
+    <string name="keys_share_public_key">Compartilhar chave pública</string>
+    <string name="keys_export_private_key">Exportar chave privada</string>
+    <string name="keys_certificate_heading">Certificado</string>
+    <string name="keys_certificate_remove">Remover certificado</string>
+    <string name="keys_certificate_hint">Se uma autoridade certificadora assinou esta chave, adicione o certificado que ela forneceu. Os servidores que confiam na autoridade passam a aceitar a chave sem conhecê-la.</string>
+    <string name="keys_certificate_add">Adicionar um certificado…</string>
+
+    <string name="keys_delete_title">Excluir %1$s?</string>
+    <plurals name="keys_delete_text_in_use">
+        <item quantity="one">%1$d host usa esta chave e passará a fazer login com senha. Esta ação não pode ser desfeita.</item>
+        <item quantity="many">%1$d de hosts usam esta chave e passarão a fazer login com senha. Esta ação não pode ser desfeita.</item>
+        <item quantity="other">%1$d hosts usam esta chave e passarão a fazer login com senha. Esta ação não pode ser desfeita.</item>
+    </plurals>
+    <string name="keys_delete_text">A chave privada será removida deste dispositivo. Esta ação não pode ser desfeita.</string>
+
+    <string name="keys_certificate_not_valid_yet">“%1$s” para %2$s, ainda não é válido</string>
+    <string name="keys_certificate_endless">“%1$s” para %2$s, não expira</string>
+    <string name="keys_certificate_valid_until">“%1$s” para %2$s, válido até %3$s</string>
+    <string name="keys_certificate_expired">“%1$s” para %2$s, expirou em %3$s</string>
+    <string name="keys_certificate_any_account_not_valid_yet">“%1$s” para qualquer conta, ainda não é válido</string>
+    <string name="keys_certificate_any_account_endless">“%1$s” para qualquer conta, não expira</string>
+    <string name="keys_certificate_any_account_valid_until">“%1$s” para qualquer conta, válido até %2$s</string>
+    <string name="keys_certificate_any_account_expired">“%1$s” para qualquer conta, expirou em %2$s</string>
+
+    <string name="keys_certificate_add_title">Adicionar um certificado</string>
+    <string name="keys_certificate_add_text">Cole o conteúdo do arquivo -cert.pub criado para esta chave ou escolha o arquivo.</string>
+    <string name="keys_certificate_label">Certificado</string>
+    <string name="keys_certificate_other_key">Este certificado foi emitido para outra chave</string>
+    <string name="keys_certificate_for_server">Este certificado identifica um servidor; não pode ser usado para fazer login</string>
+
+    <string name="keys_export_title">Exportar chave privada</string>
+    <string name="keys_export_text">Grava a chave privada no formato OpenSSH, usado pelo ssh e pelo ssh-add. Quem obtiver este arquivo poderá fazer login como você.</string>
+    <string name="keys_export_passphrase_label">Frase secreta (recomendada)</string>
+    <string name="keys_export_passphrase_hint">Deixe em branco para gravar a chave sem criptografia.</string>
+    <string name="keys_export_choose_destination">Escolher onde salvar</string>
+    <string name="keys_export_failed">Falha na exportação: %1$s</string>
+    <string name="keys_reason_destination_not_opened">Não foi possível abrir o destino</string>
+
+    <string name="installkey_title">Instalar uma chave pública</string>
+    <string name="installkey_text">Adiciona a chave pública a ~/.ssh/authorized_keys em %1$s, para que esta chave possa fazer login lá.</string>
+    <string name="installkey_installed">A chave %1$s foi instalada. Selecione-a como a chave deste host para fazer login sem senha.</string>
+    <string name="installkey_server_error">O servidor informou um erro: %1$s</string>
+    <string name="installkey_server_error_status">O servidor informou um erro: status de saída %1$d</string>
+    <string name="installkey_failed">Não foi possível instalar a chave: %1$s</string>
+    <string name="installkey_reason_not_connected">A sessão não está conectada</string>
+    <string name="installkey_done">Concluído</string>
+
+    <string name="seckey_title">Chave de segurança</string>
+    <string name="seckey_why_login">O login em %1$s exige a chave de segurança que contém “%2$s”.</string>
+    <string name="seckey_log_in_another_way">Entrar de outra forma</string>
+
+    <string name="seckey_present_nfc_or_usb">Encoste a chave na parte de trás do celular e mantenha-a ali, ou conecte-a e toque nela.</string>
+    <string name="seckey_present_nfc_or_usb_again">Encoste a chave de novo na parte de trás do celular e mantenha-a ali, ou conecte-a e toque nela.</string>
+    <string name="seckey_present_nfc">Encoste a chave na parte de trás do celular e mantenha-a ali.</string>
+    <string name="seckey_present_nfc_again">Encoste a chave de novo na parte de trás do celular e mantenha-a ali.</string>
+    <string name="seckey_present_usb_nfc_off">Conecte a chave e toque nela. O NFC está desativado; com ele ativado, também dá para encostar a chave no celular.</string>
+    <string name="seckey_present_usb_nfc_off_again">Conecte a chave de novo e toque nela. O NFC está desativado; com ele ativado, também dá para encostar a chave no celular.</string>
+    <string name="seckey_present_nfc_off">O NFC está desativado. Ative-o para encostar a chave no celular.</string>
+    <string name="seckey_present_usb">Conecte a chave e toque nela.</string>
+    <string name="seckey_present_usb_again">Conecte a chave de novo e toque nela.</string>
+    <string name="seckey_present_impossible">Este celular não tem NFC nem uma porta USB que uma chave possa usar.</string>
+    <string name="seckey_open_nfc_settings">Abrir as configurações de NFC</string>
+
+    <string name="seckey_working">Comunicando com a chave. Mantenha-a onde está.</string>
+    <string name="seckey_touch">Toque na chave agora. A luz dela está piscando.</string>
+
+    <string name="seckey_pin_wrong">Esse PIN não está correto.</string>
+    <plurals name="seckey_pin_wrong_tries_left">
+        <item quantity="one">Esse PIN não está correto. Resta %1$d tentativa antes de a chave se bloquear.</item>
+        <item quantity="many">Esse PIN não está correto. Restam %1$d de tentativas antes de a chave se bloquear.</item>
+        <item quantity="other">Esse PIN não está correto. Restam %1$d tentativas antes de a chave se bloquear.</item>
+    </plurals>
+    <string name="seckey_pin_wanted">Esta chave pede primeiro o PIN. É o PIN da própria chave de segurança, não uma senha do servidor.</string>
+    <string name="seckey_pin_label">PIN da chave de segurança</string>
+    <string name="seckey_untested_note">O suporte a chaves de segurança é novo e só foi testado com uma chave simulada por software, ainda não com uma chave de verdade.</string>
+
+    <string name="notify_bell_channel">Campainha</string>
+    <string name="notify_bell_channel_description">Uma sessão em segundo plano tocou a campainha</string>
+    <string name="notify_bell_text">Tocou a campainha</string>
+
+    <string name="shortcut_connect_to">Conectar a %1$s</string>
+    <string name="terminal_open_link">Abrir link</string>
+</resources>

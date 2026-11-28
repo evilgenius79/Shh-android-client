@@ -224,12 +224,25 @@ version 1.4. What differs from the `mosh` you may know:
 Not tested: IPv6, servers other than 1.4, and real changes of network on a real phone (the
 tests move the session to a new socket on the same machine).
 
+## Languages
+
+The interface is in English, German, Spanish, French, Brazilian Portuguese, Russian and
+Simplified Chinese, and follows the language of the device; on Android 13 and later the app's
+language can also be chosen in the system settings.
+
+Everything but the English was translated by machine and has not been read by a native
+speaker. Corrections are very welcome: the texts are in `app/src/main/res/values-*/`, and
+`tools/check_translations.py` checks a translation against the English texts without building.
+
+Still English in every language: what comes from below the screens, that is the progress and
+error messages of a connection, the notices the app prints into the terminal, and the messages
+about security keys and imported configurations.
+
 ## Not there yet
 
 - X11 forwarding.
 - Certificates for RSA keys: the SSH library can only sign those the old SHA-1 way, which
   current servers refuse.
-- Translations: the interface is English only for now.
 - The app has not been published to an app store.
 
 ## Licence

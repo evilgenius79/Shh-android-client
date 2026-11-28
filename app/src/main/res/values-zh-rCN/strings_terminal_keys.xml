@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="terminal_connecting">正在连接…</string>
+    <string name="terminal_reconnecting">正在重新连接…</string>
+    <plurals name="terminal_mosh_silent_seconds">
+        <item quantity="other">服务器已有 %1$d 秒没有响应。</item>
+    </plurals>
+    <plurals name="terminal_mosh_silent_minutes">
+        <item quantity="other">服务器已有 %1$d 分钟没有响应。</item>
+    </plurals>
+    <string name="terminal_mosh_silent_explanation">Mosh 会保留会话。重新连上服务器后，会话会自动继续，即使换了网络也一样。</string>
+    <string name="terminal_reconnecting_attempt">正在重新连接，第 %1$d 次尝试…</string>
+    <string name="terminal_back_to_hosts">主机列表</string>
+    <string name="terminal_paste">粘贴</string>
+
+    <string name="terminal_menu_new_session">新建会话</string>
+    <string name="terminal_menu_snippets">命令片段</string>
+    <string name="terminal_menu_files">文件</string>
+    <string name="terminal_menu_port_forwards">端口转发</string>
+    <string name="terminal_menu_install_key">安装公钥</string>
+    <string name="terminal_menu_colours">配色</string>
+    <string name="terminal_menu_larger_text">放大文字</string>
+    <string name="terminal_menu_smaller_text">缩小文字</string>
+    <string name="terminal_menu_show_keyboard">显示键盘</string>
+    <string name="terminal_menu_how_to_use">使用说明</string>
+    <string name="terminal_menu_reset">重置终端</string>
+    <string name="terminal_menu_close_session">关闭会话</string>
+
+    <string name="terminal_snippets_title">命令片段</string>
+    <string name="terminal_snippets_empty">还没有命令片段。可在主机列表的菜单中添加。</string>
+    <string name="terminal_colours_title">此会话的配色</string>
+
+    <string name="terminal_reconnect">重新连接</string>
+    <string name="terminal_allow_local_network">允许访问</string>
+    <string name="terminal_reconnect_try_now">立即重试</string>
+    <string name="terminal_reconnect_stop">停止</string>
+
+    <string name="terminal_hint_local_network_blocked">Android 目前不允许此应用访问本地网络中的设备。如果此服务器位于您的 WLAN 或其他本地网络中，请允许访问，应用会重新连接。</string>
+    <string name="terminal_hint_no_answer">没有收到任何响应。请检查地址和端口，并确认此设备连接的是正确的网络。</string>
+    <string name="terminal_hint_refused">主机可以连通，但该端口上没有服务在监听。</string>
+    <string name="terminal_hint_unknown_host">无法解析该主机名。请检查拼写和网络连接。</string>
+    <string name="terminal_hint_protocol">如果这是一台旧设备，请尝试在主机设置中开启“允许旧版算法”。</string>
+    <string name="terminal_hint_auth_failed">请检查此主机的用户名、密码或密钥。</string>
+
+    <string name="terminal_hostkey_changed_title">主机密钥已更改</string>
+    <string name="terminal_hostkey_new_type_title">已知主机的新密钥</string>
+    <string name="terminal_hostkey_unknown_title">未知主机</string>
+    <string name="terminal_hostkey_changed_text">%1$s 出示的密钥与您之前信任的不同。除非您确知服务器已重装，否则可能有人正在拦截连接。</string>
+    <string name="terminal_hostkey_new_type_text">%1$s 是已知主机，但它这次出示的密钥类型是您此前没有见过的。</string>
+    <string name="terminal_hostkey_unknown_text">您此前没有连接过 %1$s。请核对指纹是否与服务器的一致。</string>
+    <string name="terminal_hostkey_previously_trusted">之前信任的密钥：</string>
+    <string name="terminal_hostkey_replace">替换并连接</string>
+    <string name="terminal_hostkey_trust">信任并连接</string>
+    <string name="terminal_hostkey_once">仅此一次</string>
+
+    <string name="terminal_password_title">密码</string>
+    <string name="terminal_password_for">%1$s 的密码</string>
+    <string name="terminal_password_again">密码未被接受。请重新输入 %1$s 的密码。</string>
+    <string name="terminal_password_label">密码</string>
+    <string name="terminal_log_in">登录</string>
+
+    <string name="terminal_agent_title">要使用您的密钥吗？</string>
+    <string name="terminal_agent_text">%1$s 请求使用您的密钥“%2$s”登录其他地方。如果您刚在那里启动了需要它的程序（如 ssh 或 git），请允许。</string>
+    <string name="terminal_agent_allow_once">允许一次</string>
+    <string name="terminal_agent_allow_session">此会话内允许</string>
+    <string name="terminal_agent_deny">拒绝</string>
+
+    <string name="terminal_challenge_title">验证</string>
+
+    <string name="terminal_host_copy_name">%1$s（副本）</string>
+
+    <string name="files_upload">上传文件</string>
+    <string name="files_new_folder">新建文件夹</string>
+    <string name="files_refresh">刷新</string>
+    <string name="files_parent_folder">上级文件夹</string>
+
+    <string name="files_uploading">正在上传 %1$s · %2$s</string>
+    <string name="files_downloading">正在下载 %1$s · %2$s</string>
+
+    <string name="files_empty_title">空文件夹</string>
+    <string name="files_empty_text">可使用上方的按钮上传文件或新建文件夹。</string>
+
+    <string name="files_entry_details_with_size">%1$s · %2$s · %3$s</string>
+    <string name="files_entry_details">%1$s · %2$s</string>
+    <string name="files_options_for">“%1$s”的选项</string>
+
+    <string name="files_download">下载</string>
+    <string name="files_edit_as_text">以文本方式编辑</string>
+    <string name="files_rename">重命名</string>
+    <string name="files_permissions">权限</string>
+    <string name="files_copy_path">复制路径</string>
+    <string name="files_path_clip_label">路径</string>
+
+    <string name="files_new_folder_title">新建文件夹</string>
+    <string name="files_create">创建</string>
+    <string name="files_rename_title">重命名</string>
+    <string name="files_new_name_label">新名称</string>
+
+    <string name="files_delete_title">要删除“%1$s”吗？</string>
+    <string name="files_delete_folder_text">该文件夹及其中的所有内容将从服务器上删除。此操作无法撤销。</string>
+    <string name="files_delete_file_text">该文件将从服务器上删除。此操作无法撤销。</string>
+
+    <string name="files_permissions_title">“%1$s”的权限</string>
+    <string name="files_permissions_label">八进制模式，例如 644</string>
+    <string name="files_apply">应用</string>
+
+    <string name="files_discard_title">要舍弃更改吗？</string>
+    <string name="files_discard_text">您对“%1$s”的更改尚未保存。</string>
+    <string name="files_discard">舍弃</string>
+
+    <string name="files_error_open_browser">无法打开文件浏览器：%1$s</string>
+    <string name="files_error_open">无法打开“%1$s”：%2$s</string>
+    <string name="files_error_create_folder">无法创建文件夹：%1$s</string>
+    <string name="files_error_rename">无法重命名“%1$s”：%2$s</string>
+    <string name="files_error_delete">无法删除“%1$s”：%2$s</string>
+    <string name="files_error_permissions">无法更改权限：%1$s</string>
+    <string name="files_error_download">“%1$s”下载失败：%2$s</string>
+    <string name="files_error_upload">“%1$s”上传失败：%2$s</string>
+    <string name="files_error_save">无法保存“%1$s”：%2$s</string>
+    <string name="files_transfer_cancelled">传输已取消</string>
+
+    <string name="files_reason_session_not_connected">会话未连接</string>
+    <string name="files_reason_not_connected">未连接</string>
+    <string name="files_reason_destination_not_opened">无法打开目标位置</string>
+    <string name="files_reason_file_not_opened">无法打开该文件</string>
+
+    <string name="keys_title">密钥</string>
+    <string name="keys_add">添加密钥</string>
+    <string name="keys_add_generate">生成新密钥</string>
+    <string name="keys_add_import">导入已有密钥</string>
+    <string name="keys_add_on_security_key">在安全密钥上新建密钥</string>
+
+    <string name="keys_empty_title">还没有密钥</string>
+    <string name="keys_empty_text">生成或导入一个密钥对，再把公钥放到服务器上，即可免密码登录。</string>
+
+    <plurals name="keys_kind_used_by">
+        <item quantity="other">%1$s · %2$d 个主机在使用</item>
+    </plurals>
+
+    <string name="keys_generate_title">生成密钥</string>
+    <string name="keys_type_label">类型</string>
+    <string name="keys_generate_ed25519_hint">推荐选择 Ed25519：密钥短、速度快，当前的服务器都支持。</string>
+    <string name="keys_generate_other_hint">仅当服务器不接受 Ed25519 密钥时才使用。</string>
+    <string name="keys_generating">正在生成…</string>
+    <string name="keys_generate">生成</string>
+
+    <string name="keys_security_key_title">在安全密钥上新建密钥</string>
+    <string name="keys_security_key_intro">私钥在安全密钥上生成，并且永远不会离开它。此后登录时，这枚安全密钥必须在您手上：即使手机丢失或被人攻破，私钥也不会泄露。</string>
+    <string name="keys_security_key_ed25519_hint">通常选择 Ed25519。部分较旧的安全密钥不支持它，这时请选择 ECDSA。</string>
+    <string name="keys_security_key_ecdsa_hint">所有 FIDO2 安全密钥都支持这种类型。</string>
+    <string name="keys_security_key_pin_title">每次登录都要求输入 PIN 码</string>
+    <string name="keys_security_key_pin_summary">在触摸之外再加一道验证。安全密钥需已设置 PIN 码。</string>
+    <string name="keys_security_key_server_note">服务器需要 OpenSSH 8.2 或更高版本才能接受这种密钥。</string>
+    <string name="keys_security_key_why">新密钥“%1$s”将在您的安全密钥上生成。</string>
+
+    <string name="keys_import_title">导入密钥</string>
+    <string name="keys_import_private_key_label">私钥</string>
+    <string name="keys_choose_file">选择文件…</string>
+    <string name="keys_import_passphrase_label">此密钥的密码短语</string>
+    <string name="keys_import_formats">支持 OpenSSH、PEM、PKCS#8 和 PuTTY（.ppk）格式的密钥。密钥会加密存储在此设备上。</string>
+    <string name="keys_import_too_large">该文件过大，不可能是私钥。</string>
+    <string name="keys_error_file_not_read">无法读取该文件：%1$s</string>
+    <string name="keys_import_needs_passphrase">此密钥受密码短语保护。</string>
+    <string name="keys_import_wrong_passphrase">密码短语不正确。</string>
+    <string name="keys_import_not_a_key">这不是可以识别的私钥。</string>
+    <string name="keys_import">导入</string>
+
+    <string name="keys_details_on_security_key">私钥保存在安全密钥上。应用只保存安全密钥找到它所需的信息，因此登录时必须使用这枚安全密钥。</string>
+    <string name="keys_public_key_heading">公钥</string>
+    <string name="keys_public_key_hint">将公钥作为一行添加到服务器的 ~/.ssh/authorized_keys 中，即可用此密钥登录。</string>
+    <string name="keys_public_key_clip_label">公钥</string>
+    <string name="keys_share_public_key">分享公钥</string>
+    <string name="keys_export_private_key">导出私钥</string>
+    <string name="keys_certificate_heading">证书</string>
+    <string name="keys_certificate_remove">移除证书</string>
+    <string name="keys_certificate_hint">如果此密钥已由证书颁发机构签名，请添加该机构发给您的证书。这样，信任该机构的服务器即使没有存过此密钥，也会接受它。</string>
+    <string name="keys_certificate_add">添加证书…</string>
+
+    <string name="keys_delete_title">要删除“%1$s”吗？</string>
+    <plurals name="keys_delete_text_in_use">
+        <item quantity="other">有 %1$d 个主机在使用此密钥，它们将改用密码登录。此操作无法撤销。</item>
+    </plurals>
+    <string name="keys_delete_text">私钥将从此设备上移除。此操作无法撤销。</string>
+
+    <string name="keys_certificate_not_valid_yet">“%1$s”，适用于 %2$s，尚未生效</string>
+    <string name="keys_certificate_endless">“%1$s”，适用于 %2$s，永不过期</string>
+    <string name="keys_certificate_valid_until">“%1$s”，适用于 %2$s，有效期至 %3$s</string>
+    <string name="keys_certificate_expired">“%1$s”，适用于 %2$s，已于 %3$s 过期</string>
+    <string name="keys_certificate_any_account_not_valid_yet">“%1$s”，适用于任何账号，尚未生效</string>
+    <string name="keys_certificate_any_account_endless">“%1$s”，适用于任何账号，永不过期</string>
+    <string name="keys_certificate_any_account_valid_until">“%1$s”，适用于任何账号，有效期至 %2$s</string>
+    <string name="keys_certificate_any_account_expired">“%1$s”，适用于任何账号，已于 %2$s 过期</string>
+
+    <string name="keys_certificate_add_title">添加证书</string>
+    <string name="keys_certificate_add_text">粘贴为此密钥生成的 -cert.pub 文件的内容，或选择该文件。</string>
+    <string name="keys_certificate_label">证书</string>
+    <string name="keys_certificate_other_key">此证书是为另一个密钥签发的</string>
+    <string name="keys_certificate_for_server">此证书用于标识服务器，不能用来登录</string>
+
+    <string name="keys_export_title">导出私钥</string>
+    <string name="keys_export_text">以 OpenSSH 格式写出私钥，即 ssh 和 ssh-add 使用的格式。任何拿到此文件的人都能以您的身份登录。</string>
+    <string name="keys_export_passphrase_label">密码短语（推荐）</string>
+    <string name="keys_export_passphrase_hint">留空则不加密写出密钥。</string>
+    <string name="keys_export_choose_destination">选择保存位置</string>
+    <string name="keys_export_failed">导出失败：%1$s</string>
+    <string name="keys_reason_destination_not_opened">无法打开目标位置</string>
+
+    <string name="installkey_title">安装公钥</string>
+    <string name="installkey_text">将公钥添加到“%1$s”上的 ~/.ssh/authorized_keys 中，这样就能用此密钥登录该主机。</string>
+    <string name="installkey_installed">“%1$s”已安装。将它选为此主机的密钥，即可免密码登录。</string>
+    <string name="installkey_server_error">服务器报告了错误：%1$s</string>
+    <string name="installkey_server_error_status">服务器报告了错误：退出状态 %1$d</string>
+    <string name="installkey_failed">无法安装密钥：%1$s</string>
+    <string name="installkey_reason_not_connected">会话未连接</string>
+    <string name="installkey_done">完成</string>
+
+    <string name="seckey_title">安全密钥</string>
+    <string name="seckey_why_login">登录 %1$s 需要用到存有“%2$s”的安全密钥。</string>
+    <string name="seckey_log_in_another_way">改用其他方式登录</string>
+
+    <string name="seckey_present_nfc_or_usb">将安全密钥贴在手机背面并保持不动，或者将它插入手机并触摸它。</string>
+    <string name="seckey_present_nfc_or_usb_again">请再次将安全密钥贴在手机背面并保持不动，或者将它插入手机并触摸它。</string>
+    <string name="seckey_present_nfc">将安全密钥贴在手机背面并保持不动。</string>
+    <string name="seckey_present_nfc_again">请再次将安全密钥贴在手机背面并保持不动。</string>
+    <string name="seckey_present_usb_nfc_off">将安全密钥插入手机并触摸它。NFC 已关闭；开启后，也可以将安全密钥贴在手机上使用。</string>
+    <string name="seckey_present_usb_nfc_off_again">请重新将安全密钥插入手机并触摸它。NFC 已关闭；开启后，也可以将安全密钥贴在手机上使用。</string>
+    <string name="seckey_present_nfc_off">NFC 已关闭。开启后才能将安全密钥贴在手机上使用。</string>
+    <string name="seckey_present_usb">将安全密钥插入手机并触摸它。</string>
+    <string name="seckey_present_usb_again">请重新将安全密钥插入手机并触摸它。</string>
+    <string name="seckey_present_impossible">这部手机既没有 NFC，也没有可供安全密钥使用的 USB 端口。</string>
+    <string name="seckey_open_nfc_settings">打开 NFC 设置</string>
+
+    <string name="seckey_working">正在与安全密钥通信。请保持不动。</string>
+    <string name="seckey_touch">现在请触摸安全密钥。它的指示灯正在闪烁。</string>
+
+    <string name="seckey_pin_wrong">PIN 码不正确。</string>
+    <plurals name="seckey_pin_wrong_tries_left">
+        <item quantity="other">PIN 码不正确。还可以再试 %1$d 次，之后安全密钥将自行锁定。</item>
+    </plurals>
+    <string name="seckey_pin_wanted">需要先输入此安全密钥的 PIN 码。这是安全密钥本身的 PIN 码，不是服务器的密码。</string>
+    <string name="seckey_pin_label">安全密钥的 PIN 码</string>
+    <string name="seckey_untested_note">对安全密钥的支持是新功能，目前只用软件模拟的安全密钥测试过，尚未用真实的安全密钥验证。</string>
+
+    <string name="notify_bell_channel">响铃</string>
+    <string name="notify_bell_channel_description">后台会话发出了响铃</string>
+    <string name="notify_bell_text">发出了响铃</string>
+
+    <string name="shortcut_connect_to">连接到 %1$s</string>
+    <string name="terminal_open_link">打开链接</string>
+</resources>

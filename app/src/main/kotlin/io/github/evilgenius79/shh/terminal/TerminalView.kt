@@ -648,7 +648,7 @@ class TerminalView(context: Context) : View(context) {
         actionMode = startActionMode(
             object : ActionMode.Callback2() {
                 override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                    menu.add(Menu.NONE, MENU_OPEN_LINK, 0, "Open link")
+                    menu.add(Menu.NONE, MENU_OPEN_LINK, 0, context.getString(R.string.terminal_open_link))
                     menu.add(Menu.NONE, MENU_COPY, 1, android.R.string.copy)
                     menu.add(Menu.NONE, MENU_PASTE, 2, android.R.string.paste)
                     menu.add(Menu.NONE, MENU_SELECT_ALL, 3, android.R.string.selectAll)

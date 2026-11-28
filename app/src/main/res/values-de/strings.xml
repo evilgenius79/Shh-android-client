@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_sessions">Offene Sitzungen</string>
+    <string name="channel_sessions_description">Wird angezeigt, solange SSH-Sitzungen offen sind, damit sie im Hintergrund verbunden bleiben.</string>
+    <plurals name="notification_sessions">
+        <item quantity="one">%d offene Sitzung</item>
+        <item quantity="other">%d offene Sitzungen</item>
+    </plurals>
+    <string name="notification_text">Tippen, um zum Terminal zurückzukehren</string>
+    <string name="action_disconnect_all">Alle trennen</string>
+</resources>

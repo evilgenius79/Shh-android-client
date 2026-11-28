@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_sessions">Открытые сеансы</string>
+    <string name="channel_sessions_description">Показывается, пока открыты сеансы SSH, чтобы они оставались подключёнными в фоновом режиме.</string>
+    <plurals name="notification_sessions">
+        <item quantity="one">%d открытый сеанс</item>
+        <item quantity="few">%d открытых сеанса</item>
+        <item quantity="many">%d открытых сеансов</item>
+        <item quantity="other">%d открытого сеанса</item>
+    </plurals>
+    <string name="notification_text">Нажмите, чтобы вернуться в терминал</string>
+    <string name="action_disconnect_all">Отключить все</string>
+</resources>

@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="terminal_connecting">Verbindung wird hergestellt…</string>
+    <string name="terminal_reconnecting">Wird neu verbunden…</string>
+    <plurals name="terminal_mosh_silent_seconds">
+        <item quantity="one">Der Server antwortet seit %1$d Sekunde nicht.</item>
+        <item quantity="other">Der Server antwortet seit %1$d Sekunden nicht.</item>
+    </plurals>
+    <plurals name="terminal_mosh_silent_minutes">
+        <item quantity="one">Der Server antwortet seit %1$d Minute nicht.</item>
+        <item quantity="other">Der Server antwortet seit %1$d Minuten nicht.</item>
+    </plurals>
+    <string name="terminal_mosh_silent_explanation">Mosh hält die Sitzung aufrecht. Sie geht von selbst weiter, sobald der Server wieder erreichbar ist, auch aus einem anderen Netzwerk.</string>
+    <string name="terminal_reconnecting_attempt">Wird neu verbunden, Versuch %1$d…</string>
+    <string name="terminal_back_to_hosts">Hosts</string>
+    <string name="terminal_paste">Einfügen</string>
+
+    <string name="terminal_menu_new_session">Neue Sitzung</string>
+    <string name="terminal_menu_snippets">Snippets</string>
+    <string name="terminal_menu_files">Dateien</string>
+    <string name="terminal_menu_port_forwards">Tunnel</string>
+    <string name="terminal_menu_install_key">Öffentlichen Schlüssel installieren</string>
+    <string name="terminal_menu_colours">Farben</string>
+    <string name="terminal_menu_larger_text">Text vergrößern</string>
+    <string name="terminal_menu_smaller_text">Text verkleinern</string>
+    <string name="terminal_menu_show_keyboard">Tastatur einblenden</string>
+    <string name="terminal_menu_how_to_use">Anleitung</string>
+    <string name="terminal_menu_reset">Terminal zurücksetzen</string>
+    <string name="terminal_menu_close_session">Sitzung schließen</string>
+
+    <string name="terminal_snippets_title">Snippets</string>
+    <string name="terminal_snippets_empty">Noch keine Snippets. Sie lassen sich über das Menü der Hostliste hinzufügen.</string>
+    <string name="terminal_colours_title">Farben für diese Sitzung</string>
+
+    <string name="terminal_reconnect">Neu verbinden</string>
+    <string name="terminal_allow_local_network">Zugriff erlauben</string>
+    <string name="terminal_reconnect_try_now">Jetzt versuchen</string>
+    <string name="terminal_reconnect_stop">Stoppen</string>
+
+    <string name="terminal_hint_local_network_blocked">Android lässt diese App nicht auf Geräte im lokalen Netzwerk zugreifen. Ist dieser Server im WLAN oder in einem anderen lokalen Netzwerk, den Zugriff erlauben. Dann wird neu verbunden.</string>
+    <string name="terminal_hint_no_answer">Keine Antwort. Adresse und Port prüfen, und ob dieses Gerät im richtigen Netzwerk ist.</string>
+    <string name="terminal_hint_refused">Der Host ist erreichbar, aber auf diesem Port lauscht nichts.</string>
+    <string name="terminal_hint_unknown_host">Der Name konnte nicht aufgelöst werden. Schreibweise und Netzwerkverbindung prüfen.</string>
+    <string name="terminal_hint_protocol">Bei einem alten Gerät hilft vielleicht „Veraltete Algorithmen zulassen“ in den Einstellungen des Hosts.</string>
+    <string name="terminal_hint_auth_failed">Nutzername, Passwort oder Schlüssel für diesen Host prüfen.</string>
+
+    <string name="terminal_hostkey_changed_title">Hostschlüssel hat sich geändert</string>
+    <string name="terminal_hostkey_new_type_title">Neuer Schlüssel für bekannten Host</string>
+    <string name="terminal_hostkey_unknown_title">Unbekannter Host</string>
+    <string name="terminal_hostkey_changed_text">%1$s hat einen anderen Schlüssel vorgelegt als den, dem du bisher vertraut hast. Wenn du nicht weißt, dass der Server neu installiert wurde, fängt möglicherweise jemand die Verbindung ab.</string>
+    <string name="terminal_hostkey_new_type_text">%1$s ist bekannt, hat aber einen Schlüssel eines Typs vorgelegt, den du von diesem Host noch nicht gesehen hast.</string>
+    <string name="terminal_hostkey_unknown_text">Mit %1$s warst du noch nie verbunden. Prüfe, ob der Fingerabdruck mit dem des Servers übereinstimmt.</string>
+    <string name="terminal_hostkey_previously_trusted">Bisher vertraut:</string>
+    <string name="terminal_hostkey_replace">Ersetzen und verbinden</string>
+    <string name="terminal_hostkey_trust">Vertrauen und verbinden</string>
+    <string name="terminal_hostkey_once">Nur diesmal</string>
+
+    <string name="terminal_password_title">Passwort</string>
+    <string name="terminal_password_for">Passwort für %1$s</string>
+    <string name="terminal_password_again">Dieses Passwort wurde nicht akzeptiert. Neuer Versuch für %1$s.</string>
+    <string name="terminal_password_label">Passwort</string>
+    <string name="terminal_log_in">Anmelden</string>
+
+    <string name="terminal_agent_title">Schlüssel verwenden?</string>
+    <string name="terminal_agent_text">%1$s möchte sich mit deinem Schlüssel „%2$s“ woanders anmelden. Erlaube das, wenn du dort gerade etwas gestartet hast, das ihn braucht, etwa ssh oder git.</string>
+    <string name="terminal_agent_allow_once">Einmal erlauben</string>
+    <string name="terminal_agent_allow_session">Für diese Sitzung erlauben</string>
+    <string name="terminal_agent_deny">Ablehnen</string>
+
+    <string name="terminal_challenge_title">Bestätigung</string>
+
+    <string name="terminal_host_copy_name">%1$s (Kopie)</string>
+
+    <string name="files_upload">Datei hochladen</string>
+    <string name="files_new_folder">Neuer Ordner</string>
+    <string name="files_refresh">Aktualisieren</string>
+    <string name="files_parent_folder">Übergeordneter Ordner</string>
+
+    <string name="files_uploading">Hochladen: %1$s · %2$s</string>
+    <string name="files_downloading">Herunterladen: %1$s · %2$s</string>
+
+    <string name="files_empty_title">Leerer Ordner</string>
+    <string name="files_empty_text">Mit den Schaltflächen oben eine Datei hochladen oder einen Ordner erstellen.</string>
+
+    <string name="files_entry_details_with_size">%1$s · %2$s · %3$s</string>
+    <string name="files_entry_details">%1$s · %2$s</string>
+    <string name="files_options_for">Optionen für %1$s</string>
+
+    <string name="files_download">Herunterladen</string>
+    <string name="files_edit_as_text">Als Text bearbeiten</string>
+    <string name="files_rename">Umbenennen</string>
+    <string name="files_permissions">Berechtigungen</string>
+    <string name="files_copy_path">Pfad kopieren</string>
+    <string name="files_path_clip_label">Pfad</string>
+
+    <string name="files_new_folder_title">Neuer Ordner</string>
+    <string name="files_create">Erstellen</string>
+    <string name="files_rename_title">Umbenennen</string>
+    <string name="files_new_name_label">Neuer Name</string>
+
+    <string name="files_delete_title">%1$s löschen?</string>
+    <string name="files_delete_folder_text">Der Ordner und alles darin wird auf dem Server gelöscht. Das lässt sich nicht rückgängig machen.</string>
+    <string name="files_delete_file_text">Die Datei wird auf dem Server gelöscht. Das lässt sich nicht rückgängig machen.</string>
+
+    <string name="files_permissions_title">Berechtigungen von %1$s</string>
+    <string name="files_permissions_label">Oktaler Modus, z. B. 644</string>
+    <string name="files_apply">Anwenden</string>
+
+    <string name="files_discard_title">Änderungen verwerfen?</string>
+    <string name="files_discard_text">Die Änderungen an %1$s wurden nicht gespeichert.</string>
+    <string name="files_discard">Verwerfen</string>
+
+    <string name="files_error_open_browser">Der Dateibrowser konnte nicht geöffnet werden: %1$s</string>
+    <string name="files_error_open">%1$s konnte nicht geöffnet werden: %2$s</string>
+    <string name="files_error_create_folder">Der Ordner konnte nicht erstellt werden: %1$s</string>
+    <string name="files_error_rename">%1$s konnte nicht umbenannt werden: %2$s</string>
+    <string name="files_error_delete">%1$s konnte nicht gelöscht werden: %2$s</string>
+    <string name="files_error_permissions">Die Berechtigungen konnten nicht geändert werden: %1$s</string>
+    <string name="files_error_download">Herunterladen von %1$s fehlgeschlagen: %2$s</string>
+    <string name="files_error_upload">Hochladen von %1$s fehlgeschlagen: %2$s</string>
+    <string name="files_error_save">%1$s konnte nicht gespeichert werden: %2$s</string>
+    <string name="files_transfer_cancelled">Übertragung abgebrochen</string>
+
+    <string name="files_reason_session_not_connected">Die Sitzung ist nicht verbunden</string>
+    <string name="files_reason_not_connected">Nicht verbunden</string>
+    <string name="files_reason_destination_not_opened">Der Speicherort konnte nicht geöffnet werden</string>
+    <string name="files_reason_file_not_opened">Die Datei konnte nicht geöffnet werden</string>
+
+    <string name="keys_title">Schlüssel</string>
+    <string name="keys_add">Schlüssel hinzufügen</string>
+    <string name="keys_add_generate">Neuen Schlüssel erzeugen</string>
+    <string name="keys_add_import">Schlüssel importieren</string>
+    <string name="keys_add_on_security_key">Auf Sicherheitsschlüssel erzeugen</string>
+
+    <string name="keys_empty_title">Noch keine Schlüssel</string>
+    <string name="keys_empty_text">Ein Schlüsselpaar erzeugen oder importieren, dann den öffentlichen Schlüssel auf den Servern hinterlegen, um sich ohne Passwort anzumelden.</string>
+
+    <plurals name="keys_kind_used_by">
+        <item quantity="one">%1$s · von %2$d Host verwendet</item>
+        <item quantity="other">%1$s · von %2$d Hosts verwendet</item>
+    </plurals>
+
+    <string name="keys_generate_title">Schlüssel erzeugen</string>
+    <string name="keys_type_label">Typ</string>
+    <string name="keys_generate_ed25519_hint">Ed25519 ist die empfohlene Wahl: klein, schnell und von jedem aktuellen Server unterstützt.</string>
+    <string name="keys_generate_other_hint">Nur verwenden, wenn ein Server keine Ed25519-Schlüssel akzeptiert.</string>
+    <string name="keys_generating">Wird erzeugt…</string>
+    <string name="keys_generate">Erzeugen</string>
+
+    <string name="keys_security_key_title">Neuer Schlüssel auf Sicherheitsschlüssel</string>
+    <string name="keys_security_key_intro">Der private Schlüssel wird auf dem Sicherheitsschlüssel erzeugt und verlässt ihn nie. Anmelden kann sich dann nur, wer den Sicherheitsschlüssel in der Hand hat: Ein verlorenes oder gehacktes Smartphone gibt nichts preis.</string>
+    <string name="keys_security_key_ed25519_hint">Ed25519 ist die übliche Wahl. Manche älteren Sicherheitsschlüssel können es nicht erzeugen: Für sie ECDSA wählen.</string>
+    <string name="keys_security_key_ecdsa_hint">Diesen Typ kann jeder FIDO2-Sicherheitsschlüssel erzeugen.</string>
+    <string name="keys_security_key_pin_title">PIN bei jeder Anmeldung verlangen</string>
+    <string name="keys_security_key_pin_summary">Zusätzlich zur Berührung. Auf dem Sicherheitsschlüssel muss eine PIN eingerichtet sein.</string>
+    <string name="keys_security_key_server_note">Server brauchen OpenSSH 8.2 oder neuer, um einen solchen Schlüssel zu akzeptieren.</string>
+    <string name="keys_security_key_why">Der neue Schlüssel „%1$s“ wird auf dem Sicherheitsschlüssel erzeugt.</string>
+
+    <string name="keys_import_title">Schlüssel importieren</string>
+    <string name="keys_import_private_key_label">Privater Schlüssel</string>
+    <string name="keys_choose_file">Datei auswählen…</string>
+    <string name="keys_import_passphrase_label">Passphrase des Schlüssels</string>
+    <string name="keys_import_formats">Unterstützt werden Schlüssel in den Formaten OpenSSH, PEM, PKCS#8 und PuTTY (.ppk). Der Schlüssel wird verschlüsselt auf diesem Gerät gespeichert.</string>
+    <string name="keys_import_too_large">Diese Datei ist zu groß für einen privaten Schlüssel.</string>
+    <string name="keys_error_file_not_read">Die Datei konnte nicht gelesen werden: %1$s</string>
+    <string name="keys_import_needs_passphrase">Dieser Schlüssel ist mit einer Passphrase geschützt.</string>
+    <string name="keys_import_wrong_passphrase">Diese Passphrase ist nicht richtig.</string>
+    <string name="keys_import_not_a_key">Das ist kein privater Schlüssel, der sich lesen lässt.</string>
+    <string name="keys_import">Importieren</string>
+
+    <string name="keys_details_on_security_key">Der private Schlüssel liegt auf dem Sicherheitsschlüssel. Die App speichert nur, was der Sicherheitsschlüssel braucht, um ihn zu finden. Zum Anmelden ist also der Sicherheitsschlüssel selbst nötig.</string>
+    <string name="keys_public_key_heading">Öffentlicher Schlüssel</string>
+    <string name="keys_public_key_hint">Den öffentlichen Schlüssel auf einem Server als Zeile in ~/.ssh/authorized_keys eintragen, um sich mit diesem Schlüssel anzumelden.</string>
+    <string name="keys_public_key_clip_label">Öffentlicher Schlüssel</string>
+    <string name="keys_share_public_key">Öffentlichen Schlüssel teilen</string>
+    <string name="keys_export_private_key">Schlüssel exportieren</string>
+    <string name="keys_certificate_heading">Zertifikat</string>
+    <string name="keys_certificate_remove">Zertifikat entfernen</string>
+    <string name="keys_certificate_hint">Hat eine Zertifizierungsstelle diesen Schlüssel signiert, das von ihr ausgestellte Zertifikat hinzufügen. Server, die der Stelle vertrauen, akzeptieren den Schlüssel dann, ohne ihn zu kennen.</string>
+    <string name="keys_certificate_add">Zertifikat hinzufügen…</string>
+
+    <string name="keys_delete_title">%1$s löschen?</string>
+    <plurals name="keys_delete_text_in_use">
+        <item quantity="one">%1$d Host verwendet diesen Schlüssel und fällt auf die Anmeldung mit Passwort zurück. Das lässt sich nicht rückgängig machen.</item>
+        <item quantity="other">%1$d Hosts verwenden diesen Schlüssel und fallen auf die Anmeldung mit Passwort zurück. Das lässt sich nicht rückgängig machen.</item>
+    </plurals>
+    <string name="keys_delete_text">Der private Schlüssel wird von diesem Gerät entfernt. Das lässt sich nicht rückgängig machen.</string>
+
+    <string name="keys_certificate_not_valid_yet">„%1$s“ für %2$s, noch nicht gültig</string>
+    <string name="keys_certificate_endless">„%1$s“ für %2$s, läuft nicht ab</string>
+    <string name="keys_certificate_valid_until">„%1$s“ für %2$s, gültig bis %3$s</string>
+    <string name="keys_certificate_expired">„%1$s“ für %2$s, abgelaufen am %3$s</string>
+    <string name="keys_certificate_any_account_not_valid_yet">„%1$s“ für jedes Konto, noch nicht gültig</string>
+    <string name="keys_certificate_any_account_endless">„%1$s“ für jedes Konto, läuft nicht ab</string>
+    <string name="keys_certificate_any_account_valid_until">„%1$s“ für jedes Konto, gültig bis %2$s</string>
+    <string name="keys_certificate_any_account_expired">„%1$s“ für jedes Konto, abgelaufen am %2$s</string>
+
+    <string name="keys_certificate_add_title">Zertifikat hinzufügen</string>
+    <string name="keys_certificate_add_text">Den Inhalt der -cert.pub-Datei einfügen, die für diesen Schlüssel erstellt wurde, oder die Datei auswählen.</string>
+    <string name="keys_certificate_label">Zertifikat</string>
+    <string name="keys_certificate_other_key">Dieses Zertifikat wurde für einen anderen Schlüssel ausgestellt</string>
+    <string name="keys_certificate_for_server">Dieses Zertifikat weist einen Server aus; zum Anmelden lässt es sich nicht verwenden</string>
+
+    <string name="keys_export_title">Privaten Schlüssel exportieren</string>
+    <string name="keys_export_text">Schreibt den privaten Schlüssel im OpenSSH-Format, wie es ssh und ssh-add verwenden. Wer diese Datei bekommt, kann sich in deinem Namen anmelden.</string>
+    <string name="keys_export_passphrase_label">Passphrase (empfohlen)</string>
+    <string name="keys_export_passphrase_hint">Leer lassen, um den Schlüssel unverschlüsselt zu schreiben.</string>
+    <string name="keys_export_choose_destination">Speicherort wählen</string>
+    <string name="keys_export_failed">Export fehlgeschlagen: %1$s</string>
+    <string name="keys_reason_destination_not_opened">Der Speicherort konnte nicht geöffnet werden</string>
+
+    <string name="installkey_title">Öffentlichen Schlüssel installieren</string>
+    <string name="installkey_text">Fügt den öffentlichen Schlüssel zu ~/.ssh/authorized_keys auf %1$s hinzu, damit die Anmeldung dort mit diesem Schlüssel möglich ist.</string>
+    <string name="installkey_installed">%1$s ist installiert. Als Schlüssel für diesen Host auswählen, um sich ohne Passwort anzumelden.</string>
+    <string name="installkey_server_error">Der Server hat einen Fehler gemeldet: %1$s</string>
+    <string name="installkey_server_error_status">Der Server hat einen Fehler gemeldet: Exit-Status %1$d</string>
+    <string name="installkey_failed">Der Schlüssel konnte nicht installiert werden: %1$s</string>
+    <string name="installkey_reason_not_connected">Die Sitzung ist nicht verbunden</string>
+    <string name="installkey_done">Fertig</string>
+
+    <string name="seckey_title">Sicherheitsschlüssel</string>
+    <string name="seckey_why_login">Für die Anmeldung bei %1$s ist der Sicherheitsschlüssel nötig, auf dem „%2$s“ liegt.</string>
+    <string name="seckey_log_in_another_way">Anders anmelden</string>
+
+    <string name="seckey_present_nfc_or_usb">Den Schlüssel an die Rückseite des Smartphones halten und dort lassen, oder einstecken und berühren.</string>
+    <string name="seckey_present_nfc_or_usb_again">Den Schlüssel erneut an die Rückseite des Smartphones halten und dort lassen, oder einstecken und berühren.</string>
+    <string name="seckey_present_nfc">Den Schlüssel an die Rückseite des Smartphones halten und dort lassen.</string>
+    <string name="seckey_present_nfc_again">Den Schlüssel erneut an die Rückseite des Smartphones halten und dort lassen.</string>
+    <string name="seckey_present_usb_nfc_off">Den Schlüssel einstecken und berühren. NFC ist ausgeschaltet; ist es an, lässt sich der Schlüssel auch an das Smartphone halten.</string>
+    <string name="seckey_present_usb_nfc_off_again">Den Schlüssel erneut einstecken und berühren. NFC ist ausgeschaltet; ist es an, lässt sich der Schlüssel auch an das Smartphone halten.</string>
+    <string name="seckey_present_nfc_off">NFC ist ausgeschaltet. Einschalten, um den Schlüssel an das Smartphone zu halten.</string>
+    <string name="seckey_present_usb">Den Schlüssel einstecken und berühren.</string>
+    <string name="seckey_present_usb_again">Den Schlüssel erneut einstecken und berühren.</string>
+    <string name="seckey_present_impossible">Dieses Smartphone hat weder NFC noch einen USB-Anschluss, den ein Schlüssel nutzen könnte.</string>
+    <string name="seckey_open_nfc_settings">NFC-Einstellungen öffnen</string>
+
+    <string name="seckey_working">Die App spricht mit dem Schlüssel. Er muss bleiben, wo er ist.</string>
+    <string name="seckey_touch">Jetzt den Schlüssel berühren. Sein Licht blinkt.</string>
+
+    <string name="seckey_pin_wrong">Diese PIN ist nicht richtig.</string>
+    <plurals name="seckey_pin_wrong_tries_left">
+        <item quantity="one">Diese PIN ist nicht richtig. Noch %1$d Versuch, bevor sich der Schlüssel sperrt.</item>
+        <item quantity="other">Diese PIN ist nicht richtig. Noch %1$d Versuche, bevor sich der Schlüssel sperrt.</item>
+    </plurals>
+    <string name="seckey_pin_wanted">Dieser Schlüssel verlangt zuerst seine PIN. Das ist die PIN des Sicherheitsschlüssels selbst, kein Passwort des Servers.</string>
+    <string name="seckey_pin_label">Sicherheitsschlüssel-PIN</string>
+    <string name="seckey_untested_note">Die Unterstützung für Sicherheitsschlüssel ist neu und wurde bisher nur mit einem Nachbau aus Software erprobt, noch nicht mit einem echten Schlüssel.</string>
+
+    <string name="notify_bell_channel">Terminalglocke</string>
+    <string name="notify_bell_channel_description">Eine Sitzung im Hintergrund hat die Glocke geläutet</string>
+    <string name="notify_bell_text">Hat die Glocke geläutet</string>
+
+    <string name="shortcut_connect_to">Mit %1$s verbinden</string>
+    <string name="terminal_open_link">Link öffnen</string>
+</resources>

@@ -436,4 +436,6 @@
 
     <!-- The long label of a shortcut under the app's icon. %1$s is the name of the host. -->
     <string name="shortcut_connect_to">Connect to %1$s</string>
+    <!-- Entry of the menu that appears over selected text in the terminal, when that text is a web address. The how-to names it. -->
+    <string name="terminal_open_link">Open link</string>
 </resources>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="keybar_key_up">Haut</string>
+    <string name="keybar_key_down">Bas</string>
+    <string name="keybar_key_left">Gauche</string>
+    <string name="keybar_key_right">Droite</string>
+    <string name="keybar_key_more">Plus de touches</string>
+
+    <string name="keybar_modifier_off">Désactivée</string>
+    <string name="keybar_modifier_once">Activée pour la prochaine touche</string>
+    <string name="keybar_modifier_locked">Verrouillée</string>
+
+    <string name="keybar_panel_shown">Panneau affiché</string>
+    <string name="keybar_panel_hidden">Panneau masqué</string>
+
+    <string name="keybar_title">Touches de la barre</string>
+    <string name="keybar_reset">Réinitialiser</string>
+    <string name="keybar_intro">Appuyez sur un emplacement de la barre, puis sur la touche à y placer. L\'emplacement suivant est sélectionné automatiquement : pour remplir une rangée, il suffit d\'appuyer sur ses touches l\'une après l\'autre.</string>
+    <string name="keybar_place">Emplacement %1$d sur %2$d</string>
+    <string name="keybar_place_selected">Emplacement %1$d sur %2$d, sélectionné</string>
+    <string name="keybar_note_wide">Sur un écran large, comme un téléphone tenu à l\'horizontale, les deux rangées n\'en forment qu\'une.</string>
+    <string name="keybar_note_no_panel_key">La barre n\'a plus de touche pour le panneau : F1 à F12 et les caractères qui s\'y trouvent sont donc inaccessibles. Remettez la touche aux trois points pour les retrouver.</string>
+    <string name="keybar_section_keys">Touches</string>
+    <string name="keybar_section_characters">Caractères</string>
+    <string name="keybar_section_own">Touche personnalisée</string>
+    <string name="keybar_own_label">Texte saisi par la touche</string>
+    <string name="keybar_own_use">Utiliser</string>
+    <plurals name="keybar_own_note">
+        <item quantity="one">Jusqu\'à %1$d caractère, par exemple :wq ou une lettre dont vous avez souvent besoin. Les commandes plus longues ont leur place dans les Extraits.</item>
+        <item quantity="many">Jusqu\'à %1$d caractères, par exemple :wq ou une lettre dont vous avez souvent besoin. Les commandes plus longues ont leur place dans les Extraits.</item>
+        <item quantity="other">Jusqu\'à %1$d caractères, par exemple :wq ou une lettre dont vous avez souvent besoin. Les commandes plus longues ont leur place dans les Extraits.</item>
+    </plurals>
+    <string name="keybar_put_on_bar">placer sur la barre</string>
+
+    <string name="help_title">Mode d\'emploi de Shh</string>
+
+    <string name="help_bar_title">La barre de touches</string>
+    <string name="help_bar_intro">Les deux rangées au-dessus du clavier réunissent les touches qui manquent à un clavier de téléphone.</string>
+    <string name="help_bar_modifier_once">Appuyez une fois. La touche s\'allume, agit sur la prochaine touche pressée, puis s\'éteint d\'elle-même. Pour Ctrl+C, appuyez sur CTRL, puis sur C au clavier.</string>
+    <string name="help_bar_modifier_lock">Appuyez deux fois de suite pour la verrouiller. Une touche verrouillée affiche un point et reste active pour toutes les touches, jusqu\'à un nouvel appui. ALT fonctionne de la même façon.</string>
+    <string name="help_bar_repeat">Maintenez une flèche, PGUP, PGDN ou DEL : la touche se répète, comme sur un clavier.</string>
+    <string name="help_bar_more">Ouvre un panneau avec F1 à F12, DEL et les caractères difficiles à atteindre sur un clavier de téléphone, comme ~ \\ ` { } [ ]. Appuyez de nouveau dessus pour fermer le panneau.</string>
+    <string name="help_bar_esc">Quitte le mode insertion de vi et ferme les menus de nombreux programmes.</string>
+    <string name="help_bar_tab">Complète la commande ou le nom de fichier que vous avez commencé à taper.</string>
+    <string name="help_bar_arrange">À vous de choisir les touches de la barre et leur place : dans les Paramètres, sous « Touches de la barre ». Une touche peut aussi saisir quelques caractères de votre choix.</string>
+    <string name="help_bar_hide">La barre peut être désactivée dans les Paramètres, avec « Touches supplémentaires », ou réglée pour se masquer tant qu\'un clavier physique est connecté.</string>
+
+    <string name="help_combos_title">Combinaisons à connaître</string>
+    <string name="help_combos_ctrl_c">Arrêter le programme en cours.</string>
+    <string name="help_combos_ctrl_d">Fin de la saisie. Sur une invite vide, cela vous déconnecte.</string>
+    <string name="help_combos_ctrl_z">Suspendre le programme en cours. Tapez fg pour le reprendre.</string>
+    <string name="help_combos_ctrl_l">Effacer l\'écran.</string>
+    <string name="help_combos_ctrl_r">Rechercher dans les commandes déjà saisies.</string>
+    <string name="help_combos_ctrl_a">Aller au début de la ligne. CTRL puis E va à la fin.</string>
+    <string name="help_combos_ctrl_w">Supprimer le mot avant le curseur.</string>
+    <string name="help_combos_up">Rappeler la commande précédente.</string>
+
+    <string name="help_touch_title">Gestes tactiles</string>
+    <string name="help_cap_tap">Appui</string>
+    <string name="help_touch_tap">Ouvre le clavier. Dans les programmes qui gèrent la souris, comme htop ou mc, un appui fait office de clic.</string>
+    <string name="help_cap_swipe">Balayage</string>
+    <string name="help_touch_swipe">Fait défiler l\'affichage pour revoir ce qui précède. Dans les programmes en plein écran comme less, man ou vim, c\'est le programme qui défile.</string>
+    <string name="help_cap_pinch">Pincement</string>
+    <string name="help_touch_pinch">Réduit ou agrandit le texte.</string>
+    <string name="help_cap_hold">Appui long</string>
+    <string name="help_touch_hold">Sélectionne le mot sous votre doigt. Gardez le doigt posé et faites-le glisser pour étendre la sélection, puis choisissez « Copier ». Si la sélection est une adresse web, « Ouvrir le lien » est aussi proposé.</string>
+    <string name="help_touch_paste">Le bouton presse-papiers, en haut du terminal, sert à coller.</string>
+    <string name="help_touch_full_keyboard">Si la saisie vocale, la saisie gestuelle ou un clavier pour une autre écriture ne fonctionne pas dans le terminal, activez « Fonctions complètes du clavier » dans les Paramètres.</string>
+
+    <string name="help_keyboard_title">Avec un clavier physique</string>
+    <string name="help_cap_ctrl">Ctrl</string>
+    <string name="help_cap_shift">Maj</string>
+    <string name="help_keyboard_copy">Copier le texte sélectionné.</string>
+    <string name="help_keyboard_paste">Coller.</string>
+    <string name="help_keyboard_other_keys">Toutes les autres touches sont envoyées au serveur telles quelles.</string>
+
+    <string name="help_sessions_title">Sessions</string>
+    <string name="help_sessions_background">Les sessions restent connectées quand vous quittez l\'application. Une notification indique qu\'elles sont ouvertes et permet de toutes les déconnecter.</string>
+    <string name="help_sessions_new">Ouvrez-en une autre avec « Nouvelle session » dans le menu ⋮. Dès que plusieurs sont ouvertes, des onglets permettent de passer de l\'une à l\'autre.</string>
+    <string name="help_sessions_reconnect">Quand une connexion est coupée, par exemple parce que le téléphone a changé de réseau, l\'application se reconnecte d\'elle-même et relance la commande de démarrage de l\'hôte. Avec une commande comme tmux new -A -s main, vous retrouvez tout là où vous l\'aviez laissé.</string>
+    <string name="help_sessions_mosh">Si Mosh est installé sur un hôte, activez « Utiliser Mosh » dans ses paramètres. La session se poursuit alors malgré un changement de réseau, sans nouvelle authentification, et patiente quand la connexion disparaît un moment. Si Mosh est injoignable, la session reste en SSH et le signale.</string>
+    <string name="help_sessions_ended">Quand une session se termine pour une autre raison, la barre sous le terminal indique pourquoi et propose de la reconnecter.</string>
+    <string name="help_sessions_exit">Quitter le shell avec exit, ou avec CTRL puis D, ferme son onglet.</string>
+    <string name="help_sessions_bell">Une session que vous ne regardez pas envoie une notification quand elle émet un bip. Terminez une longue commande par ; printf \'\\a\' pour savoir quand elle est terminée.</string>
+    <string name="help_sessions_shortcuts">Un appui long sur l\'icône de l\'application, sur l\'écran d\'accueil, donne des raccourcis vers les derniers hôtes utilisés.</string>
+    <string name="help_sessions_quick_connect">Dans la liste des hôtes, saisir user@host ou user@host:port dans le champ de recherche lance une connexion sans enregistrer d\'hôte.</string>
+    <string name="help_sessions_import_config">Si vous avez un fichier de configuration SSH venant d\'un ordinateur, « Importer une config SSH », dans le menu ⋮ de la liste des hôtes, ajoute ses hôtes avec leurs hôtes de rebond et leurs redirections de port.</string>
+
+    <string name="help_login_title">Se connecter avec une clé</string>
+    <string name="help_login_create">Créez ou importez une clé dans « Clés », le bouton en forme de clé de la liste des hôtes.</string>
+    <string name="help_login_install">Pendant une connexion par mot de passe, « Installer une clé publique », dans le menu ⋮, place la clé sur le serveur.</string>
+    <string name="help_login_choose">Choisissez ensuite la clé dans les paramètres de l\'hôte. Dès lors, plus aucun mot de passe n\'est demandé.</string>
+    <string name="help_login_certificate">Si vos serveurs font confiance à une autorité de certification, ajoutez le certificat qu\'elle a émis pour la clé : appuyez sur la clé dans « Clés » et choisissez « Ajouter un certificat ».</string>
+    <string name="help_login_security_key">Avec une clé de sécurité FIDO2, le bouton + de « Clés » permet de créer une clé directement dessus. Se connecter exige alors la clé de sécurité : tenez-la contre le dos du téléphone ou branchez-la, puis touchez-la quand elle clignote. Cette fonction est nouvelle et n\'a pas encore été essayée avec du vrai matériel.</string>
+    <string name="help_login_agent">Pour utiliser vos clés depuis un serveur, avec ssh ou git par exemple, activez « Transférer l\'agent SSH » dans les paramètres de cet hôte. Les clés restent sur le téléphone, et votre accord est demandé avant chaque utilisation.</string>
+
+    <string name="help_menu_title">Également dans le menu ⋮ d\'un terminal</string>
+    <string name="help_cap_files">Fichiers</string>
+    <string name="help_menu_files">Parcourir les fichiers du serveur ; en envoyer, en télécharger, les renommer et les modifier.</string>
+    <string name="help_cap_port_forwards">Redirections</string>
+    <string name="help_menu_port_forwards">Atteindre un service du réseau du serveur en passant par la connexion.</string>
+    <string name="help_cap_snippets">Extraits</string>
+    <string name="help_menu_snippets">Envoyer une commande enregistrée auparavant.</string>
+    <string name="help_cap_colours">Couleurs</string>
+    <string name="help_menu_colours">Changer le jeu de couleurs. Les Paramètres fixent celui par défaut, et les paramètres d\'un hôte peuvent lui donner le sien.</string>
+    <string name="help_menu_font">Les Paramètres permettent aussi d\'afficher le terminal avec votre propre police : n\'importe quel fichier .ttf ou .otf à chasse fixe présent sur le téléphone.</string>
+</resources>

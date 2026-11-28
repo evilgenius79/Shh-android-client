@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_cancel">Отмена</string>
+    <string name="action_close">Закрыть</string>
+    <string name="action_save">Сохранить</string>
+    <string name="action_ok">ОК</string>
+    <string name="action_continue">Продолжить</string>
+    <string name="action_add">Добавить</string>
+    <string name="action_delete">Удалить</string>
+    <string name="action_copy">Скопировать</string>
+    <string name="action_share">Поделиться</string>
+    <string name="action_back">Назад</string>
+    <string name="action_more">Ещё</string>
+    <string name="label_name">Название</string>
+    <string name="label_port">Порт</string>
+    <string name="label_user_name">Имя пользователя</string>
+</resources>

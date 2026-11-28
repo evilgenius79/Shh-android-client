@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="terminal_connecting">Подключение…</string>
+    <string name="terminal_reconnecting">Переподключение…</string>
+    <plurals name="terminal_mosh_silent_seconds">
+        <item quantity="one">Сервер не отвечает уже %1$d секунду.</item>
+        <item quantity="few">Сервер не отвечает уже %1$d секунды.</item>
+        <item quantity="many">Сервер не отвечает уже %1$d секунд.</item>
+        <item quantity="other">Сервер не отвечает уже %1$d секунды.</item>
+    </plurals>
+    <plurals name="terminal_mosh_silent_minutes">
+        <item quantity="one">Сервер не отвечает уже %1$d минуту.</item>
+        <item quantity="few">Сервер не отвечает уже %1$d минуты.</item>
+        <item quantity="many">Сервер не отвечает уже %1$d минут.</item>
+        <item quantity="other">Сервер не отвечает уже %1$d минуты.</item>
+    </plurals>
+    <string name="terminal_mosh_silent_explanation">Mosh сохраняет сеанс. Он продолжится сам, когда сервер снова станет доступен, в том числе из другой сети.</string>
+    <string name="terminal_reconnecting_attempt">Переподключение, попытка %1$d…</string>
+    <string name="terminal_back_to_hosts">Хосты</string>
+    <string name="terminal_paste">Вставить</string>
+
+    <string name="terminal_menu_new_session">Новый сеанс</string>
+    <string name="terminal_menu_snippets">Сниппеты</string>
+    <string name="terminal_menu_files">Файлы</string>
+    <string name="terminal_menu_port_forwards">Пробросы</string>
+    <string name="terminal_menu_install_key">Установить открытый ключ</string>
+    <string name="terminal_menu_colours">Цвета</string>
+    <string name="terminal_menu_larger_text">Увеличить текст</string>
+    <string name="terminal_menu_smaller_text">Уменьшить текст</string>
+    <string name="terminal_menu_show_keyboard">Показать клавиатуру</string>
+    <string name="terminal_menu_how_to_use">Как пользоваться</string>
+    <string name="terminal_menu_reset">Сбросить терминал</string>
+    <string name="terminal_menu_close_session">Закрыть сеанс</string>
+
+    <string name="terminal_snippets_title">Сниппеты</string>
+    <string name="terminal_snippets_empty">Сниппетов пока нет. Добавьте их через меню списка хостов.</string>
+    <string name="terminal_colours_title">Цвета для этого сеанса</string>
+
+    <string name="terminal_reconnect">Переподключиться</string>
+    <string name="terminal_allow_local_network">Разрешить доступ</string>
+    <string name="terminal_reconnect_try_now">Попробовать сейчас</string>
+    <string name="terminal_reconnect_stop">Остановить</string>
+
+    <string name="terminal_hint_local_network_blocked">Android не даёт этому приложению связываться с устройствами в вашей локальной сети. Если этот сервер находится в вашей сети Wi-Fi или в другой локальной сети, разрешите доступ, и приложение подключится снова.</string>
+    <string name="terminal_hint_no_answer">Ответа нет. Проверьте адрес и порт и убедитесь, что устройство подключено к нужной сети.</string>
+    <string name="terminal_hint_refused">Хост доступен, но этот порт никто не слушает.</string>
+    <string name="terminal_hint_unknown_host">Не удалось найти адрес по этому имени. Проверьте написание и подключение к сети.</string>
+    <string name="terminal_hint_protocol">Если это старое устройство, попробуйте включить «Разрешить устаревшие алгоритмы» в настройках хоста.</string>
+    <string name="terminal_hint_auth_failed">Проверьте имя пользователя, пароль или ключ для этого хоста.</string>
+
+    <string name="terminal_hostkey_changed_title">Ключ хоста изменился</string>
+    <string name="terminal_hostkey_new_type_title">Новый ключ известного хоста</string>
+    <string name="terminal_hostkey_unknown_title">Неизвестный хост</string>
+    <string name="terminal_hostkey_changed_text">Сервер %1$s предъявил не тот ключ, которому вы доверяли раньше. Если вы не знаете наверняка, что сервер переустанавливали, возможно, кто-то перехватывает соединение.</string>
+    <string name="terminal_hostkey_new_type_text">Сервер %1$s известен, но предъявил ключ такого типа, какого вы от него ещё не видели.</string>
+    <string name="terminal_hostkey_unknown_text">Вы ещё не подключались к %1$s. Убедитесь, что отпечаток совпадает с отпечатком сервера.</string>
+    <string name="terminal_hostkey_previously_trusted">Ранее вы доверяли:</string>
+    <string name="terminal_hostkey_replace">Заменить и подключиться</string>
+    <string name="terminal_hostkey_trust">Доверять и подключиться</string>
+    <string name="terminal_hostkey_once">Только в этот раз</string>
+
+    <string name="terminal_password_title">Пароль</string>
+    <string name="terminal_password_for">Пароль для %1$s</string>
+    <string name="terminal_password_again">Этот пароль не принят. Введите пароль для %1$s ещё раз.</string>
+    <string name="terminal_password_label">Пароль</string>
+    <string name="terminal_log_in">Войти</string>
+
+    <string name="terminal_agent_title">Использовать ваш ключ?</string>
+    <string name="terminal_agent_text">Сервер %1$s хочет войти куда-то ещё с вашим ключом «%2$s». Разрешите, если вы только что запустили там программу, которой это нужно, например ssh или git.</string>
+    <string name="terminal_agent_allow_once">Разрешить один раз</string>
+    <string name="terminal_agent_allow_session">Разрешить на этот сеанс</string>
+    <string name="terminal_agent_deny">Запретить</string>
+
+    <string name="terminal_challenge_title">Подтверждение</string>
+
+    <string name="terminal_host_copy_name">%1$s (копия)</string>
+
+    <string name="files_upload">Загрузить файл на сервер</string>
+    <string name="files_new_folder">Новая папка</string>
+    <string name="files_refresh">Обновить</string>
+    <string name="files_parent_folder">Родительская папка</string>
+
+    <string name="files_uploading">Загрузка на сервер: %1$s · %2$s</string>
+    <string name="files_downloading">Скачивание: %1$s · %2$s</string>
+
+    <string name="files_empty_title">Папка пуста</string>
+    <string name="files_empty_text">Загрузите сюда файл или создайте папку кнопками вверху.</string>
+
+    <string name="files_entry_details_with_size">%1$s · %2$s · %3$s</string>
+    <string name="files_entry_details">%1$s · %2$s</string>
+    <string name="files_options_for">Действия для %1$s</string>
+
+    <string name="files_download">Скачать</string>
+    <string name="files_edit_as_text">Изменить как текст</string>
+    <string name="files_rename">Переименовать</string>
+    <string name="files_permissions">Права доступа</string>
+    <string name="files_copy_path">Скопировать путь</string>
+    <string name="files_path_clip_label">Путь</string>
+
+    <string name="files_new_folder_title">Новая папка</string>
+    <string name="files_create">Создать</string>
+    <string name="files_rename_title">Переименовать</string>
+    <string name="files_new_name_label">Новое имя</string>
+
+    <string name="files_delete_title">Удалить %1$s?</string>
+    <string name="files_delete_folder_text">Папка и всё её содержимое будут удалены с сервера. Это действие нельзя отменить.</string>
+    <string name="files_delete_file_text">Файл будет удалён с сервера. Это действие нельзя отменить.</string>
+
+    <string name="files_permissions_title">Права доступа: %1$s</string>
+    <string name="files_permissions_label">Восьмеричный код, например 644</string>
+    <string name="files_apply">Применить</string>
+
+    <string name="files_discard_title">Не сохранять изменения?</string>
+    <string name="files_discard_text">Изменения в %1$s не сохранены.</string>
+    <string name="files_discard">Не сохранять</string>
+
+    <string name="files_error_open_browser">Не удалось открыть файловый менеджер: %1$s</string>
+    <string name="files_error_open">Не удалось открыть %1$s: %2$s</string>
+    <string name="files_error_create_folder">Не удалось создать папку: %1$s</string>
+    <string name="files_error_rename">Не удалось переименовать %1$s: %2$s</string>
+    <string name="files_error_delete">Не удалось удалить %1$s: %2$s</string>
+    <string name="files_error_permissions">Не удалось изменить права доступа: %1$s</string>
+    <string name="files_error_download">Не удалось скачать %1$s: %2$s</string>
+    <string name="files_error_upload">Не удалось загрузить %1$s на сервер: %2$s</string>
+    <string name="files_error_save">Не удалось сохранить %1$s: %2$s</string>
+    <string name="files_transfer_cancelled">Передача отменена</string>
+
+    <string name="files_reason_session_not_connected">сеанс не подключён</string>
+    <string name="files_reason_not_connected">нет подключения</string>
+    <string name="files_reason_destination_not_opened">не удалось открыть место сохранения</string>
+    <string name="files_reason_file_not_opened">не удалось открыть файл</string>
+
+    <string name="keys_title">Ключи</string>
+    <string name="keys_add">Добавить ключ</string>
+    <string name="keys_add_generate">Создать новый ключ</string>
+    <string name="keys_add_import">Импортировать существующий ключ</string>
+    <string name="keys_add_on_security_key">Новый ключ на ключе безопасности</string>
+
+    <string name="keys_empty_title">Ключей пока нет</string>
+    <string name="keys_empty_text">Создайте пару ключей или импортируйте существующую, затем разместите открытый ключ на своих серверах, чтобы входить без пароля.</string>
+
+    <plurals name="keys_kind_used_by">
+        <item quantity="one">%1$s · используется %2$d хостом</item>
+        <item quantity="few">%1$s · используется %2$d хостами</item>
+        <item quantity="many">%1$s · используется %2$d хостами</item>
+        <item quantity="other">%1$s · используется %2$d хоста</item>
+    </plurals>
+
+    <string name="keys_generate_title">Создание ключа</string>
+    <string name="keys_type_label">Тип</string>
+    <string name="keys_generate_ed25519_hint">Ed25519 — рекомендуемый вариант: компактный, быстрый и поддерживается всеми современными серверами.</string>
+    <string name="keys_generate_other_hint">Используйте этот тип, только если сервер не принимает ключи Ed25519.</string>
+    <string name="keys_generating">Создание ключа…</string>
+    <string name="keys_generate">Создать</string>
+
+    <string name="keys_security_key_title">Новый ключ на ключе безопасности</string>
+    <string name="keys_security_key_intro">Закрытый ключ создаётся на ключе безопасности и никогда его не покидает. Для входа после этого нужен сам ключ безопасности у вас в руках: потерянный или взломанный телефон ничего не даст постороннему.</string>
+    <string name="keys_security_key_ed25519_hint">Обычно выбирают Ed25519. Некоторые старые ключи безопасности его не поддерживают: для них выберите ECDSA.</string>
+    <string name="keys_security_key_ecdsa_hint">Этот тип поддерживает любой ключ безопасности FIDO2.</string>
+    <string name="keys_security_key_pin_title">Запрашивать PIN-код при каждом входе</string>
+    <string name="keys_security_key_pin_summary">В дополнение к касанию. На ключе безопасности должен быть задан PIN-код.</string>
+    <string name="keys_security_key_server_note">Чтобы принимать такой ключ, серверу нужен OpenSSH 8.2 или новее.</string>
+    <string name="keys_security_key_why">Новый ключ «%1$s» будет создан на вашем ключе безопасности.</string>
+
+    <string name="keys_import_title">Импорт ключа</string>
+    <string name="keys_import_private_key_label">Закрытый ключ</string>
+    <string name="keys_choose_file">Выбрать файл…</string>
+    <string name="keys_import_passphrase_label">Парольная фраза ключа</string>
+    <string name="keys_import_formats">Поддерживаются ключи в форматах OpenSSH, PEM, PKCS#8 и PuTTY (.ppk). Ключ хранится на этом устройстве в зашифрованном виде.</string>
+    <string name="keys_import_too_large">Этот файл слишком велик для закрытого ключа.</string>
+    <string name="keys_error_file_not_read">Не удалось прочитать файл: %1$s</string>
+    <string name="keys_import_needs_passphrase">Этот ключ защищён парольной фразой.</string>
+    <string name="keys_import_wrong_passphrase">Неверная парольная фраза.</string>
+    <string name="keys_import_not_a_key">Это не закрытый ключ, или его формат не поддерживается.</string>
+    <string name="keys_import">Импортировать</string>
+
+    <string name="keys_details_on_security_key">Закрытый ключ находится на ключе безопасности. В приложении хранится только то, что нужно ключу безопасности, чтобы его найти, поэтому для входа необходим сам ключ безопасности.</string>
+    <string name="keys_public_key_heading">Открытый ключ</string>
+    <string name="keys_public_key_hint">Чтобы входить с этим ключом, добавьте открытый ключ отдельной строкой в ~/.ssh/authorized_keys на сервере.</string>
+    <string name="keys_public_key_clip_label">Открытый ключ</string>
+    <string name="keys_share_public_key">Поделиться открытым ключом</string>
+    <string name="keys_export_private_key">Экспорт закрытого ключа</string>
+    <string name="keys_certificate_heading">Сертификат</string>
+    <string name="keys_certificate_remove">Удалить сертификат</string>
+    <string name="keys_certificate_hint">Если этот ключ подписан центром сертификации, добавьте выданный им сертификат. Тогда серверы, которые доверяют этому центру, будут принимать ключ, даже не зная его.</string>
+    <string name="keys_certificate_add">Добавить сертификат…</string>
+
+    <string name="keys_delete_title">Удалить %1$s?</string>
+    <plurals name="keys_delete_text_in_use">
+        <item quantity="one">%1$d хост использует этот ключ и перейдёт на вход по паролю. Это действие нельзя отменить.</item>
+        <item quantity="few">%1$d хоста используют этот ключ и перейдут на вход по паролю. Это действие нельзя отменить.</item>
+        <item quantity="many">%1$d хостов используют этот ключ и перейдут на вход по паролю. Это действие нельзя отменить.</item>
+        <item quantity="other">%1$d хоста используют этот ключ и перейдут на вход по паролю. Это действие нельзя отменить.</item>
+    </plurals>
+    <string name="keys_delete_text">Закрытый ключ будет удалён с этого устройства. Это действие нельзя отменить.</string>
+
+    <string name="keys_certificate_not_valid_yet">«%1$s» для %2$s, ещё не действует</string>
+    <string name="keys_certificate_endless">«%1$s» для %2$s, бессрочный</string>
+    <string name="keys_certificate_valid_until">«%1$s» для %2$s, действует до %3$s</string>
+    <string name="keys_certificate_expired">«%1$s» для %2$s, истёк %3$s</string>
+    <string name="keys_certificate_any_account_not_valid_yet">«%1$s» для любого пользователя, ещё не действует</string>
+    <string name="keys_certificate_any_account_endless">«%1$s» для любого пользователя, бессрочный</string>
+    <string name="keys_certificate_any_account_valid_until">«%1$s» для любого пользователя, действует до %2$s</string>
+    <string name="keys_certificate_any_account_expired">«%1$s» для любого пользователя, истёк %2$s</string>
+
+    <string name="keys_certificate_add_title">Добавить сертификат</string>
+    <string name="keys_certificate_add_text">Вставьте содержимое файла -cert.pub, созданного для этого ключа, или выберите файл.</string>
+    <string name="keys_certificate_label">Сертификат</string>
+    <string name="keys_certificate_other_key">Этот сертификат выдан для другого ключа</string>
+    <string name="keys_certificate_for_server">Это сертификат сервера; для входа он не подходит</string>
+
+    <string name="keys_export_title">Экспорт закрытого ключа</string>
+    <string name="keys_export_text">Записывает закрытый ключ в формате OpenSSH, с которым работают ssh и ssh-add. Любой, кто получит этот файл, сможет входить от вашего имени.</string>
+    <string name="keys_export_passphrase_label">Парольная фраза (желательно)</string>
+    <string name="keys_export_passphrase_hint">Оставьте поле пустым, чтобы записать ключ без шифрования.</string>
+    <string name="keys_export_choose_destination">Выбрать место сохранения</string>
+    <string name="keys_export_failed">Не удалось экспортировать ключ: %1$s</string>
+    <string name="keys_reason_destination_not_opened">не удалось открыть место сохранения</string>
+
+    <string name="installkey_title">Установить открытый ключ</string>
+    <string name="installkey_text">Добавляет открытый ключ в ~/.ssh/authorized_keys на хосте %1$s, чтобы с этим ключом можно было туда входить.</string>
+    <string name="installkey_installed">Ключ «%1$s» установлен. Выберите его в качестве ключа для этого хоста, чтобы входить без пароля.</string>
+    <string name="installkey_server_error">Сервер сообщил об ошибке: %1$s</string>
+    <string name="installkey_server_error_status">Сервер сообщил об ошибке: код завершения %1$d</string>
+    <string name="installkey_failed">Не удалось установить ключ: %1$s</string>
+    <string name="installkey_reason_not_connected">сеанс не подключён</string>
+    <string name="installkey_done">Готово</string>
+
+    <string name="seckey_title">Ключ безопасности</string>
+    <string name="seckey_why_login">Для входа на %1$s нужен ключ безопасности, на котором хранится ключ «%2$s».</string>
+    <string name="seckey_log_in_another_way">Войти другим способом</string>
+
+    <string name="seckey_present_nfc_or_usb">Приложите ключ к задней стороне телефона и не убирайте его. Или подключите ключ по USB и коснитесь его.</string>
+    <string name="seckey_present_nfc_or_usb_again">Снова приложите ключ к задней стороне телефона и не убирайте его. Или подключите ключ по USB и коснитесь его.</string>
+    <string name="seckey_present_nfc">Приложите ключ к задней стороне телефона и не убирайте его.</string>
+    <string name="seckey_present_nfc_again">Снова приложите ключ к задней стороне телефона и не убирайте его.</string>
+    <string name="seckey_present_usb_nfc_off">Подключите ключ по USB и коснитесь его. NFC выключен; если его включить, ключ можно будет также приложить к телефону.</string>
+    <string name="seckey_present_usb_nfc_off_again">Снова подключите ключ по USB и коснитесь его. NFC выключен; если его включить, ключ можно будет также приложить к телефону.</string>
+    <string name="seckey_present_nfc_off">NFC выключен. Включите его, чтобы приложить ключ к телефону.</string>
+    <string name="seckey_present_usb">Подключите ключ по USB и коснитесь его.</string>
+    <string name="seckey_present_usb_again">Снова подключите ключ по USB и коснитесь его.</string>
+    <string name="seckey_present_impossible">В этом телефоне нет ни NFC, ни порта USB, с которым мог бы работать ключ.</string>
+    <string name="seckey_open_nfc_settings">Открыть настройки NFC</string>
+
+    <string name="seckey_working">Идёт обмен данными с ключом. Не убирайте его.</string>
+    <string name="seckey_touch">Теперь коснитесь ключа. Его индикатор мигает.</string>
+
+    <string name="seckey_pin_wrong">Неверный PIN-код.</string>
+    <plurals name="seckey_pin_wrong_tries_left">
+        <item quantity="one">Неверный PIN-код. Осталась %1$d попытка, потом ключ заблокируется.</item>
+        <item quantity="few">Неверный PIN-код. Осталось %1$d попытки, потом ключ заблокируется.</item>
+        <item quantity="many">Неверный PIN-код. Осталось %1$d попыток, потом ключ заблокируется.</item>
+        <item quantity="other">Неверный PIN-код. Осталось %1$d попытки, потом ключ заблокируется.</item>
+    </plurals>
+    <string name="seckey_pin_wanted">Сначала этому ключу нужен PIN-код. Это PIN-код самого ключа безопасности, а не пароль сервера.</string>
+    <string name="seckey_pin_label">PIN-код ключа</string>
+    <string name="seckey_untested_note">Поддержка ключей безопасности появилась недавно и пока проверена только на программном имитаторе, а не на настоящем ключе.</string>
+
+    <string name="notify_bell_channel">Сигнал терминала</string>
+    <string name="notify_bell_channel_description">Сеанс в фоновом режиме подал сигнал терминала</string>
+    <string name="notify_bell_text">Подан сигнал терминала</string>
+
+    <string name="shortcut_connect_to">Подключиться к %1$s</string>
+    <string name="terminal_open_link">Открыть ссылку</string>
+</resources>
